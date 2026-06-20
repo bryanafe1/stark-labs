@@ -1,0 +1,634 @@
+// ===========================================================================
+//  STARK — Prisma Schema
+//  Gamified, multidisciplinary engineering interview-prep platform.
+//
+//  Design principles:
+//   - Discipline is a first-class enum, threaded through Elo, Problems,
+//     Lessons, Quizzes and the Skill Tree for strong cross-cutting integrity.
+//   - One canonical User; everything else hangs off it via cascading relations.
+//   - Composite uniques + indexes guard the hot query paths (leaderboards,
+//     skill progress, submissions) so the data model scales with the product.
+// ===========================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------------------------------------------------------------------------
+//  ENUMS
+// ---------------------------------------------------------------------------
+
+// Primary engineering disciplines. FEA / CFD / CAD etc. are NOT disciplines —
+// they are cross-cutting SkillAreas (kind = TECHNICAL); thermo / fluids /
+// materials etc. are SkillAreas (kind = SUBJECT). See the SkillArea model.
+enum Discipline {
+  MECHANICAL
+  AEROSPACE
+  ELECTRICAL
+  COMPUTER
+  CIVIL
+  CHEMICAL
+  MECHATRONICS
+  INDUSTRIAL
+  BIOMEDICAL
+  ENVIRONMENTAL
+}
+
+// A skill area sits UNDER disciplines and is shared across them.
+enum SkillKind {
+  SUBJECT // knowledge area: thermodynamics, fluid mechanics, materials, …
+  TECHNICAL // tool / method: FEA, CFD, CAD, MATLAB, PCB design, …
+}
+
+enum UserRole {
+  USER
+  AUTHOR // can publish lessons / blogs
+  MODERATOR
+  ADMIN
+}
+
+// Competitive ladder tiers, derived from Elo but stored for fast reads.
+enum RankTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+  MASTER
+  GRANDMASTER
+}
+
+enum Difficulty {
+  INTRODUCTORY
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+// How a problem's answer is checked by the Evaluation Engine.
+enum EvaluationMode {
+  NUMERIC_TOLERANCE // |answer - expected| <= tolerance
+  MULTIPLE_CHOICE
+  EXACT_MATCH
+  LLM_GRADED // free-form design logic graded by the LLM API
+}
+
+enum SubmissionStatus {
+  PENDING
+  GRADING
+  CORRECT
+  INCORRECT
+  PARTIAL
+  ERROR
+}
+
+enum MatchStatus {
+  QUEUED
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+  CANCELLED
+}
+
+enum MatchResult {
+  WIN
+  LOSS
+  DRAW
+}
+
+enum SkillNodeStatus {
+  LOCKED
+  AVAILABLE
+  IN_PROGRESS
+  MASTERED
+}
+
+enum ThreadCategory {
+  GENERAL
+  SOLUTIONS // solution-sharing sub-forums
+  CAREER
+  SHOWCASE
+  HELP
+}
+
+enum NotificationType {
+  MATCH_FOUND
+  RANK_CHANGE
+  SUBMISSION_GRADED
+  COMMENT_REPLY
+  POST_MENTION
+  SKILL_UNLOCKED
+  SYSTEM
+}
+
+// ---------------------------------------------------------------------------
+//  IDENTITY  (Auth.js-compatible: User / Account / Session)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  username      String    @unique
+  displayName   String?
+  image         String?
+  bio           String?   @db.Text
+  role          UserRole  @default(USER)
+
+  // Aggregate gamification state (denormalised for cheap dashboard reads).
+  overallElo Int      @default(1200)
+  rankTier   RankTier @default(BRONZE)
+  xp         Int      @default(0)
+  streakDays Int      @default(0)
+  lastActive DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  accounts        Account[]
+  sessions        Session[]
+  eloRatings      EloRating[]
+  skillProgress   SkillProgress[]
+  submissions     Submission[]
+  matchParticipations MatchParticipant[]
+  quizAttempts    QuizAttempt[]
+  authoredLessons Lesson[]           @relation("LessonAuthor")
+  posts           Post[]
+  threads         Thread[]
+  comments        Comment[]
+  notifications   Notification[]
+
+  @@index([rankTier, overallElo])
+  @@index([username])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+//  ELO / RANKED MATCHMAKING
+// ---------------------------------------------------------------------------
+
+// Per-discipline Elo. One row per (user, discipline) — the overall figure
+// is mirrored onto User for fast dashboard rendering.
+model EloRating {
+  id         String     @id @default(cuid())
+  userId     String
+  discipline Discipline
+  elo        Int        @default(1200)
+  peakElo    Int        @default(1200)
+  rankTier   RankTier   @default(BRONZE)
+  wins       Int        @default(0)
+  losses     Int        @default(0)
+  draws      Int        @default(0)
+  updatedAt  DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, discipline])
+  @@index([discipline, elo]) // leaderboard query path
+}
+
+// A timed engineering-sprint match between two (or more) players.
+model Match {
+  id         String      @id @default(cuid())
+  discipline Discipline
+  status     MatchStatus @default(QUEUED)
+  difficulty Difficulty  @default(MEDIUM)
+  startedAt  DateTime?
+  endedAt    DateTime?
+  durationSeconds Int    @default(900) // sprint length
+  createdAt  DateTime    @default(now())
+
+  participants MatchParticipant[]
+  problems     MatchProblem[]
+
+  @@index([status, discipline])
+}
+
+model MatchParticipant {
+  id          String       @id @default(cuid())
+  matchId     String
+  userId      String
+  eloBefore   Int
+  eloAfter    Int?
+  eloDelta    Int?
+  score       Int          @default(0)
+  result      MatchResult?
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, userId])
+  @@index([userId])
+}
+
+// Join table — which problems were served in a given match, and in what order.
+model MatchProblem {
+  matchId   String
+  problemId String
+  order     Int
+
+  match   Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@id([matchId, problemId])
+  @@index([problemId])
+}
+
+// ---------------------------------------------------------------------------
+//  SKILL TREE  (cross-disciplinary proficiency graph)
+// ---------------------------------------------------------------------------
+
+model SkillNode {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  description String?    @db.Text
+  discipline  Discipline
+  icon        String? // lucide icon name
+  xpReward    Int        @default(100)
+  position    Int        @default(0) // ordering within a discipline track
+  kind        SkillKind  @default(SUBJECT) // SUBJECT (thermo, fluids…) or TECHNICAL (FEA, CAD…)
+
+  // Self-referential DAG: a node may require prerequisite nodes.
+  prerequisites SkillEdge[] @relation("DependentNode")
+  unlocks       SkillEdge[] @relation("PrerequisiteNode")
+
+  progress SkillProgress[]
+  lessons  Lesson[]
+
+  @@index([discipline, position])
+}
+
+// Edge in the prerequisite DAG: `prerequisite` must be mastered to unlock `dependent`.
+model SkillEdge {
+  prerequisiteId String
+  dependentId    String
+
+  prerequisite SkillNode @relation("PrerequisiteNode", fields: [prerequisiteId], references: [id], onDelete: Cascade)
+  dependent    SkillNode @relation("DependentNode", fields: [dependentId], references: [id], onDelete: Cascade)
+
+  @@id([prerequisiteId, dependentId])
+  @@index([dependentId])
+}
+
+model SkillProgress {
+  id          String          @id @default(cuid())
+  userId      String
+  skillNodeId String
+  status      SkillNodeStatus @default(LOCKED)
+  masteryPct  Int             @default(0) // 0–100
+  xpEarned    Int             @default(0)
+  updatedAt   DateTime        @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillNode SkillNode @relation(fields: [skillNodeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillNodeId])
+  @@index([userId, status])
+}
+
+// ---------------------------------------------------------------------------
+//  PROBLEMS & SUBMISSIONS  (Evaluation Engine)
+// ---------------------------------------------------------------------------
+
+model Problem {
+  id             String         @id @default(cuid())
+  slug           String         @unique
+  title          String
+  prompt         String         @db.Text // markdown + LaTeX
+  discipline     Discipline
+  difficulty     Difficulty     @default(MEDIUM)
+  evaluationMode EvaluationMode @default(NUMERIC_TOLERANCE)
+
+  // Evaluation config (interpretation depends on evaluationMode):
+  expectedValue Float? // NUMERIC_TOLERANCE
+  tolerance     Float? // NUMERIC_TOLERANCE (absolute)
+  unit          String? // e.g. "MPa", "N·m"
+  choices       Json? // MULTIPLE_CHOICE: [{ id, label, correct }]
+  expectedText  String? @db.Text // EXACT_MATCH
+  rubric        String? @db.Text // LLM_GRADED grading rubric
+
+  eloWeight Int      @default(20) // K-factor influence in ranked play
+  skillAreas String[] @default([]) // SkillArea slugs (subjects + technical) this problem trains
+  published Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  submissions  Submission[]
+  matchProblems MatchProblem[]
+  tags         TagsOnProblems[]
+
+  @@index([discipline, difficulty, published])
+}
+
+model Submission {
+  id        String           @id @default(cuid())
+  userId    String
+  problemId String
+  matchId   String? // set when submitted inside a ranked match
+  status    SubmissionStatus @default(PENDING)
+
+  // Captured answer, polymorphic by problem evaluation mode.
+  numericAnswer Float?
+  textAnswer    String? @db.Text
+  choiceId      String?
+
+  score        Int     @default(0) // 0–100
+  feedback     String? @db.Text // grader / LLM feedback
+  llmModel     String? // model id used for LLM_GRADED submissions
+  timeMs       Int? // solve time, for sprint scoring
+
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([problemId, status])
+}
+
+// ---------------------------------------------------------------------------
+//  LESSONS  (interactive, multidisciplinary)
+// ---------------------------------------------------------------------------
+
+model Lesson {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  summary     String?    @db.Text
+  discipline  Discipline
+  difficulty  Difficulty @default(EASY)
+  authorId    String?
+  skillNodeId String? // ties the lesson to a node on the skill tree
+  estMinutes  Int        @default(15)
+  skillAreas  String[]   @default([]) // SkillArea slugs covered by this lesson
+  published   Boolean    @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author    User?         @relation("LessonAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  skillNode SkillNode?    @relation(fields: [skillNodeId], references: [id], onDelete: SetNull)
+  sections  LessonSection[]
+  quizzes   Quiz[]
+  tags      TagsOnLessons[]
+
+  @@index([discipline, published])
+}
+
+// Ordered content blocks: prose, formula, interactive sandbox, walkthrough.
+model LessonSection {
+  id       String  @id @default(cuid())
+  lessonId String
+  order    Int
+  kind     String  @default("PROSE") // PROSE | FORMULA | SANDBOX | WALKTHROUGH | FIGURE
+  title    String?
+  content  Json // structured block payload (rich text, variables, formula AST)
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([lessonId, order])
+}
+
+// ---------------------------------------------------------------------------
+//  QUIZZES
+// ---------------------------------------------------------------------------
+
+model Quiz {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  discipline  Discipline
+  lessonId    String?
+  passingScore Int       @default(70)
+  published   Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+
+  lesson    Lesson?       @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+
+  @@index([discipline, published])
+}
+
+model QuizQuestion {
+  id             String         @id @default(cuid())
+  quizId         String
+  order          Int
+  prompt         String         @db.Text
+  evaluationMode EvaluationMode @default(MULTIPLE_CHOICE)
+  expectedValue  Float?
+  tolerance      Float?
+  choices        Json?
+  expectedText   String?        @db.Text
+  points         Int            @default(1)
+
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@unique([quizId, order])
+}
+
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  quizId      String
+  userId      String
+  score       Int      @default(0) // 0–100
+  passed      Boolean  @default(false)
+  answers     Json // [{ questionId, value, correct }]
+  completedAt DateTime @default(now())
+
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, quizId])
+}
+
+// ---------------------------------------------------------------------------
+//  COMMUNITY HUB  (forum threads, blog posts, comments)
+// ---------------------------------------------------------------------------
+
+model Thread {
+  id         String         @id @default(cuid())
+  slug       String         @unique
+  title      String
+  body       String         @db.Text // markdown
+  category   ThreadCategory @default(GENERAL)
+  discipline Discipline?
+  authorId   String
+  pinned     Boolean        @default(false)
+  locked     Boolean        @default(false)
+  viewCount  Int            @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author   User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  tags     TagsOnThreads[]
+
+  @@index([category, createdAt])
+  @@index([discipline])
+}
+
+// Technical blog: long-form engineering breakdowns.
+model Post {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  excerpt     String?    @db.Text
+  body        String     @db.Text // markdown
+  coverImage  String?
+  discipline  Discipline?
+  authorId    String
+  published   Boolean    @default(false)
+  publishedAt DateTime?
+  viewCount   Int        @default(0)
+  likeCount   Int        @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author   User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  tags     TagsOnPosts[]
+
+  @@index([published, publishedAt])
+  @@index([authorId])
+}
+
+// Unified comment, attachable to either a Thread or a Post, with self-threading.
+model Comment {
+  id       String  @id @default(cuid())
+  body     String  @db.Text
+  authorId String
+  threadId String?
+  postId   String?
+  parentId String? // reply nesting
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author  User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  thread  Thread?   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  post    Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
+
+  @@index([threadId])
+  @@index([postId])
+  @@index([parentId])
+}
+
+// ---------------------------------------------------------------------------
+//  TAGS  (shared taxonomy across problems, lessons, threads, posts)
+// ---------------------------------------------------------------------------
+
+model Tag {
+  id   String @id @default(cuid())
+  slug String @unique
+  name String
+
+  problems TagsOnProblems[]
+  lessons  TagsOnLessons[]
+  threads  TagsOnThreads[]
+  posts    TagsOnPosts[]
+}
+
+model TagsOnProblems {
+  problemId String
+  tagId     String
+  problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([problemId, tagId])
+  @@index([tagId])
+}
+
+model TagsOnLessons {
+  lessonId String
+  tagId    String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([lessonId, tagId])
+  @@index([tagId])
+}
+
+model TagsOnThreads {
+  threadId String
+  tagId    String
+  thread   Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([threadId, tagId])
+  @@index([tagId])
+}
+
+model TagsOnPosts {
+  postId String
+  tagId  String
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+}
+
+// ---------------------------------------------------------------------------
+//  NOTIFICATIONS
+// ---------------------------------------------------------------------------
+
+model Notification {
+  id      String           @id @default(cuid())
+  userId  String
+  type    NotificationType
+  title   String
+  body    String?          @db.Text
+  href    String? // deep link
+  read    Boolean          @default(false)
+  meta    Json?
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, createdAt])
+}

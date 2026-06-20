@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Indigo accent system. Layered neutral-cool grey surfaces; electric indigo
+       is the single brand/active accent; green = correct only, red = wrong only. */
+    --background: 240 10% 6%; /* #0E0E11 page */
+    --foreground: 240 5% 91%; /* #E8E8EA primary text */
+
+    --card: 240 8% 9%; /* #16161A cards / panels */
+    --card-foreground: 240 5% 91%;
+
+    /* Primary / brand / active = electric indigo. */
+    --primary: 239 84% 67%; /* #6366F1 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 9% 13%; /* #1E1E24 elevated */
+    --secondary-foreground: 240 5% 91%;
+
+    --muted: 240 13% 17%; /* #252530 subtle */
+    --muted-foreground: 240 7% 62%; /* #9898A6 secondary text */
+
+    --accent: 240 9% 13%; /* hover / elevated states */
+    --accent-foreground: 240 5% 91%;
+
+    /* Semantic feedback — strictly scoped. */
+    --destructive: 0 84% 60%; /* #EF4444 wrong */
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%; /* #22C55E correct */
+    --success-foreground: 0 0% 100%;
+    --terminal: 239 84% 67%; /* brand accent (re-pointed from green to indigo) */
+
+    --border: 240 13% 17%; /* #252530 */
+    --input: 240 12% 22%;
+    --ring: 239 84% 67%; /* indigo focus ring */
+
+    --radius: 0.625rem;
+
+    /* Elevation — soft shadow + a subtle top highlight give surfaces depth. */
+    --shadow: 0 0% 0%;
+    --highlight: 0 0% 100% / 0.06;
+
+    /* Discipline accents — functional categorical tints (like syntax
+       highlighting), muted to sit against the monochrome canvas. One per
+       primary discipline; FEA/CFD/CAD are skills, not disciplines. */
+    --d-mechanical: 25 80% 55%;
+    --d-aerospace: 210 75% 60%;
+    --d-electrical: 48 85% 58%;
+    --d-computer: 162 60% 48%;
+    --d-civil: 142 50% 50%;
+    --d-chemical: 272 60% 65%;
+    --d-mechatronics: 322 60% 62%;
+    --d-industrial: 38 55% 52%;
+    --d-biomedical: 350 70% 62%;
+    --d-environmental: 188 65% 48%;
+  }
+
+  /* Light theme — opt in via <html data-theme="light">. Accent + semantic +
+     discipline tokens are intentionally shared with the dark theme. */
+  [data-theme="light"] {
+    --background: 60 16% 98%; /* #FAFAF8 */
+    --foreground: 240 7% 11%; /* #1A1A1E */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 240 7% 11%;
+    --secondary: 60 8% 95%; /* #F4F4F2 elevated */
+    --secondary-foreground: 240 7% 11%;
+    --muted: 60 8% 90%; /* #E8E8E4 subtle */
+    --muted-foreground: 240 8% 34%; /* #52525E */
+    --accent: 60 8% 95%;
+    --accent-foreground: 240 7% 11%;
+    --border: 60 7% 88%; /* #E2E2DE */
+    --input: 60 7% 85%;
+    --shadow: 240 24% 55%;
+    --highlight: 0 0% 100% / 0;
+    /* primary, ring, success, destructive, terminal, discipline = shared */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+    text-rendering: optimizeLegibility;
+  }
+  /* Premium type polish: balanced headings, pretty paragraph rag. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  /* Snappy by default — engineers hate slow UI. No bouncy fluff. */
+  ::selection {
+    background: hsl(var(--terminal) / 0.25);
+  }
+}
+
+@layer utilities {
+  /* The blueprint grid — engineering graph paper behind the workspace. */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, hsl(239 84% 67% / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(239 84% 67% / 0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  /* Soft elevation: layered shadow + a 1px top highlight for premium depth. */
+  .elevated {
+    box-shadow:
+      0 1px 2px -1px hsl(var(--shadow) / 0.5),
+      0 6px 20px -6px hsl(var(--shadow) / 0.35),
+      inset 0 1px 0 0 hsl(var(--highlight));
+  }
+
+  /* Frosted glass for overlays/modals. */
+  .glass {
+    @apply border border-border bg-card/70 backdrop-blur-xl;
+  }
+
+  /* Terminal command-line input: mono, green caret, glowing focus border. */
+  .input-terminal {
+    @apply rounded-md border border-input bg-background font-mono text-foreground outline-none transition-[box-shadow,border-color] duration-100;
+    caret-color: hsl(var(--terminal));
+  }
+  .input-terminal:focus,
+  .input-terminal:focus-within {
+    border-color: hsl(var(--terminal) / 0.6);
+    box-shadow:
+      0 0 0 1px hsl(var(--terminal) / 0.45),
+      0 0 14px hsl(var(--terminal) / 0.18);
+  }
+
+  /* Blinking block cursor for terminal prompts. */
+  .cursor-block::after {
+    content: "";
+    display: inline-block;
+    width: 0.55em;
+    height: 1.05em;
+    margin-left: 1px;
+    vertical-align: text-bottom;
+    background: hsl(var(--terminal));
+    animation: cursor-blink 1s steps(1) infinite;
+  }
+  @keyframes cursor-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+}

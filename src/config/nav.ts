@@ -1,4 +1,5 @@
 import {
+  Home,
   Swords,
   GraduationCap,
   Network,
@@ -19,6 +20,7 @@ export interface NavItem {
  * Leaderboard and Notifications are deferred (kept in the codebase, unlinked).
  */
 export const PRIMARY_NAV: NavItem[] = [
+  { label: "Home", href: "/dashboard", icon: Home }, // personalized hub / post-login landing
   { label: "Learn", href: "/learn", icon: GraduationCap }, // interactive lessons
   { label: "Practice", href: "/practice", icon: ClipboardCheck }, // problem bank + instant grading
   { label: "Interview", href: "/interview", icon: MessageSquare }, // AI mock interviewer

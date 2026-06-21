@@ -46,7 +46,22 @@ export async function POST(req: Request) {
     .map((m) => ({ role: m.role, content: m.content }));
 
   const client = new Anthropic({ apiKey });
-  const model = process.env.INTERVIEW_MODEL ?? "claude-opus-4-8";
+  // Default to Sonnet 4.6 — strong for interview chat at ~half Opus cost. Override via INTERVIEW_MODEL.
+  const model = process.env.INTERVIEW_MODEL ?? "claude-sonnet-4-6";
+
+  // Prompt caching: cache the system prompt and the conversation prefix (breakpoint
+  // on the last message) so each turn cheaply reuses the resent history instead of
+  // paying full input price every time.
+  const cachedMessages: Anthropic.MessageParam[] = history.map((m, i) =>
+    i === history.length - 1
+      ? {
+          role: m.role,
+          content: [
+            { type: "text", text: m.content, cache_control: { type: "ephemeral" } },
+          ],
+        }
+      : { role: m.role, content: m.content },
+  );
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
@@ -55,8 +70,14 @@ export async function POST(req: Request) {
         const llm = client.messages.stream({
           model,
           max_tokens: MAX_TOKENS,
-          system: buildInterviewSystemPrompt(config),
-          messages: history,
+          system: [
+            {
+              type: "text",
+              text: buildInterviewSystemPrompt(config),
+              cache_control: { type: "ephemeral" },
+            },
+          ],
+          messages: cachedMessages,
         });
 
         for await (const event of llm) {

@@ -27,9 +27,7 @@ function NodeGroup({ label, nodes }: { label: string; nodes: SkillNode[] }) {
 }
 
 export function SkillTree({ data }: { data: SkillTreeViewModel }) {
-  const [open, setOpen] = useState<Discipline | null>(
-    data.tracks[0]?.discipline ?? null,
-  );
+  const [open, setOpen] = useState<Discipline | null>(null); // all collapsed by default
 
   return (
     <div className="space-y-3">

@@ -138,6 +138,7 @@ model User {
   emailVerified DateTime?
   username      String    @unique
   displayName   String?
+  name          String? // Auth.js profile name (from the OAuth provider)
   image         String?
   bio           String?   @db.Text
   role          UserRole  @default(USER)
@@ -148,6 +149,10 @@ model User {
   xp         Int      @default(0)
   streakDays Int      @default(0)
   lastActive DateTime @default(now())
+
+  // Billing (Stripe)
+  subscriptionStatus String  @default("none") // none | active | canceled
+  stripeCustomerId   String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -165,9 +170,26 @@ model User {
   threads         Thread[]
   comments        Comment[]
   notifications   Notification[]
+  lessonProgress  LessonProgress[]
 
   @@index([rankTier, overallElo])
   @@index([username])
+}
+
+/// Per-user lesson progress — which interactive blocks a learner has completed,
+/// so they can resume where they left off. One row per (user, lesson).
+model LessonProgress {
+  id              String   @id @default(cuid())
+  userId          String
+  lessonSlug      String
+  completedBlocks String[] @default([])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonSlug])
+  @@index([userId])
 }
 
 model Account {
@@ -347,6 +369,9 @@ model Problem {
 
   eloWeight Int      @default(20) // K-factor influence in ranked play
   skillAreas String[] @default([]) // SkillArea slugs (subjects + technical) this problem trains
+  hints     String[] @default([]) // progressive hints, revealed on demand
+  solution  String?  @db.Text // full worked solution (markdown + LaTeX), shown on "give up"
+  isFree    Boolean  @default(false) // free-tier vs paywalled
   published Boolean  @default(false)
 
   createdAt DateTime @default(now())
@@ -400,6 +425,7 @@ model Lesson {
   skillNodeId String? // ties the lesson to a node on the skill tree
   estMinutes  Int        @default(15)
   skillAreas  String[]   @default([]) // SkillArea slugs covered by this lesson
+  isFree      Boolean    @default(false) // free-tier vs paywalled
   published   Boolean    @default(false)
 
   createdAt DateTime @default(now())

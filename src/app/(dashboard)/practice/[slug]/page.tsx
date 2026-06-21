@@ -8,6 +8,8 @@ import { DisciplinePill, DifficultyBadge } from "@/components/practice/badges";
 import { ProblemWorkspace } from "@/components/practice/problem-workspace";
 import { HintButton } from "@/components/practice/hint-button";
 import { GiveUpButton } from "@/components/practice/give-up-button";
+import { isFreeContent, isSubscribed } from "@/lib/entitlements";
+import { Paywall } from "@/components/billing/paywall";
 
 interface Params {
   params: { slug: string };
@@ -34,6 +36,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function ProblemPage({ params }: Params) {
   const problem = await getProblemBySlug(params.slug);
   if (!problem) notFound();
+
+  if (!isFreeContent(problem.discipline, problem.difficulty) && !(await isSubscribed())) {
+    return <Paywall feature="this problem" backHref="/practice" backLabel="Back to Practice" />;
+  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-4">

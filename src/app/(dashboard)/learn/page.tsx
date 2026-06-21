@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getLessons } from "@/features/lessons/lessons-data";
+import { getAllLessonProgress } from "@/features/lessons/lesson-progress-data";
 import { DISCIPLINE_LIST } from "@/lib/constants";
 import {
   DisciplineAccordion,
@@ -9,7 +10,10 @@ import {
 export const metadata: Metadata = { title: "Learn" };
 
 export default async function LearnPage() {
-  const lessons = await getLessons();
+  const [lessons, progressMap] = await Promise.all([getLessons(), getAllLessonProgress()]);
+  // slug → number of interactive blocks the user has completed
+  const progress: Record<string, number> = {};
+  for (const [slug, blocks] of Object.entries(progressMap)) progress[slug] = blocks.length;
 
   // Group by discipline, preserving the canonical discipline order.
   const groups: DisciplineGroup[] = DISCIPLINE_LIST.map((d) => ({
@@ -28,7 +32,7 @@ export default async function LearnPage() {
         </p>
       </div>
 
-      <DisciplineAccordion groups={groups} defaultOpen={groups[0]?.key} />
+      <DisciplineAccordion groups={groups} progress={progress} />
     </div>
   );
 }

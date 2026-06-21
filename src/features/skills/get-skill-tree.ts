@@ -1,17 +1,13 @@
 import "server-only";
 import type { Discipline } from "@prisma/client";
-import {
-  DISCIPLINE_LIST,
-  skillAreasForDiscipline,
-  type SkillKind,
-} from "@/lib/constants";
+import { DISCIPLINE_LIST, skillAreasForDiscipline, type SkillKind } from "@/lib/constants";
+import { getCurrentUserId } from "@/lib/auth";
+import { getUserProgress, type UserProgress } from "@/lib/user-stats";
 
 // ---------------------------------------------------------------------------
-//  Skill-tree view-model (mock). One vertical track per discipline; a track's
-//  nodes ARE that discipline's skill areas (subjects first, then technical).
-//  Statuses are assigned deterministically (no randomness) so the UI is stable.
-//  Swap for Prisma reads when DB + auth are live:
-//    progress -> prisma.skillProgress.findMany({ where: { userId } })
+//  Skill-tree view-model — real per-user mastery derived from saved attempts.
+//  One track per discipline; nodes are that discipline's skill areas. A new
+//  user (no attempts) sees every node AVAILABLE at 0%.
 // ---------------------------------------------------------------------------
 
 export type SkillStatus = "LOCKED" | "AVAILABLE" | "IN_PROGRESS" | "MASTERED";
@@ -23,7 +19,7 @@ export interface SkillNode {
   discipline: Discipline;
   kind: SkillKind;
   status: SkillStatus;
-  /** 0–100 mastery for this node. */
+  /** 0–100 mastery for this node (fraction of its problems solved). */
   masteryPct: number;
   xp: number;
 }
@@ -39,57 +35,15 @@ export interface SkillTreeViewModel {
   totalNodes: number;
 }
 
-const XP_PER_NODE = 100;
-
-/**
- * How far along each discipline is, expressed as the fraction of nodes that
- * should be MASTERED. The four "established" disciplines look more advanced;
- * the newer ones are earlier-stage.
- */
-const MASTERY_FRACTION: Record<Discipline, number> = {
-  MECHANICAL: 0.55,
-  AEROSPACE: 0.5,
-  ELECTRICAL: 0.5,
-  CIVIL: 0.45,
-  COMPUTER: 0.35,
-  CHEMICAL: 0.3,
-  MECHATRONICS: 0.25,
-  INDUSTRIAL: 0.2,
-  BIOMEDICAL: 0.2,
-  ENVIRONMENTAL: 0.15,
-};
-
-const DEFAULT_FRACTION = 0.4;
-
-/**
- * Build a track for a discipline. Nodes are the discipline's skill areas
- * (subjects first, then technical). Statuses follow a deterministic ramp:
- * the leading `masteredCount` nodes are MASTERED, then one IN_PROGRESS, then
- * one AVAILABLE, and the remainder LOCKED.
- */
-function buildTrack(discipline: Discipline): SkillTrack {
+function buildTrack(discipline: Discipline, prog: UserProgress | null): SkillTrack {
   const areas = skillAreasForDiscipline(discipline);
-  const fraction = MASTERY_FRACTION[discipline] ?? DEFAULT_FRACTION;
-  const masteredCount = Math.floor(areas.length * fraction);
-
-  const nodes: SkillNode[] = areas.map((area, i) => {
-    let status: SkillStatus;
-    let masteryPct: number;
-
-    if (i < masteredCount) {
-      status = "MASTERED";
-      masteryPct = 100;
-    } else if (i === masteredCount) {
-      status = "IN_PROGRESS";
-      masteryPct = 45;
-    } else if (i === masteredCount + 1) {
-      status = "AVAILABLE";
-      masteryPct = 0;
-    } else {
-      status = "LOCKED";
-      masteryPct = 0;
-    }
-
+  const nodes: SkillNode[] = areas.map((area) => {
+    const st = prog?.byArea[area.slug];
+    const masteryPct = st?.masteryPct ?? 0;
+    const attempts = st?.attempts ?? 0;
+    const solved = st?.solved ?? 0;
+    const status: SkillStatus =
+      masteryPct >= 80 ? "MASTERED" : attempts > 0 ? "IN_PROGRESS" : "AVAILABLE";
     return {
       id: `${discipline}-${area.slug}`,
       slug: area.slug,
@@ -98,15 +52,17 @@ function buildTrack(discipline: Discipline): SkillTrack {
       kind: area.kind,
       status,
       masteryPct,
-      xp: status === "LOCKED" || status === "AVAILABLE" ? 0 : XP_PER_NODE,
+      xp: solved * 50,
     };
   });
-
   return { discipline, nodes };
 }
 
 export async function getSkillTree(): Promise<SkillTreeViewModel> {
-  const tracks = DISCIPLINE_LIST.map((d) => buildTrack(d.key));
+  const userId = await getCurrentUserId();
+  const prog = userId ? await getUserProgress(userId) : null;
+
+  const tracks = DISCIPLINE_LIST.map((d) => buildTrack(d.key, prog));
 
   let totalNodes = 0;
   let totalMastered = 0;

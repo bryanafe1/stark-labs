@@ -11,7 +11,7 @@ export function Sidebar() {
 
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col overflow-y-auto border-r border-border bg-card/40 lg:flex">
-      <Link href="/learn" className="flex h-16 items-center gap-2 px-6">
+      <Link href="/dashboard" className="flex h-16 items-center gap-2 px-6">
         <Hexagon className="size-7 fill-primary/20 text-primary" />
         <span className="text-lg font-bold tracking-tight">Stark</span>
       </Link>

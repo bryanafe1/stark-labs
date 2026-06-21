@@ -308,7 +308,7 @@ export function OnboardingFlow() {
     setStep((s) => Math.min(TOTAL_STEPS, s + 1));
   };
   const back = () => setStep((s) => Math.max(1, s - 1));
-  const finish = () => router.push("/learn");
+  const finish = () => router.push("/dashboard");
 
   const progress = (step / TOTAL_STEPS) * 100;
 

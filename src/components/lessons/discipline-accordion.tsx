@@ -18,9 +18,12 @@ export type DisciplineGroup = {
 export function DisciplineAccordion({
   groups,
   defaultOpen,
+  progress,
 }: {
   groups: DisciplineGroup[];
   defaultOpen?: Discipline;
+  /** slug → number of interactive blocks completed by the user. */
+  progress?: Record<string, number>;
 }) {
   const [open, setOpen] = useState<Discipline | null>(defaultOpen ?? null);
 
@@ -84,7 +87,11 @@ export function DisciplineAccordion({
                 >
                   <div className="grid gap-3 border-t border-border p-4 sm:grid-cols-2 lg:grid-cols-3">
                     {group.lessons.map((lesson) => (
-                      <LessonCard key={lesson.id} lesson={lesson} />
+                      <LessonCard
+                        key={lesson.id}
+                        lesson={lesson}
+                        completedCount={progress?.[lesson.slug] ?? 0}
+                      />
                     ))}
                   </div>
                 </motion.div>

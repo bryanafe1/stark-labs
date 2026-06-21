@@ -144,6 +144,12 @@ export interface LessonSummary {
   tags: string[];
   /** Slug of a related practice problem, for the lesson → practice loop. */
   practiceSlug?: string;
+  /**
+   * Number of interactive blocks — the denominator for progress/resume.
+   * Always populated by `toSummary`; optional so `LessonDetail` content
+   * modules (which extend this) don't each have to declare it.
+   */
+  interactiveCount?: number;
 }
 
 export interface LessonDetail extends LessonSummary {

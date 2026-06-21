@@ -1,9 +1,10 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { saveLessonBlockDone } from "@/server/actions/lessons";
 
 // ---------------------------------------------------------------------------
 //  Lesson XP / progress — the "addicting" loop. Every interactive block
@@ -29,21 +30,31 @@ export function useLessonProgress(): Pick<Ctx, "markDone"> {
 
 export function LessonProgressProvider({
   total,
+  slug,
+  initialDone,
   children,
 }: {
   total: number;
+  /** Lesson slug — used to persist progress for resume. */
+  slug?: string;
+  /** Block ids already completed (from the DB) — pre-fills the HUD on load. */
+  initialDone?: string[];
   children: React.ReactNode;
 }) {
-  const [done, setDone] = useState<Set<string>>(new Set());
+  const [done, setDone] = useState<Set<string>>(() => new Set(initialDone ?? []));
+  // Mirror of what we've already persisted, so we never double-write.
+  const savedRef = useRef<Set<string>>(new Set(initialDone ?? []));
 
-  const markDone = useCallback((id: string) => {
-    setDone((prev) => {
-      if (prev.has(id)) return prev;
-      const next = new Set(prev);
-      next.add(id);
-      return next;
-    });
-  }, []);
+  const markDone = useCallback(
+    (id: string) => {
+      setDone((prev) => (prev.has(id) ? prev : new Set(prev).add(id)));
+      if (slug && !savedRef.current.has(id)) {
+        savedRef.current.add(id);
+        void saveLessonBlockDone(slug, id);
+      }
+    },
+    [slug],
+  );
 
   const value = useMemo(
     () => ({ markDone, doneCount: done.size, total }),

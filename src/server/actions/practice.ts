@@ -1,9 +1,11 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { gradeAnswer } from "@/lib/grading";
 import { getProblemBySlug } from "@/features/practice/problems";
 import { getCurrentUserId } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import type { PracticeFormState } from "@/types/practice";
 
 // ---------------------------------------------------------------------------
@@ -54,11 +56,34 @@ export async function submitPracticeAnswer(
 
   const result = gradeAnswer(problem, { numericAnswer, textAnswer, choiceId });
 
-  // When auth + DB are wired, persist via the canonical action:
-  //   await submitSolution(userId, {
-  //     problemId: problem.id, numericAnswer, textAnswer, choiceId,
-  //     timeMs: parsed.data.timeMs,
-  //   });
+  // Persist the attempt for the signed-in user so progress accrues. Grading
+  // never fails the user if the write hiccups.
+  try {
+    const dbProblem = await prisma.problem.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+    if (dbProblem) {
+      await prisma.submission.create({
+        data: {
+          userId,
+          problemId: dbProblem.id,
+          status: result.status,
+          score: result.score,
+          feedback: result.feedback,
+          numericAnswer: numericAnswer ?? null,
+          textAnswer: textAnswer ?? null,
+          choiceId: choiceId ?? null,
+          timeMs: parsed.data.timeMs ?? null,
+        },
+      });
+      revalidatePath("/skills");
+      revalidatePath("/profile");
+      revalidatePath("/dashboard");
+    }
+  } catch (err) {
+    console.error("[practice] failed to persist submission", err);
+  }
 
   return { status: result.status, score: result.score, feedback: result.feedback };
 }

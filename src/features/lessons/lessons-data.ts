@@ -66,14 +66,31 @@ const LESSONS: LessonDetail[] = [
   waterChem, airQuality, hydrology,
 ];
 
+/** Block kinds that award XP / count toward lesson completion + resume. */
+export const INTERACTIVE_KINDS: readonly string[] = [
+  "VIDEO",
+  "PREDICT",
+  "CHECK",
+  "SANDBOX",
+  "WORKED_EXAMPLE",
+];
+
+/** Ordered ids of a lesson's interactive blocks (for resume targeting). */
+export function interactiveBlockIds(lesson: LessonDetail): string[] {
+  return lesson.blocks.filter((b) => INTERACTIVE_KINDS.includes(b.kind)).map((b) => b.id);
+}
+
 const toSummary = ({
-  blocks: _blocks,
+  blocks,
   objectives: _objectives,
   keyTakeaways: _keyTakeaways,
   interviewAngle: _interviewAngle,
   prerequisites: _prerequisites,
   ...summary
-}: LessonDetail): LessonSummary => summary;
+}: LessonDetail): LessonSummary => ({
+  ...summary,
+  interactiveCount: blocks.filter((b) => INTERACTIVE_KINDS.includes(b.kind)).length,
+});
 
 export async function getLessons(): Promise<LessonSummary[]> {
   return LESSONS.map(toSummary);

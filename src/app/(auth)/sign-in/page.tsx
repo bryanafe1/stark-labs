@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AuthCard } from "@/components/auth/auth-card";
 import { SignInForm } from "@/components/auth/auth-form";
+import { GoogleButton } from "@/components/auth/google-button";
 
 export const metadata: Metadata = {
   title: "Sign in · Stark",
@@ -17,7 +18,15 @@ export default function SignInPage() {
         href: "/sign-up",
       }}
     >
-      <SignInForm />
+      <div className="space-y-4">
+        <GoogleButton />
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="h-px flex-1 bg-border" />
+          or
+          <span className="h-px flex-1 bg-border" />
+        </div>
+        <SignInForm />
+      </div>
     </AuthCard>
   );
 }

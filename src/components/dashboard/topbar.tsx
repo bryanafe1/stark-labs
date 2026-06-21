@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { User, Settings, LogOut } from "lucide-react";
+import { User, Settings, LogOut, Sparkles } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MobileNav } from "@/components/dashboard/mobile-nav";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { signOut } from "@/auth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +30,7 @@ export function Topbar({ displayName, username, image }: TopbarProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl lg:px-8">
       <MobileNav />
-      <Link href="/learn" className="flex items-center gap-2 lg:hidden">
+      <Link href="/dashboard" className="flex items-center gap-2 lg:hidden">
         <span className="text-base font-bold tracking-tight">Stark</span>
       </Link>
 
@@ -60,11 +61,23 @@ export function Topbar({ displayName, username, image }: TopbarProps) {
                 <Settings /> Settings
               </Link>
             </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/pricing">
+                <Sparkles /> Upgrade / Billing
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild className="text-destructive focus:text-destructive">
-              <Link href="/sign-in">
-                <LogOut /> Sign out
-              </Link>
+              <form
+                action={async () => {
+                  "use server";
+                  await signOut({ redirectTo: "/" });
+                }}
+              >
+                <button type="submit" className="flex w-full items-center gap-2">
+                  <LogOut /> Sign out
+                </button>
+              </form>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

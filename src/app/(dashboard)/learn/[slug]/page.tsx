@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Clock, Target, GraduationCap, CheckCircle2, KeyRound } from "lucide-react";
-import { getLessonBySlug, getLessonSlugs } from "@/features/lessons/lessons-data";
+import { ArrowLeft, Clock, Target, GraduationCap, CheckCircle2, KeyRound, RotateCcw } from "lucide-react";
+import {
+  getLessonBySlug,
+  getLessonSlugs,
+  interactiveBlockIds,
+} from "@/features/lessons/lessons-data";
+import { getLessonProgress } from "@/features/lessons/lesson-progress-data";
 import { LessonBlock } from "@/components/lessons/lesson-block";
 import { LessonProgressProvider } from "@/components/lessons/lesson-progress";
+import { ResumeButton } from "@/components/lessons/resume-button";
+import { isFreeContent, isSubscribed } from "@/lib/entitlements";
+import { Paywall } from "@/components/billing/paywall";
 import { DisciplinePill, DifficultyBadge } from "@/components/practice/badges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +34,21 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function LessonPage({ params }: Params) {
   const lesson = await getLessonBySlug(params.slug);
   if (!lesson) notFound();
+
+  if (!isFreeContent(lesson.discipline, lesson.difficulty) && !(await isSubscribed())) {
+    return <Paywall feature="this lesson" backHref="/learn" backLabel="Back to Learn" />;
+  }
+
+  // Resume state — which interactive blocks this user already finished.
+  const completed = await getLessonProgress(params.slug);
+  const interactiveIds = interactiveBlockIds(lesson);
+  const total = interactiveIds.length;
+  const completedSet = new Set(completed);
+  const doneCount = interactiveIds.filter((id) => completedSet.has(id)).length;
+  const firstIncompleteId = interactiveIds.find((id) => !completedSet.has(id));
+  const pct = total ? Math.round((doneCount / total) * 100) : 0;
+  const showResume = doneCount > 0 && doneCount < total && Boolean(firstIncompleteId);
+  const showCompleted = total > 0 && doneCount === total;
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -59,6 +82,32 @@ export default async function LessonPage({ params }: Params) {
         )}
       </header>
 
+      {/* Resume — pick up where you left off */}
+      {showResume && firstIncompleteId && (
+        <div className="flex flex-col gap-3 rounded-xl border border-primary/40 bg-primary/[0.06] p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <RotateCcw className="size-4" />
+              Pick up where you left off
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              You&apos;re {pct}% through — {doneCount} of {total} steps done.
+            </p>
+            <div className="mt-2 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
+              <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+          <ResumeButton targetId={firstIncompleteId} />
+        </div>
+      )}
+
+      {showCompleted && (
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/[0.06] p-3 text-sm font-medium text-emerald-500">
+          <CheckCircle2 className="size-4" />
+          You&apos;ve completed this lesson — revisit any section below.
+        </div>
+      )}
+
       {/* Learning objectives */}
       <Card>
         <CardHeader className="pb-3">
@@ -90,16 +139,12 @@ export default async function LessonPage({ params }: Params) {
       )}
 
       {/* Block content — wrapped in the XP/progress tracker. */}
-      <LessonProgressProvider
-        total={
-          lesson.blocks.filter((b) =>
-            ["VIDEO", "PREDICT", "CHECK", "SANDBOX", "WORKED_EXAMPLE"].includes(b.kind),
-          ).length
-        }
-      >
+      <LessonProgressProvider total={total} slug={lesson.slug} initialDone={completed}>
         <div className="space-y-8">
           {lesson.blocks.map((block) => (
-            <LessonBlock key={block.id} block={block} />
+            <div key={block.id} id={block.id} className="scroll-mt-24">
+              <LessonBlock block={block} />
+            </div>
           ))}
         </div>
       </LessonProgressProvider>

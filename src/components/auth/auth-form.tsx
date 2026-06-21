@@ -1,15 +1,15 @@
 "use client";
 
-import {
-  useState,
-  type FormEvent,
-  type InputHTMLAttributes,
-  type ReactNode,
-} from "react";
-import { useRouter } from "next/navigation";
-import { Github, Chrome, CheckCircle2 } from "lucide-react";
+import { useState, type FormEvent, type InputHTMLAttributes } from "react";
+import { useFormState, useFormStatus } from "react-dom";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import {
+  signInWithPassword,
+  signUpWithPassword,
+  type AuthFormState,
+} from "@/server/actions/auth-actions";
 
 /* ------------------------------------------------------------------ */
 /* Primitives                                                          */
@@ -46,201 +46,102 @@ export function Field({ label, id, error, className, ...props }: FieldProps) {
   );
 }
 
-function Divider({ children }: { children: ReactNode }) {
+function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: string }) {
+  const { pending } = useFormStatus();
   return (
-    <div className="relative my-5 flex items-center">
-      <span className="h-px flex-1 bg-border" />
-      <span className="px-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-        {children}
-      </span>
-      <span className="h-px flex-1 bg-border" />
-    </div>
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending && <Loader2 className="size-4 animate-spin" />}
+      {pending ? pendingLabel : label}
+    </Button>
   );
 }
-
-function OAuthButtons() {
-  const router = useRouter();
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => router.push("/dashboard")}
-      >
-        <Github />
-        GitHub
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => router.push("/dashboard")}
-      >
-        <Chrome />
-        Google
-      </Button>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Validation helpers                                                  */
-/* ------------------------------------------------------------------ */
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 function validateEmail(value: string): string | undefined {
   if (!value.trim()) return "Email is required.";
   if (!EMAIL_RE.test(value)) return "Enter a valid email address.";
   return undefined;
 }
 
-function validatePassword(value: string): string | undefined {
-  if (!value) return "Password is required.";
-  if (value.length < 8) return "Password must be at least 8 characters.";
-  return undefined;
-}
-
 /* ------------------------------------------------------------------ */
-/* Sign in                                                            */
+/* Sign in (email + password)                                          */
 /* ------------------------------------------------------------------ */
 
 export function SignInForm() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
-    {},
-  );
-
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    const next = {
-      email: validateEmail(email),
-      password: validatePassword(password),
-    };
-    setErrors(next);
-    if (next.email || next.password) return;
-    router.push("/dashboard");
-  }
-
+  const [state, action] = useFormState<AuthFormState, FormData>(signInWithPassword, {});
   return (
-    <div className="space-y-5">
-      <OAuthButtons />
-      <Divider>or</Divider>
-      <form onSubmit={handleSubmit} noValidate className="space-y-4">
-        <Field
-          id="email"
-          label="Email"
-          type="email"
-          autoComplete="email"
-          placeholder="you@company.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          error={errors.email}
-        />
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label
-              htmlFor="password"
-              className="text-sm font-medium text-foreground"
-            >
-              Password
-            </label>
-            <a
-              href="/forgot-password"
-              className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-            >
-              Forgot password?
-            </a>
-          </div>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            aria-invalid={errors.password ? true : undefined}
-            className={cn(
-              "h-10 w-full rounded-md border border-input bg-card/60 px-3 text-sm outline-none ring-ring focus:ring-2",
-              errors.password && "border-destructive ring-destructive",
-            )}
-          />
-          {errors.password ? (
-            <p className="text-xs text-destructive" role="alert">
-              {errors.password}
-            </p>
-          ) : null}
-        </div>
-        <Button type="submit" className="w-full">
-          Sign in
-        </Button>
-      </form>
-    </div>
+    <form action={action} noValidate className="space-y-4">
+      <Field
+        id="email"
+        name="email"
+        label="Email"
+        type="email"
+        autoComplete="email"
+        required
+        placeholder="you@company.com"
+      />
+      <Field
+        id="password"
+        name="password"
+        label="Password"
+        type="password"
+        autoComplete="current-password"
+        required
+        placeholder="••••••••"
+      />
+      {state.error && (
+        <p className="text-sm text-destructive" role="alert">
+          {state.error}
+        </p>
+      )}
+      <SubmitButton label="Sign in" pendingLabel="Signing in…" />
+    </form>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Sign up                                                            */
+/* Sign up (email + password)                                          */
 /* ------------------------------------------------------------------ */
 
 export function SignUpForm() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
-    {},
-  );
-
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    const next = {
-      email: validateEmail(email),
-      password: validatePassword(password),
-    };
-    setErrors(next);
-    if (next.email || next.password) return;
-    router.push("/onboarding");
-  }
-
+  const [state, action] = useFormState<AuthFormState, FormData>(signUpWithPassword, {});
   return (
-    <div className="space-y-5">
-      <OAuthButtons />
-      <Divider>or</Divider>
-      <form onSubmit={handleSubmit} noValidate className="space-y-4">
-        <Field
-          id="email"
-          label="Email"
-          type="email"
-          autoComplete="email"
-          placeholder="you@company.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          error={errors.email}
-        />
-        <Field
-          id="password"
-          label="Password"
-          type="password"
-          autoComplete="new-password"
-          placeholder="At least 8 characters"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          error={errors.password}
-        />
-        <Button type="submit" className="w-full">
-          Create account
-        </Button>
-      </form>
+    <form action={action} noValidate className="space-y-4">
+      <Field id="name" name="name" label="Name" autoComplete="name" placeholder="Ada Lovelace" />
+      <Field
+        id="email"
+        name="email"
+        label="Email"
+        type="email"
+        autoComplete="email"
+        required
+        placeholder="you@company.com"
+      />
+      <Field
+        id="password"
+        name="password"
+        label="Password"
+        type="password"
+        autoComplete="new-password"
+        minLength={8}
+        required
+        placeholder="At least 8 characters"
+      />
+      {state.error && (
+        <p className="text-sm text-destructive" role="alert">
+          {state.error}
+        </p>
+      )}
+      <SubmitButton label="Create account" pendingLabel="Creating…" />
       <p className="text-center text-xs text-muted-foreground">
         By continuing you agree to our Terms and Privacy Policy.
       </p>
-    </div>
+    </form>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Forgot password                                                    */
+/* Forgot password (placeholder — needs an email service to send)      */
 /* ------------------------------------------------------------------ */
 
 export function ForgotPasswordForm() {

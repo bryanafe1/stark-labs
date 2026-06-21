@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent, type InputHTMLAttributes } from "react";
 import { useFormState, useFormStatus } from "react-dom";
+import Link from "next/link";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -134,7 +135,15 @@ export function SignUpForm() {
       )}
       <SubmitButton label="Create account" pendingLabel="Creating…" />
       <p className="text-center text-xs text-muted-foreground">
-        By continuing you agree to our Terms and Privacy Policy.
+        By continuing you agree to our{" "}
+        <Link href="/terms" className="text-primary hover:underline">
+          Terms
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="text-primary hover:underline">
+          Privacy Policy
+        </Link>
+        .
       </p>
     </form>
   );

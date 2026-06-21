@@ -214,6 +214,12 @@ export function Landing() {
             <Link href="#features" className="hover:text-foreground">
               Features
             </Link>
+            <Link href="/terms" className="hover:text-foreground">
+              Terms
+            </Link>
+            <Link href="/privacy" className="hover:text-foreground">
+              Privacy
+            </Link>
             <Link href="/sign-in" className="hover:text-foreground">
               Sign in
             </Link>

@@ -45,15 +45,23 @@ export function gradeAnswer(
       if (answer.numericAnswer == null || problem.expectedValue == null) {
         return { status: "INCORRECT", score: 0, feedback: "Enter a numeric answer." };
       }
-      const tol = problem.tolerance ?? 0;
+      // Effective tolerance = max(the problem's absolute band, a 1% relative
+      // floor). The relative floor means using g = 9.8 instead of 9.81, rounding
+      // π, or rounding intermediate steps never costs a correct answer.
+      const REL_FLOOR = 0.01;
+      const tol = Math.max(
+        problem.tolerance ?? 0,
+        REL_FLOOR * Math.abs(problem.expectedValue),
+      );
       const delta = Math.abs(answer.numericAnswer - problem.expectedValue);
       const correct = delta <= tol;
+      const u = problem.unit ?? "";
       return {
         status: correct ? "CORRECT" : "INCORRECT",
         score: correct ? 100 : 0,
         feedback: correct
-          ? `Within tolerance ✔ (expected ${problem.expectedValue}${problem.unit ?? ""})`
-          : `Off by ${delta.toPrecision(3)}${problem.unit ?? ""} — outside the ±${tol}${problem.unit ?? ""} band.`,
+          ? `Within tolerance ✔ (expected ${problem.expectedValue}${u})`
+          : `Off by ${delta.toPrecision(3)}${u} — outside the ±${tol.toPrecision(3)}${u} band.`,
       };
     }
 

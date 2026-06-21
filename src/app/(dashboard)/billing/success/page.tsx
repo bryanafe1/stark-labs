@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
-import { stripe } from "@/lib/stripe";
+import { stripe, tierForPrice } from "@/lib/stripe";
 
 export const metadata: Metadata = { title: "Welcome to Pro" };
 
@@ -23,14 +23,30 @@ export default async function BillingSuccessPage({
   if (sessionId && userId) {
     try {
       const session = await stripe.checkout.sessions.retrieve(sessionId);
-      if (session.status === "complete" || session.payment_status === "paid") {
-        const customerId =
-          typeof session.customer === "string" ? session.customer : session.customer?.id;
+      const ok = session.status === "complete" || session.payment_status === "paid";
+      if (ok && session.subscription) {
+        const subId =
+          typeof session.subscription === "string" ? session.subscription : session.subscription.id;
+        const sub = await stripe.subscriptions.retrieve(subId);
+        const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
+        const status =
+          sub.status === "active" || sub.status === "trialing"
+            ? "active"
+            : sub.status === "past_due"
+              ? "past_due"
+              : "canceled";
         await prisma.user.update({
           where: { id: userId },
-          data: { subscriptionStatus: "active", stripeCustomerId: customerId ?? undefined },
+          data: {
+            subscriptionStatus: status,
+            subscriptionTier: tierForPrice(sub.items.data[0]?.price?.id ?? null),
+            stripeCustomerId: customerId,
+            stripeSubscriptionId: sub.id,
+            currentPeriodEnd: new Date(sub.current_period_end * 1000),
+            cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
+          },
         });
-        activated = true;
+        activated = status === "active";
       }
     } catch (err) {
       console.error("[billing success] verify failed", err);

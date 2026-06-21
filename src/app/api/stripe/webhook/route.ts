@@ -1,18 +1,32 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type Stripe from "stripe";
-import { stripe } from "@/lib/stripe";
+import { stripe, tierForPrice } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
-// Stripe is the source of truth for subscription state. We mirror it onto
-// User.subscriptionStatus ("active" | "canceled") keyed by stripeCustomerId.
+// Stripe is the source of truth for subscription state. We mirror the full
+// subscription onto the User row keyed by stripeCustomerId.
 
-async function setStatusByCustomer(customerId: string, status: "active" | "canceled") {
-  await prisma.user.updateMany({
-    where: { stripeCustomerId: customerId },
-    data: { subscriptionStatus: status },
-  });
+function mapStatus(s: Stripe.Subscription.Status): string {
+  if (s === "active" || s === "trialing") return "active";
+  if (s === "past_due") return "past_due";
+  return "canceled"; // canceled, unpaid, incomplete, incomplete_expired, paused
+}
+
+/** Write a Stripe subscription's state onto the matching user. */
+async function applySubscription(sub: Stripe.Subscription) {
+  const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
+  const priceId = sub.items.data[0]?.price?.id ?? null;
+  const data = {
+    subscriptionStatus: mapStatus(sub.status),
+    subscriptionTier: tierForPrice(priceId),
+    stripeSubscriptionId: sub.id,
+    stripeCustomerId: customerId,
+    currentPeriodEnd: new Date(sub.current_period_end * 1000),
+    cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
+  };
+  await prisma.user.updateMany({ where: { stripeCustomerId: customerId }, data });
 }
 
 export async function POST(req: NextRequest) {
@@ -34,30 +48,18 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
       case "checkout.session.completed": {
         const s = event.data.object as Stripe.Checkout.Session;
-        const customerId = typeof s.customer === "string" ? s.customer : s.customer?.id;
-        const userId = s.metadata?.userId;
-        if (userId) {
-          await prisma.user.update({
-            where: { id: userId },
-            data: { subscriptionStatus: "active", stripeCustomerId: customerId ?? undefined },
-          });
-        } else if (customerId) {
-          await setStatusByCustomer(customerId, "active");
+        // Pull the full subscription so we get period end, tier, and flags.
+        if (s.subscription) {
+          const subId = typeof s.subscription === "string" ? s.subscription : s.subscription.id;
+          const sub = await stripe.subscriptions.retrieve(subId);
+          await applySubscription(sub);
         }
         break;
       }
       case "customer.subscription.created":
-      case "customer.subscription.updated": {
-        const sub = event.data.object as Stripe.Subscription;
-        const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
-        const active = sub.status === "active" || sub.status === "trialing";
-        await setStatusByCustomer(customerId, active ? "active" : "canceled");
-        break;
-      }
+      case "customer.subscription.updated":
       case "customer.subscription.deleted": {
-        const sub = event.data.object as Stripe.Subscription;
-        const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
-        await setStatusByCustomer(customerId, "canceled");
+        await applySubscription(event.data.object as Stripe.Subscription);
         break;
       }
     }

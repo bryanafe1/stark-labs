@@ -14,15 +14,22 @@ export function isFreeContent(discipline: Discipline, difficulty: Difficulty): b
   return discipline === "MECHANICAL" && difficulty === "EASY";
 }
 
-/** True if the signed-in user is paying (active subscription only). */
+/**
+ * True if the user is paying: an active subscription that hasn't expired yet.
+ * A subscription set to cancel keeps access until currentPeriodEnd.
+ */
 export async function isSubscribed(): Promise<boolean> {
   const userId = await getCurrentUserId();
   if (!userId) return false;
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { subscriptionStatus: true },
+    select: { subscriptionStatus: true, currentPeriodEnd: true },
   });
-  return user?.subscriptionStatus === "active";
+  return (
+    user?.subscriptionStatus === "active" &&
+    !!user.currentPeriodEnd &&
+    user.currentPeriodEnd.getTime() > Date.now()
+  );
 }
 
 /** True if the signed-in user is an admin (full comp access, no payment). */
@@ -45,10 +52,15 @@ export async function hasProAccess(): Promise<boolean> {
   if (!userId) return false;
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { role: true, subscriptionStatus: true },
+    select: { role: true, subscriptionStatus: true, currentPeriodEnd: true },
   });
   if (!user) return false;
-  return user.role === "ADMIN" || user.subscriptionStatus === "active";
+  if (user.role === "ADMIN") return true;
+  return (
+    user.subscriptionStatus === "active" &&
+    !!user.currentPeriodEnd &&
+    user.currentPeriodEnd.getTime() > Date.now()
+  );
 }
 
 /** Can the viewer open this piece of content? */

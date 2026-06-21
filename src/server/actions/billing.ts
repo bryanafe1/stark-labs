@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
-import { stripe, STRIPE_PRICE_ID } from "@/lib/stripe";
+import { stripe, priceIdFor, type PlanTier } from "@/lib/stripe";
 
 function baseUrl(): string {
   if (process.env.AUTH_URL) return process.env.AUTH_URL;
@@ -14,12 +14,17 @@ function baseUrl(): string {
   return host ? `${proto}://${host}` : "http://localhost:3000";
 }
 
-/** Start a Stripe Checkout for the $20/mo subscription, then redirect to it. */
-export async function startCheckout(): Promise<void> {
+/**
+ * Start a Stripe Checkout for the chosen plan, then redirect to it.
+ * Used as a form action — reads the hidden `plan` field ("monthly" | "annual").
+ */
+export async function startCheckout(formData?: FormData): Promise<void> {
   const userId = await getCurrentUserId();
   if (!userId) redirect("/sign-in");
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) redirect("/sign-in");
+
+  const tier: PlanTier = formData?.get("plan") === "annual" ? "annual" : "monthly";
 
   // Ensure the user has a Stripe customer.
   let customerId = user.stripeCustomerId;
@@ -36,11 +41,11 @@ export async function startCheckout(): Promise<void> {
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
-    line_items: [{ price: STRIPE_PRICE_ID, quantity: 1 }],
+    line_items: [{ price: priceIdFor(tier), quantity: 1 }],
     success_url: `${base}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${base}/pricing?canceled=1`,
     allow_promotion_codes: true,
-    subscription_data: { metadata: { userId } },
+    subscription_data: { metadata: { userId, tier } },
   });
 
   if (!session.url) redirect("/pricing?error=1");

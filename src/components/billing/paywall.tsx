@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Lock, Check, ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { startCheckout } from "@/server/actions/billing";
 
 const PRO_PERKS = [
   "All 162 interview-grade problems",
@@ -37,7 +36,7 @@ export function Paywall({
           </span>
           <h1 className="mt-4 text-xl font-bold tracking-tight">Unlock {feature} with Pro</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Go all-in on your interview prep — everything, for $20/month.
+            Go all-in on your interview prep. Plans start at $15.83/month.
           </p>
         </div>
 
@@ -50,11 +49,9 @@ export function Paywall({
               </li>
             ))}
           </ul>
-          <form action={startCheckout}>
-            <Button type="submit" size="lg" className="w-full">
-              Upgrade to Pro · $20/mo
-            </Button>
-          </form>
+          <Button asChild size="lg" className="w-full">
+            <Link href="/pricing">See plans &amp; upgrade</Link>
+          </Button>
           <p className="text-center text-xs text-muted-foreground">
             Cancel anytime · Secure checkout by Stripe
           </p>

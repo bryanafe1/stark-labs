@@ -151,8 +151,12 @@ model User {
   lastActive DateTime @default(now())
 
   // Billing (Stripe)
-  subscriptionStatus String  @default("none") // none | active | canceled
-  stripeCustomerId   String? @unique
+  subscriptionStatus   String    @default("none") // none | active | canceled | past_due
+  subscriptionTier     String? // monthly | annual | null
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  currentPeriodEnd     DateTime? // access valid through this time
+  cancelAtPeriodEnd    Boolean   @default(false)
 
   // Email+password sign-in (null for OAuth-only users)
   passwordHash String?

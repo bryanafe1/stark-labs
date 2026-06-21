@@ -5,7 +5,7 @@ import { Mail, Calendar, ShieldCheck, Sparkles, ExternalLink, LogOut } from "luc
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
 import { signOut } from "@/auth";
-import { startCheckout, openBillingPortal } from "@/server/actions/billing";
+import { openBillingPortal } from "@/server/actions/billing";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProfileForm } from "@/components/settings/profile-form";
@@ -106,14 +106,9 @@ export default async function SettingsPage() {
               </Button>
             </form>
           ) : (
-            <>
-              <form action={startCheckout}>
-                <Button type="submit">Upgrade to Pro · $20/mo</Button>
-              </form>
-              <Button asChild variant="ghost">
-                <Link href="/pricing">Compare plans</Link>
-              </Button>
-            </>
+            <Button asChild>
+              <Link href="/pricing">Upgrade to Pro</Link>
+            </Button>
           )}
         </CardContent>
       </Card>

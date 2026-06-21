@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -11,7 +12,11 @@ import { cn } from "@/lib/utils";
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+
+  // Portal target only exists in the browser.
+  useEffect(() => setMounted(true), []);
 
   // Close the drawer whenever the route changes.
   useEffect(() => {
@@ -38,63 +43,69 @@ export function MobileNav() {
         <Menu className="size-5" />
       </Button>
 
-      <AnimatePresence>
-        {open && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)}
-              className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
-            />
-            <motion.aside
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", stiffness: 320, damping: 34 }}
-              className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-card lg:hidden"
-            >
-              <div className="flex h-16 items-center justify-between px-4">
-                <div className="flex items-center gap-2">
-                  <Hexagon className="size-7 fill-primary/20 text-primary" />
-                  <span className="text-lg font-bold tracking-tight">Stark</span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Close menu"
+      {/* Portal to <body> so the drawer escapes the sticky topbar's stacking
+          context and sits above all page content. */}
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {open && (
+              <div className="lg:hidden">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   onClick={() => setOpen(false)}
+                  className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm"
+                />
+                <motion.aside
+                  initial={{ x: "-100%" }}
+                  animate={{ x: 0 }}
+                  exit={{ x: "-100%" }}
+                  transition={{ type: "spring", stiffness: 320, damping: 34 }}
+                  className="fixed inset-y-0 left-0 z-[101] flex w-72 max-w-[85vw] flex-col border-r border-border bg-card"
                 >
-                  <X className="size-5" />
-                </Button>
-              </div>
-
-              <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
-                {PRIMARY_NAV.map((item) => {
-                  const active =
-                    pathname === item.href || pathname.startsWith(`${item.href}/`);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
-                        active
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                      )}
+                  <div className="flex h-16 shrink-0 items-center justify-between px-4">
+                    <div className="flex items-center gap-2">
+                      <Hexagon className="size-7 fill-primary/20 text-primary" />
+                      <span className="text-lg font-bold tracking-tight">Stark</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Close menu"
+                      onClick={() => setOpen(false)}
                     >
-                      <item.icon className="size-5" />
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-            </motion.aside>
-          </>
+                      <X className="size-5" />
+                    </Button>
+                  </div>
+
+                  <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
+                    {PRIMARY_NAV.map((item) => {
+                      const active =
+                        pathname === item.href || pathname.startsWith(`${item.href}/`);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
+                            active
+                              ? "bg-primary/10 text-primary"
+                              : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                          )}
+                        >
+                          <item.icon className="size-5" />
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </nav>
+                </motion.aside>
+              </div>
+            )}
+          </AnimatePresence>,
+          document.body,
         )}
-      </AnimatePresence>
     </>
   );
 }

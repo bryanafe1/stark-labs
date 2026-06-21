@@ -22,7 +22,7 @@ function empty(): DashboardViewModel {
       { label: "XP", value: "0", icon: "trophy" },
       { label: "Day Streak", value: "0", icon: "flame" },
       { label: "Problems Solved", value: "0", icon: "target" },
-      { label: "Accuracy", value: "—", icon: "swords" },
+      { label: "Accuracy", value: "-", icon: "swords" },
     ],
     notifications: [],
   };
@@ -65,7 +65,7 @@ export async function getDashboard(): Promise<DashboardViewModel> {
       { label: "XP", value: String(prog.xp), icon: "trophy" },
       { label: "Day Streak", value: String(prog.streakDays), icon: "flame" },
       { label: "Problems Solved", value: String(prog.totalSolved), icon: "target" },
-      { label: "Accuracy", value: prog.totalAttempts ? `${prog.accuracyPct}%` : "—", icon: "swords" },
+      { label: "Accuracy", value: prog.totalAttempts ? `${prog.accuracyPct}%` : "-", icon: "swords" },
     ],
     notifications: notifs.map((n) => ({
       id: n.id,

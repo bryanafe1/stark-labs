@@ -44,7 +44,7 @@ export default async function HomePage() {
         <p className="mt-1 text-muted-foreground">
           {started
             ? "Pick up where you left off."
-            : "Let's get you interview-ready — start with a lesson or jump straight into practice."}
+            : "Let's get you interview-ready. Start with a lesson or jump straight into practice."}
         </p>
       </div>
 
@@ -56,7 +56,7 @@ export default async function HomePage() {
               {started ? "Keep your momentum going" : "Start your first session"}
             </p>
             <p className="mt-1 max-w-md text-sm text-muted-foreground">
-              Launching with Mechanical Engineering — deep lessons, auto-graded practice, and a mock interview.
+              Launching with Mechanical Engineering: deep lessons, auto-graded practice, and a mock interview.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

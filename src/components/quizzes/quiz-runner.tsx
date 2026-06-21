@@ -207,7 +207,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
           <Progress value={progressValue} indicatorClassName="bg-terminal" />
         </div>
 
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground/90">
           {question.prompt}
         </p>
 
@@ -242,7 +242,7 @@ function QuestionInput({
         {(question.choices ?? []).map((c) => (
           <label
             key={c.id}
-            className="flex cursor-pointer items-center gap-3 rounded-md border border-input bg-background p-3 text-sm transition-colors hover:border-foreground/30 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+            className="flex cursor-pointer items-start gap-3 rounded-md border border-input bg-background p-3 text-sm transition-colors hover:border-foreground/30 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
           >
             <input
               type="radio"
@@ -250,12 +250,12 @@ function QuestionInput({
               value={c.id}
               checked={raw.choiceId === c.id}
               onChange={() => onChange({ value: "", choiceId: c.id })}
-              className="size-4 accent-[hsl(var(--terminal))]"
+              className="mt-0.5 size-4 shrink-0 accent-[hsl(var(--terminal))]"
             />
-            <span className="font-mono text-xs text-muted-foreground">
+            <span className="mt-px shrink-0 font-mono text-xs text-muted-foreground">
               {c.id})
             </span>
-            {c.label}
+            <span className="min-w-0 break-words">{c.label}</span>
           </label>
         ))}
       </fieldset>

@@ -37,7 +37,7 @@ export function Paywall({
           </span>
           <h1 className="mt-4 text-xl font-bold tracking-tight">Unlock {feature} with Pro</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Go all-in on your interview prep — everything, for $5/month.
+            Go all-in on your interview prep — everything, for $20/month.
           </p>
         </div>
 
@@ -52,7 +52,7 @@ export function Paywall({
           </ul>
           <form action={startCheckout}>
             <Button type="submit" size="lg" className="w-full">
-              Upgrade to Pro · $5/mo
+              Upgrade to Pro · $20/mo
             </Button>
           </form>
           <p className="text-center text-xs text-muted-foreground">

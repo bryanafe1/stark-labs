@@ -14,7 +14,7 @@ function baseUrl(): string {
   return host ? `${proto}://${host}` : "http://localhost:3000";
 }
 
-/** Start a Stripe Checkout for the $5/mo subscription, then redirect to it. */
+/** Start a Stripe Checkout for the $20/mo subscription, then redirect to it. */
 export async function startCheckout(): Promise<void> {
   const userId = await getCurrentUserId();
   if (!userId) redirect("/sign-in");

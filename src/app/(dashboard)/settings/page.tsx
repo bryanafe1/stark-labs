@@ -23,7 +23,7 @@ export default async function SettingsPage() {
     user.role === "ADMIN"
       ? { label: "Admin", note: "Full access — no billing.", tone: "primary" as const }
       : user.subscriptionStatus === "active"
-        ? { label: "Pro", note: "$5/mo — everything unlocked.", tone: "primary" as const }
+        ? { label: "Pro", note: "$20/mo — everything unlocked.", tone: "primary" as const }
         : { label: "Free", note: "Easy Mechanical content only.", tone: "muted" as const };
 
   const joined = new Date(user.createdAt).toLocaleDateString(undefined, {
@@ -108,7 +108,7 @@ export default async function SettingsPage() {
           ) : (
             <>
               <form action={startCheckout}>
-                <Button type="submit">Upgrade to Pro · $5/mo</Button>
+                <Button type="submit">Upgrade to Pro · $20/mo</Button>
               </form>
               <Button asChild variant="ghost">
                 <Link href="/pricing">Compare plans</Link>

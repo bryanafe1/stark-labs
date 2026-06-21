@@ -56,7 +56,7 @@ export default async function PricingPage() {
           </span>
           <p className="text-sm font-semibold text-primary">Pro</p>
           <p className="mt-2 text-3xl font-bold">
-            $5<span className="text-base font-normal text-muted-foreground">/mo</span>
+            $20<span className="text-base font-normal text-muted-foreground">/mo</span>
           </p>
           <ul className="mt-5 flex-1 space-y-2">
             {PRO.map((f) => (
@@ -79,7 +79,7 @@ export default async function PricingPage() {
           ) : (
             <form action={startCheckout} className="mt-6">
               <Button type="submit" size="lg" className="w-full">
-                Upgrade to Pro · $5/mo
+                Upgrade to Pro · $20/mo
               </Button>
             </form>
           )}

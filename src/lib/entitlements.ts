@@ -6,7 +6,7 @@ import { getCurrentUserId } from "@/lib/auth";
 // ---------------------------------------------------------------------------
 //  Entitlements / paywall. Free tier = easy Mechanical fundamentals (lessons
 //  + problems). Everything else, every discipline, and AI mock interviews are
-//  Pro ($5/mo). Access = free content OR an active subscription.
+//  Pro ($20/mo). Access = free content OR an active subscription.
 // ---------------------------------------------------------------------------
 
 /** Free sample: the easy Mechanical fundamentals. */

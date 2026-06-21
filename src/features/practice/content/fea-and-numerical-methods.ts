@@ -377,49 +377,43 @@ export const problems: PracticeProblem[] = [
       "**Final answer: Option (a)** — the QOI is in a smooth region and changes by ~1–2% between the last two refinements, approaching an asymptote.",
   },
   // SOLUTION:
-  // One Newton-Raphson step on f(x) = x^3 - 2x - 5 = 0, x0 = 2.
-  // f(2) = 8 - 4 - 5 = -1.
-  // f'(x) = 3x^2 - 2 ; f'(2) = 12 - 2 = 10.
-  // x1 = x0 - f(x0)/f'(x0) = 2 - (-1)/10 = 2 + 0.1 = 2.1.
-  // Report x1 = 2.100.
+  // Richardson extrapolation, refinement ratio r=2, order p=2.
+  // f_exact ≈ f_fine + (f_fine - f_coarse)/(r^p - 1)
+  //         = 201 + (201 - 180)/(2^2 - 1) = 201 + 21/3 = 208 MPa.
   {
     id: "fe_h_vs_p_refinement",
     slug: "fea-h-versus-p-refinement",
-    title: "One Newton-Raphson Iteration",
+    title: "Mesh Convergence Extrapolation",
     prompt:
-      "A nonlinear FEA solver drives its residual to zero with the\n" +
-      "Newton-Raphson method. As a scalar stand-in for one global\n" +
-      "iteration, consider the equation\n\n" +
-      "    f(x) = x³ − 2x − 5 = 0,\n\n" +
-      "starting from the initial guess x0 = 2.\n\n" +
-      "Perform exactly ONE Newton-Raphson update and report the resulting\n" +
-      "estimate x1.\n\n" +
-      "Report x1 rounded to 3 decimal places.",
+      "A linear-elastic FEA model is solved on two meshes. On the coarse mesh the\n" +
+      "peak von Mises stress is 180 MPa; after halving the element size everywhere\n" +
+      "it rises to 201 MPa. For this element the discretization error is second\n" +
+      "order in mesh size (O(h²)).\n\n" +
+      "Using Richardson extrapolation, estimate the mesh-independent peak stress.\n\n" +
+      "Report the stress in MPa.",
     discipline: "MECHANICAL",
     difficulty: "MEDIUM",
-    eloWeight: 22,
-    tags: ["newton-raphson", "nonlinear", "iteration"],
-    skillAreas: ["fea", "matlab"],
+    eloWeight: 24,
+    tags: ["mesh-convergence", "richardson", "discretization-error"],
+    skillAreas: ["fea"],
     evaluationMode: "NUMERIC_TOLERANCE",
-    expectedValue: 2.1,
-    tolerance: 0.01,
+    expectedValue: 208,
+    tolerance: 1,
     hints: [
-      "The Newton-Raphson update is x1 = x0 − f(x0)/f'(x0). You need both the function value and its derivative at the starting point.",
-      "Differentiate f(x) = x³ − 2x − 5 to get f'(x) = 3x² − 2, then evaluate f and f' at x0 = 2.",
-      "Watch the sign: f(2) is negative, so the correction −f/f' is positive and the estimate moves up from 2.",
+      "Don't just trust the finer mesh — both results still carry discretization error. Use the two values to extrapolate to zero element size.",
+      "With refinement ratio r = 2 and order p = 2, Richardson extrapolation gives f_exact ≈ f_fine + (f_fine − f_coarse)/(r^p − 1).",
+      "The denominator is 2² − 1 = 3, and the correction is added to the FINER (201 MPa) result.",
     ],
     solution:
-      "**Governing principle — Newton-Raphson iteration.** Newton's method linearizes the residual at the current estimate and steps to where that tangent line crosses zero:\n" +
-      "$$x_{1} = x_0 - \\frac{f(x_0)}{f'(x_0)}.$$\n" +
-      "In nonlinear FEA this is exactly the global iteration with $f'$ playing the role of the tangent stiffness and $f$ the residual.\n\n" +
-      "**Step 1 — Evaluate the function** at $x_0 = 2$:\n" +
-      "$$f(2) = 2^3 - 2(2) - 5 = 8 - 4 - 5 = -1.$$\n\n" +
-      "**Step 2 — Evaluate the derivative.** $f'(x) = 3x^2 - 2$, so\n" +
-      "$$f'(2) = 3(4) - 2 = 12 - 2 = 10.$$\n\n" +
-      "**Step 3 — Apply the update:**\n" +
-      "$$x_1 = 2 - \\frac{-1}{10} = 2 + 0.1 = 2.100.$$\n\n" +
-      "**Key insight / trap:** Mind the sign — since $f(2)<0$, the correction $-f/f'$ is positive, nudging the estimate *up* toward the true root ($\\approx 2.0946$). Dropping the negative sign would push it the wrong way to 1.9.\n\n" +
-      "**Final answer: $x_1 = 2.100$.**",
+      "**Governing principle — Richardson extrapolation / mesh convergence.** A converging FEA result behaves like $f(h) = f_\\text{exact} + C h^{p}$, where $h$ is element size and $p$ the order of convergence. Two meshes eliminate the unknown error constant $C$ and solve for $f_\\text{exact}$:\n" +
+      "$$f_\\text{exact} \\approx f_\\text{fine} + \\frac{f_\\text{fine} - f_\\text{coarse}}{r^{p} - 1},$$\n" +
+      "with refinement ratio $r = h_\\text{coarse}/h_\\text{fine}$.\n\n" +
+      "**Step 1 — Identify inputs.** $f_\\text{coarse} = 180$ MPa, $f_\\text{fine} = 201$ MPa, $r = 2$ (size halved), $p = 2$ (given $O(h^2)$).\n\n" +
+      "**Step 2 — Denominator:** $r^{p} - 1 = 2^{2} - 1 = 3.$\n\n" +
+      "**Step 3 — Extrapolate:**\n" +
+      "$$f_\\text{exact} \\approx 201 + \\frac{201 - 180}{3} = 201 + 7 = 208\\ \\text{MPa}.$$\n\n" +
+      "**Key insight / trap:** The finer mesh (201 MPa) is still ~3.5% low — taking it as the final answer is the common mistake. The gap between meshes reveals the remaining error, and the correction is *added to the finer* result, not the coarse one.\n\n" +
+      "**Final answer: 208 MPa.**",
   },
   // SOLUTION:
   // EXPERT conceptual: conditioning, convergence order, truncation vs

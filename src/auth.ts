@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import GitHub from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { AdapterUser } from "next-auth/adapters";
@@ -43,6 +44,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: { signIn: "/sign-in" },
   providers: [
     Google,
+    // GitHub is enabled only when its OAuth app credentials are configured.
+    ...(process.env.AUTH_GITHUB_ID ? [GitHub] : []),
     Credentials({
       credentials: { email: {}, password: {} },
       authorize: async (creds) => {

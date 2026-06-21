@@ -40,7 +40,8 @@ adapter.createUser = async (user) => {
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter,
   trustHost: true,
-  session: { strategy: "jwt" },
+  // Stay signed in for 30 days; refreshed each day of activity.
+  session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 30, updateAge: 60 * 60 * 24 },
   pages: { signIn: "/sign-in" },
   providers: [
     Google,

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import { AuthCard } from "@/components/auth/auth-card";
 import { SignUpForm } from "@/components/auth/auth-form";
 import { GoogleButton } from "@/components/auth/google-button";
@@ -8,7 +10,9 @@ export const metadata: Metadata = {
   title: "Sign up · Stark",
 };
 
-export default function SignUpPage() {
+export default async function SignUpPage() {
+  const session = await auth();
+  if (session?.user) redirect("/dashboard");
   return (
     <AuthCard
       title="Create your account"

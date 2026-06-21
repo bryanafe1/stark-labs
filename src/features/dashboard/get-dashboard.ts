@@ -19,7 +19,7 @@ function empty(): DashboardViewModel {
       masteryPct: 0,
     })),
     stats: [
-      { label: "Global Rank", value: "—", icon: "trophy" },
+      { label: "XP", value: "0", icon: "trophy" },
       { label: "Day Streak", value: "0", icon: "flame" },
       { label: "Problems Solved", value: "0", icon: "target" },
       { label: "Accuracy", value: "—", icon: "swords" },
@@ -41,7 +41,6 @@ export async function getDashboard(): Promise<DashboardViewModel> {
   if (!user) return empty();
 
   const eloByDisc = new Map(ratings.map((r) => [r.discipline, r.elo]));
-  const rank = (await prisma.user.count({ where: { overallElo: { gt: user.overallElo } } })) + 1;
 
   return {
     user: {
@@ -63,7 +62,7 @@ export async function getDashboard(): Promise<DashboardViewModel> {
       };
     }),
     stats: [
-      { label: "Global Rank", value: `#${rank}`, icon: "trophy" },
+      { label: "XP", value: String(prog.xp), icon: "trophy" },
       { label: "Day Streak", value: String(prog.streakDays), icon: "flame" },
       { label: "Problems Solved", value: String(prog.totalSolved), icon: "target" },
       { label: "Accuracy", value: prog.totalAttempts ? `${prog.accuracyPct}%` : "—", icon: "swords" },

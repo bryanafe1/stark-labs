@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { buildInterviewSystemPrompt, type InterviewConfig } from "@/lib/interview";
-import { isSubscribed } from "@/lib/entitlements";
+import { hasProAccess } from "@/lib/entitlements";
 
 // Anthropic SDK needs the Node runtime; streamed responses must not be cached.
 export const runtime = "nodejs";
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
   // Premium feature — must be an active subscriber. Protects the API directly
   // (the page paywall alone is bypassable) and guards Anthropic cost.
-  if (!(await isSubscribed())) {
+  if (!(await hasProAccess())) {
     return new Response("Mock interviews are a Pro feature. Upgrade to continue.", {
       status: 403,
     });

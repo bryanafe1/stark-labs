@@ -11,7 +11,7 @@ import { getLessonProgress } from "@/features/lessons/lesson-progress-data";
 import { LessonBlock } from "@/components/lessons/lesson-block";
 import { LessonProgressProvider } from "@/components/lessons/lesson-progress";
 import { ResumeButton } from "@/components/lessons/resume-button";
-import { isFreeContent, isSubscribed } from "@/lib/entitlements";
+import { isFreeContent, hasProAccess } from "@/lib/entitlements";
 import { Paywall } from "@/components/billing/paywall";
 import { DisciplinePill, DifficultyBadge } from "@/components/practice/badges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +35,7 @@ export default async function LessonPage({ params }: Params) {
   const lesson = await getLessonBySlug(params.slug);
   if (!lesson) notFound();
 
-  if (!isFreeContent(lesson.discipline, lesson.difficulty) && !(await isSubscribed())) {
+  if (!isFreeContent(lesson.discipline, lesson.difficulty) && !(await hasProAccess())) {
     return <Paywall feature="this lesson" backHref="/learn" backLabel="Back to Learn" />;
   }
 

@@ -14,7 +14,7 @@ export function isFreeContent(discipline: Discipline, difficulty: Difficulty): b
   return discipline === "MECHANICAL" && difficulty === "EASY";
 }
 
-/** True if the signed-in user has an active subscription. */
+/** True if the signed-in user is paying (active subscription only). */
 export async function isSubscribed(): Promise<boolean> {
   const userId = await getCurrentUserId();
   if (!userId) return false;
@@ -25,8 +25,34 @@ export async function isSubscribed(): Promise<boolean> {
   return user?.subscriptionStatus === "active";
 }
 
+/** True if the signed-in user is an admin (full comp access, no payment). */
+export async function isAdmin(): Promise<boolean> {
+  const userId = await getCurrentUserId();
+  if (!userId) return false;
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+  return user?.role === "ADMIN";
+}
+
+/**
+ * Pro access = an active subscription OR an admin/comp account. This is the
+ * gate every premium surface should use.
+ */
+export async function hasProAccess(): Promise<boolean> {
+  const userId = await getCurrentUserId();
+  if (!userId) return false;
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true, subscriptionStatus: true },
+  });
+  if (!user) return false;
+  return user.role === "ADMIN" || user.subscriptionStatus === "active";
+}
+
 /** Can the viewer open this piece of content? */
 export async function canAccess(discipline: Discipline, difficulty: Difficulty): Promise<boolean> {
   if (isFreeContent(discipline, difficulty)) return true;
-  return isSubscribed();
+  return hasProAccess();
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Check, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { isSubscribed } from "@/lib/entitlements";
+import { isSubscribed, hasProAccess } from "@/lib/entitlements";
 import { startCheckout, openBillingPortal } from "@/server/actions/billing";
 
 export const metadata: Metadata = { title: "Pricing" };
@@ -18,6 +18,7 @@ const PRO = [
 
 export default async function PricingPage() {
   const subbed = await isSubscribed();
+  const pro = await hasProAccess(); // subscribed OR admin/comp
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -44,7 +45,7 @@ export default async function PricingPage() {
             ))}
           </ul>
           <Button variant="secondary" className="mt-6 w-full" disabled>
-            {subbed ? "Included" : "Your current plan"}
+            {pro ? "Included" : "Your current plan"}
           </Button>
         </Card>
 
@@ -71,6 +72,10 @@ export default async function PricingPage() {
                 Manage subscription
               </Button>
             </form>
+          ) : pro ? (
+            <Button variant="secondary" className="mt-6 w-full" disabled>
+              Unlocked (admin)
+            </Button>
           ) : (
             <form action={startCheckout} className="mt-6">
               <Button type="submit" size="lg" className="w-full">
@@ -84,9 +89,9 @@ export default async function PricingPage() {
         </Card>
       </div>
 
-      {subbed && (
+      {pro && (
         <p className="text-center text-sm font-medium text-emerald-500">
-          ✓ You&apos;re on Pro — everything is unlocked.
+          ✓ Everything is unlocked.
         </p>
       )}
     </div>

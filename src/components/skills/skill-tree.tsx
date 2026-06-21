@@ -67,8 +67,8 @@ export function SkillTree({ data }: { data: SkillTreeViewModel }) {
                 <Icon className="size-4" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold">{meta.label}</span>
-                <span className="block font-mono text-xs text-muted-foreground">
+                <span className="block truncate text-sm font-semibold">{meta.label}</span>
+                <span className="block truncate font-mono text-xs text-muted-foreground">
                   {mastered}/{track.nodes.length} mastered · {pct}%
                 </span>
               </span>

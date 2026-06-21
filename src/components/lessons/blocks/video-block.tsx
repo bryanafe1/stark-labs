@@ -22,7 +22,7 @@ export function VideoBlock({ block }: { block: VideoBlockData }) {
         </h2>
       )}
       <YouTubeEmbed youtubeId={block.youtubeId} title={block.title} />
-      <div className="flex items-center justify-between font-mono text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 font-mono text-xs text-muted-foreground">
         {block.caption && <span>{block.caption}</span>}
         {block.channel && <span className="ml-auto">▸ {block.channel}</span>}
       </div>

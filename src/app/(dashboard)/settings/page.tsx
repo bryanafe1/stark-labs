@@ -47,7 +47,7 @@ export default async function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <Row icon={Mail} label="Email">
-            <span className="font-medium">{user.email}</span>
+            <span className="min-w-0 break-all text-right font-medium">{user.email}</span>
           </Row>
           <Row icon={ShieldCheck} label="Sign-in method">
             <span className="inline-flex items-center gap-1.5">
@@ -168,7 +168,7 @@ function Row({
 }) {
   return (
     <div className="flex items-center justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0">
-      <span className="flex items-center gap-2 text-muted-foreground">
+      <span className="flex shrink-0 items-center gap-2 text-muted-foreground">
         <Icon className="size-4" />
         {label}
       </span>

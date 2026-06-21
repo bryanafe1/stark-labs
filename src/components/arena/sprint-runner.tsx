@@ -133,7 +133,7 @@ export function SprintRunner({
     <div className="space-y-4">
       {/* Sprint HUD */}
       <Card>
-        <CardContent className="flex flex-wrap items-center gap-4 py-4">
+        <CardContent className="flex flex-wrap items-center gap-x-4 gap-y-2 py-4">
           <div
             className={cn(
               "flex items-center gap-2 rounded-lg border px-3 py-1.5 font-mono text-lg font-bold tabular-nums",
@@ -196,7 +196,7 @@ export function SprintRunner({
           <CardTitle className="text-lg">{current.title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="whitespace-pre-wrap rounded-lg border border-border bg-card/40 p-4 text-sm leading-relaxed text-foreground/90">
+          <div className="whitespace-pre-wrap break-words rounded-lg border border-border bg-card/40 p-4 text-sm leading-relaxed text-foreground/90">
             {current.prompt}
           </div>
           <form

@@ -50,7 +50,7 @@ export default async function ProfilePage() {
               @{user.username} · joined {timeAgo(user.joinedAt)}
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="text-right">
               <p className="text-2xl font-black tabular-nums">{user.overallElo}</p>
               <p className={cn("text-xs font-semibold", tier.textClass)}>{tier.label}</p>

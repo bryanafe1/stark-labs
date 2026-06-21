@@ -66,7 +66,7 @@ export default async function ProblemPage({ params }: Params) {
               </span>
             </div>
             <h1 className="text-xl font-semibold tracking-tight">{problem.title}</h1>
-            <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+            <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground/90">
               {problem.prompt}
             </div>
 

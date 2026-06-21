@@ -164,7 +164,7 @@ export function ForgotPasswordForm() {
         <p className="text-sm text-foreground">
           If an account exists, a reset link is on its way.
         </p>
-        <p className="font-mono text-xs text-muted-foreground">{email}</p>
+        <p className="break-all font-mono text-xs text-muted-foreground">{email}</p>
       </div>
     );
   }

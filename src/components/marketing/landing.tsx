@@ -148,7 +148,7 @@ export function Landing() {
                 <div
                   key={d.key}
                   className={cn(
-                    "relative flex flex-col items-center gap-2 rounded-lg border px-4 py-5 transition-colors",
+                    "relative flex flex-col items-center gap-2 rounded-lg border px-3 py-4 transition-colors sm:px-4 sm:py-5",
                     live ? "border-primary/40 bg-card" : "border-border bg-card/30 opacity-60",
                   )}
                 >

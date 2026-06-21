@@ -13,7 +13,7 @@ export function FormulaBlock({ block }: { block: FormulaBlockData }) {
       <div className="p-5">
         {/* Production: render `display` with KaTeX. For now, a clean mono line. */}
         <div className="overflow-x-auto rounded-md border border-border bg-background">
-          <p className="px-4 py-3 text-center font-mono text-lg tracking-tight text-foreground">
+          <p className="whitespace-nowrap px-4 py-3 text-center font-mono text-lg tracking-tight text-foreground">
             {block.display}
           </p>
         </div>

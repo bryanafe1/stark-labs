@@ -43,5 +43,10 @@ export function Latex({
       />
     );
   }
-  return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+  return (
+    <span
+      className={cn("inline-block max-w-full overflow-x-auto align-middle", className)}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
 }

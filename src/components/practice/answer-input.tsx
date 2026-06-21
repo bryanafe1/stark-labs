@@ -50,17 +50,17 @@ export function AnswerInput({ problem }: { problem: AnswerInputProblem }) {
           {(problem.choices ?? []).map((c) => (
             <label
               key={c.id}
-              className="flex cursor-pointer items-center gap-3 rounded-md border border-input bg-background p-3 text-sm transition-colors hover:border-foreground/30 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+              className="flex cursor-pointer items-start gap-3 rounded-md border border-input bg-background p-3 text-sm transition-colors hover:border-foreground/30 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
             >
               <input
                 type="radio"
                 name="choiceId"
                 value={c.id}
                 required
-                className="size-4 accent-[hsl(var(--terminal))]"
+                className="mt-0.5 size-4 shrink-0 accent-[hsl(var(--terminal))]"
               />
-              <span className="font-mono text-xs text-muted-foreground">{c.id})</span>
-              {c.label}
+              <span className="mt-px shrink-0 font-mono text-xs text-muted-foreground">{c.id})</span>
+              <span className="min-w-0 break-words">{c.label}</span>
             </label>
           ))}
         </fieldset>

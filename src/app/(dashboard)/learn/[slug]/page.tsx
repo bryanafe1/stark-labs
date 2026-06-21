@@ -51,7 +51,7 @@ export default async function LessonPage({ params }: Params) {
   const showCompleted = total > 0 && doneCount === total;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="mx-auto max-w-3xl space-y-4 pb-24">
       <Link
         href="/learn"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"

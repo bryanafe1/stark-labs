@@ -75,7 +75,7 @@ export function SprintArena({
         <div className="space-y-5 p-5">
           <div>
             <h2 className="text-lg font-semibold tracking-tight">{plan.problem.title}</h2>
-            <div className="mt-2 whitespace-pre-wrap rounded-lg border border-border bg-background p-4 text-sm leading-relaxed text-foreground/90">
+            <div className="mt-2 whitespace-pre-wrap break-words rounded-lg border border-border bg-background p-4 text-sm leading-relaxed text-foreground/90">
               {plan.problem.prompt}
             </div>
           </div>

@@ -50,7 +50,7 @@ export default async function PricingPage() {
         </Card>
 
         {/* Pro */}
-        <Card className="relative flex flex-col border-primary/40 bg-gradient-to-br from-primary/10 to-transparent p-6">
+        <Card className="relative flex flex-col border-primary/40 bg-gradient-to-br from-primary/10 to-transparent p-6 pt-9 sm:pt-6">
           <span className="absolute right-4 top-4 flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
             <Sparkles className="size-3" /> Most popular
           </span>

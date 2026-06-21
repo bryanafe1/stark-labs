@@ -88,9 +88,9 @@ export function SandboxBlock({ block }: { block: SandboxBlockData }) {
         </div>
 
         {/* Live output */}
-        <div className="flex flex-col items-center justify-center rounded-xl border border-primary/20 bg-primary/[0.04] p-6 text-center md:min-w-44">
+        <div className="flex min-w-0 flex-col items-center justify-center rounded-xl border border-primary/20 bg-primary/[0.04] p-4 text-center sm:p-6 md:min-w-44">
           <p className="text-xs text-muted-foreground">{block.outputLabel}</p>
-          <p className="mt-1 font-mono text-3xl font-bold tabular-nums text-primary">
+          <p className="mt-1 break-all font-mono text-2xl font-bold tabular-nums text-primary sm:text-3xl">
             {result === null ? "—" : fmt(result, precision)}
           </p>
           {block.outputUnit && (

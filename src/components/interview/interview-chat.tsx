@@ -173,9 +173,9 @@ export function InterviewChat() {
   const visible = messages.filter((m) => !m.hidden);
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-3xl flex-col">
+    <div className="mx-auto flex h-[calc(100dvh-8rem)] max-w-3xl flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 gap-y-2 border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <MessageSquare className="size-5 text-terminal" />
           <div>
@@ -185,9 +185,11 @@ export function InterviewChat() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Button variant="secondary" size="sm" onClick={endInterview} disabled={streaming}>
-            <Flag className="size-4" /> End & get feedback
+            <Flag className="size-4" />
+            <span className="hidden sm:inline">End &amp; get feedback</span>
+            <span className="sm:hidden">End</span>
           </Button>
           <Button variant="ghost" size="sm" onClick={reset}>
             <RotateCcw className="size-4" /> New

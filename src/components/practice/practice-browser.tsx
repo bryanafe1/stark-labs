@@ -226,6 +226,7 @@ export function PracticeBrowser({
         <Results
           problems={filtered}
           discipline={discipline}
+          skill={skill}
           onBack={() => selectDiscipline("ALL")}
           onClear={() => {
             selectDiscipline("ALL");
@@ -242,11 +243,13 @@ export function PracticeBrowser({
 function Results({
   problems,
   discipline,
+  skill,
   onBack,
   onClear,
 }: {
   problems: PracticeProblem[];
   discipline: DiscFilter;
+  skill: string;
   onBack: () => void;
   onClear: () => void;
 }) {
@@ -304,6 +307,22 @@ function Results({
             </Button>
           }
         />
+      ) : discipline !== "ALL" && skill !== "ALL" ? (
+        /* A specific subject/skill is selected — show a flat list, not the
+           subject accordion (grouping by primary subject would scatter these
+           across sibling headers, which is confusing). */
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold">{SKILL_LABEL.get(skill) ?? "Results"}</h2>
+            <span className="font-mono text-xs text-muted-foreground">{problems.length}</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {problems.map((p) => (
+              <ProblemCard key={p.id} problem={p} />
+            ))}
+          </div>
+        </section>
       ) : discipline !== "ALL" ? (
         <SubjectAccordion key={discipline} groups={groups} />
       ) : (

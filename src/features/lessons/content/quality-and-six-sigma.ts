@@ -60,6 +60,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Process capability: Cp and Cpk",
       display: "Cp = (USL − LSL) / (6σ)     Cpk = min( (USL − µ)/(3σ), (µ − LSL)/(3σ) )",
+      latex: "C_p = \\dfrac{\\text{USL} - \\text{LSL}}{6\\sigma} \\qquad C_{pk} = \\min\\!\\left(\\dfrac{\\text{USL} - \\mu}{3\\sigma},\\ \\dfrac{\\mu - \\text{LSL}}{3\\sigma}\\right)",
       variables: [
         { symbol: "Cp", name: "Process capability (potential) — spec width vs. process spread", unit: "" },
         { symbol: "Cpk", name: "Process capability index (actual) — Cp penalized for off-center mean", unit: "" },

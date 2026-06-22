@@ -63,6 +63,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Fourier's law (1-D steady conduction)",
       display: "Q = k·A·ΔT / L",
+      latex: "Q = \\dfrac{k \\cdot A \\cdot \\Delta T}{L}",
       variables: [
         { symbol: "Q", name: "Rate of heat flow (heat current)", unit: "W" },
         { symbol: "k", name: "Thermal conductivity of the material", unit: "W/m·K" },

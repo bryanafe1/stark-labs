@@ -65,6 +65,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The flexure (bending) formula",
       display: "σ = M·y / I",
+      latex: "\\sigma = \\dfrac{M y}{I}",
       variables: [
         { symbol: "σ", name: "Bending (normal) stress at distance y from the neutral axis", unit: "Pa" },
         { symbol: "M", name: "Internal bending moment at the section", unit: "N·m" },
@@ -100,6 +101,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Second moment of area of a rectangle",
       display: "I = b·h³ / 12",
+      latex: "I = \\dfrac{b h^3}{12}",
       variables: [
         { symbol: "I", name: "Second moment of area about the centroidal (horizontal) axis", unit: "m⁴" },
         { symbol: "b", name: "Width of the rectangle (perpendicular to bending)", unit: "m" },
@@ -182,6 +184,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Cantilever tip deflection (end point load)",
       display: "δ = P·L³ / (3·E·I)",
+      latex: "\\delta = \\dfrac{P L^3}{3 E I}",
       variables: [
         { symbol: "δ", name: "Deflection at the free tip", unit: "m" },
         { symbol: "P", name: "Point load at the free end", unit: "N" },

@@ -72,6 +72,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The pH definition",
       display: "pH = −log10[H⁺]",
+      latex: "\\text{pH} = -\\log_{10}[\\text{H}^{+}]",
       variables: [
         { symbol: "pH", name: "potential of hydrogen (dimensionless)", unit: "—" },
         { symbol: "[H⁺]", name: "hydrogen-ion (hydronium) concentration", unit: "mol/L" },

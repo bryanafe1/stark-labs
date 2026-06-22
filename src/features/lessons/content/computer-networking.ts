@@ -86,6 +86,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Transmission time and the bandwidth-delay product",
       display: "Transmission time = size / bandwidth   •   BDP = bandwidth × RTT",
+      latex: "\\text{Transmission time} = \\dfrac{\\text{size}}{\\text{bandwidth}} \\quad\\bullet\\quad \\text{BDP} = \\text{bandwidth} \\times \\text{RTT}",
       variables: [
         { symbol: "size", name: "Amount of data to send", unit: "bits (or Mb)" },
         { symbol: "bandwidth", name: "Link capacity / data rate", unit: "bits/s (or Mbps)" },

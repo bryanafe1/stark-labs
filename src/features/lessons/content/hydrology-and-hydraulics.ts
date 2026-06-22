@@ -76,6 +76,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The Rational Method (metric)",
       display: "Q = C · i · A / 360",
+      latex: "Q = \\dfrac{C \\cdot i \\cdot A}{360}",
       variables: [
         { symbol: "Q", name: "Peak runoff flow rate", unit: "m³/s" },
         { symbol: "C", name: "Runoff coefficient (fraction of rain that runs off)", unit: "" },

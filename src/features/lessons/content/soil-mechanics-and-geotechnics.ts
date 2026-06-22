@@ -59,6 +59,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Vertical total stress with depth",
       display: "σ = γ·h        (layered:  σ = Σ γᵢ·hᵢ)",
+      latex: "\\sigma = \\gamma h \\qquad (\\text{layered: } \\sigma = \\textstyle\\sum_i \\gamma_i h_i)",
       variables: [
         { symbol: "σ", name: "Vertical total stress", unit: "kPa" },
         { symbol: "γ", name: "Soil unit weight", unit: "kN/m³" },
@@ -94,6 +95,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Effective stress and pore pressure",
       display: "σ' = σ − u        u = γ_w · h_w        σ' = σ − γ_w · h_w",
+      latex: "\\sigma' = \\sigma - u \\qquad u = \\gamma_w h_w \\qquad \\sigma' = \\sigma - \\gamma_w h_w",
       variables: [
         { symbol: "σ'", name: "Vertical effective stress (grain-to-grain)", unit: "kPa" },
         { symbol: "σ", name: "Vertical total stress", unit: "kPa" },

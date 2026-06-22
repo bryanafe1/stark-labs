@@ -68,6 +68,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Circular orbital velocity",
       display: "v = √(µ / r)",
+      latex: "v = \\sqrt{\\dfrac{\\mu}{r}}",
       variables: [
         { symbol: "v", name: "Circular orbital speed", unit: "m/s" },
         { symbol: "µ", name: "Standard gravitational parameter, µ = G·M (Earth: 3.986×10¹⁴)", unit: "m³/s²" },

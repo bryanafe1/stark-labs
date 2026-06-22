@@ -59,6 +59,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The diode equation and the forward drop",
       display: "I = Is·(e^(V/(n·Vt)) − 1)        Vt = k·T/q ≈ 26 mV at room temp",
+      latex: "I = I_s\\left(e^{V/(n V_t)} - 1\\right) \\qquad V_t = \\dfrac{k T}{q} \\approx 26\\,\\text{mV at room temp}",
       variables: [
         { symbol: "I", name: "Diode current", unit: "A" },
         { symbol: "Is", name: "Reverse saturation (leakage) current", unit: "A" },
@@ -80,6 +81,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "LED current-limiting resistor",
       display: "Vs = I·R + Vf        →        R = (Vs − Vf) / I",
+      latex: "V_s = I R + V_f \\quad\\rightarrow\\quad R = \\dfrac{V_s - V_f}{I}",
       variables: [
         { symbol: "R", name: "Series current-limiting resistor", unit: "Ω" },
         { symbol: "Vs", name: "Supply voltage", unit: "V" },

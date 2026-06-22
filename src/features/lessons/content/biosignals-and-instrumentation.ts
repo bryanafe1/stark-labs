@@ -68,6 +68,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Common-mode rejection ratio, in decibels",
       display: "CMRR(dB) = 20 · log10(Ad / Acm)",
+      latex: "\\text{CMRR}_{\\text{dB}} = 20 \\cdot \\log_{10}\\!\\left(\\dfrac{A_{d}}{A_{cm}}\\right)",
       variables: [
         { symbol: "Ad", name: "Differential gain — how much the amplifier multiplies the signal (the difference)", unit: "(unitless ratio)" },
         { symbol: "Acm", name: "Common-mode gain — how much it (accidentally) multiplies the shared hum", unit: "(unitless ratio)" },

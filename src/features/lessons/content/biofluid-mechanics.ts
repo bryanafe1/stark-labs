@@ -71,6 +71,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The Hagen–Poiseuille equation",
       display: "Q = π·ΔP·r⁴ / (8·µ·L)",
+      latex: "Q = \\dfrac{\\pi \\cdot \\Delta P \\cdot r^{4}}{8 \\cdot \\mu \\cdot L}",
       variables: [
         { symbol: "Q", name: "volumetric flow rate", unit: "m³/s" },
         { symbol: "ΔP", name: "pressure drop across the vessel", unit: "Pa" },

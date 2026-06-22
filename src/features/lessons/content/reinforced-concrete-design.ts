@@ -73,6 +73,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Tension-steel force (the T in the couple)",
       display: "T = As · fy",
+      latex: "T = A_s \\cdot f_y",
       variables: [
         { symbol: "T", name: "Total tension force the steel can develop", unit: "N" },
         { symbol: "As", name: "Total cross-sectional area of tension steel", unit: "mm²" },

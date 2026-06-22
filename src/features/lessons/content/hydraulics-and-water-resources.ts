@@ -51,6 +51,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Manning's equation (open-channel velocity)",
       display: "V = (1/n) · R^(2/3) · S^(1/2)",
+      latex: "V = \\dfrac{1}{n} \\cdot R^{2/3} \\cdot S^{1/2}",
       variables: [
         { symbol: "V", name: "Mean flow velocity", unit: "m/s" },
         { symbol: "n", name: "Manning roughness coefficient (empirical)", unit: "–" },

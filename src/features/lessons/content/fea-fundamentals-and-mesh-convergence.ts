@@ -63,6 +63,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The one equation to rule them all",
       display: "{K}{u} = {F}",
+      latex: "[K]\\{u\\} = \\{F\\}",
       variables: [
         { symbol: "K", name: "Global stiffness matrix (assembled, n×n)", unit: "N/m" },
         { symbol: "u", name: "Vector of nodal degrees of freedom (displacements)", unit: "m" },
@@ -84,6 +85,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "k = AE/L — the stiffness of a single stick",
       display: "k = A·E / L",
+      latex: "k = \\dfrac{A\\,E}{L}",
       variables: [
         { symbol: "k", name: "Axial element stiffness", unit: "N/m" },
         { symbol: "A", name: "Cross-sectional area", unit: "m²" },

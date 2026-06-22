@@ -60,6 +60,7 @@ export const lesson: LessonDetail = {
       title: "Two-link planar arm — forward kinematics",
       display:
         "X = L1·cos(θ1) + L2·cos(θ1 + θ2)        Y = L1·sin(θ1) + L2·sin(θ1 + θ2)",
+      latex: "X = L_1 \\cos(\\theta_1) + L_2 \\cos(\\theta_1 + \\theta_2) \\qquad Y = L_1 \\sin(\\theta_1) + L_2 \\sin(\\theta_1 + \\theta_2)",
       variables: [
         { symbol: "X", name: "End-effector x-coordinate", unit: "m" },
         { symbol: "Y", name: "End-effector y-coordinate", unit: "m" },

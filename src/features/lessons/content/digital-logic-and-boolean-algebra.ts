@@ -67,6 +67,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "States from n bits",
       display: "states = 2ⁿ",
+      latex: "\\text{states} = 2^{n}",
       variables: [
         { symbol: "states", name: "Number of distinct values representable", unit: "–" },
         { symbol: "n", name: "Number of bits", unit: "bits" },

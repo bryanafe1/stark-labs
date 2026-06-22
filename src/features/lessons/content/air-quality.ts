@@ -76,6 +76,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Well-mixed box: steady-state concentration",
       display: "C = E / Q",
+      latex: "C = \\dfrac{E}{Q}",
       variables: [
         { symbol: "C", name: "Pollutant concentration in the box", unit: "µg/m³" },
         { symbol: "E", name: "Emission rate (mass of pollutant per time)", unit: "µg/s" },

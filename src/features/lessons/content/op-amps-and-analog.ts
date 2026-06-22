@@ -60,6 +60,8 @@ export const lesson: LessonDetail = {
       title: "The two gains that run analog design",
       display:
         "Non-inverting:  Vout = Vin·(1 + Rf/Rin)        Inverting:  Vout = −Vin·(Rf/Rin)        Buffer:  Vout = Vin",
+      latex:
+        "\\text{Non-inverting: } V_{out} = V_{in}\\left(1 + \\dfrac{R_f}{R_{in}}\\right) \\qquad \\text{Inverting: } V_{out} = -V_{in}\\dfrac{R_f}{R_{in}} \\qquad \\text{Buffer: } V_{out} = V_{in}",
       variables: [
         { symbol: "Vout", name: "Output voltage", unit: "V" },
         { symbol: "Vin", name: "Input (signal) voltage", unit: "V" },

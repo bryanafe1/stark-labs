@@ -53,6 +53,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Fick's first law (steady diffusion through a film)",
       display: "J = D · ΔC / L",
+      latex: "J = \\dfrac{D \\, \\Delta C}{L}",
       variables: [
         { symbol: "J", name: "Diffusion flux — amount crossing per unit area per time", unit: "mol/m²·s" },
         { symbol: "D", name: "Diffusivity (diffusion coefficient) — how mobile the molecule is in this medium", unit: "m²/s" },

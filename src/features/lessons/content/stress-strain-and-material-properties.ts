@@ -70,6 +70,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Hooke's law (the elastic region)",
       display: "σ = E·ε",
+      latex: "\\sigma = E \\cdot \\varepsilon",
       variables: [
         { symbol: "σ", name: "Stress (force per unit area)", unit: "Pa" },
         { symbol: "E", name: "Young's modulus (stiffness, slope of the elastic line)", unit: "Pa" },

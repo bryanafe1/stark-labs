@@ -54,6 +54,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Little's Law",
       display: "L = λ · W",
+      latex: "L = \\lambda \\cdot W",
       variables: [
         { symbol: "L", name: "Average number of items in the system (length)", unit: "items" },
         { symbol: "λ", name: "Average arrival rate = throughput of a stable system (lambda)", unit: "items/hr" },

@@ -77,6 +77,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Moment of a force about a point",
       display: "M = F · d",
+      latex: "M = F\\,d",
       variables: [
         { symbol: "M", name: "Moment (torque) about the chosen point", unit: "N·m" },
         { symbol: "F", name: "Magnitude of the force", unit: "N" },
@@ -111,6 +112,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Reaction at A for a point load (simply-supported beam)",
       display: "R_A = P·b / L",
+      latex: "R_A = \\dfrac{P b}{L}",
       variables: [
         { symbol: "R_A", name: "Vertical reaction at support A", unit: "N" },
         { symbol: "P", name: "Magnitude of the downward point load", unit: "N" },

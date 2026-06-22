@@ -93,6 +93,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "CPU utilization under multiprogramming",
       display: "Utilization ≈ (1 − wⁿ) × 100%",
+      latex: "\\text{Utilization} \\approx (1 - w^{n}) \\times 100\\%",
       variables: [
         { symbol: "w", name: "Fraction of time each process spends waiting on I/O", unit: "(0–1)" },
         { symbol: "n", name: "Number of processes kept in memory", unit: "processes" },

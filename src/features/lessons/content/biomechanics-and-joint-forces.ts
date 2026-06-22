@@ -62,6 +62,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Muscle force from a moment balance",
       display: "F = W·d / a",
+      latex: "F = \\dfrac{W \\cdot d}{a}",
       variables: [
         { symbol: "F", name: "Muscle (biceps) force required to hold the load", unit: "N" },
         { symbol: "W", name: "External load held in the hand", unit: "N" },

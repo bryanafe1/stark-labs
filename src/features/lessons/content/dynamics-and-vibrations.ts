@@ -62,6 +62,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Natural frequency of a spring-mass system",
       display: "ωn = √(k / m)",
+      latex: "\\omega_n = \\sqrt{\\dfrac{k}{m}}",
       variables: [
         { symbol: "ωn", name: "Natural angular frequency", unit: "rad/s" },
         { symbol: "k", name: "Spring stiffness (restoring force per unit displacement)", unit: "N/m" },
@@ -112,6 +113,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Damping ratio and damped frequency",
       display: "ζ = c / (2·√(k·m)),   ωd = ωn·√(1 − ζ²)",
+      latex: "\\zeta = \\dfrac{c}{2\\sqrt{k\\,m}}, \\quad \\omega_d = \\omega_n\\sqrt{1 - \\zeta^{2}}",
       variables: [
         { symbol: "ζ", name: "Damping ratio (dimensionless): ζ<1 underdamped, ζ=1 critical, ζ>1 overdamped", unit: "—" },
         { symbol: "c", name: "Viscous damping coefficient (damping force per unit velocity)", unit: "N·s/m" },

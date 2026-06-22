@@ -70,6 +70,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Carnot efficiency — the unbeatable ceiling",
       display: "η = 1 − Tc / Th",
+      latex: "\\eta = 1 - \\dfrac{T_c}{T_h}",
       variables: [
         { symbol: "η", name: "Carnot (maximum possible) efficiency, as a fraction (×100 for %)", unit: "—" },
         { symbol: "Tc", name: "Absolute temperature of the cold reservoir", unit: "K" },

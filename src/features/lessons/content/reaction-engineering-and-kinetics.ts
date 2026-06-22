@@ -60,6 +60,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "First-order half-life",
       display: "t₁/₂ = ln(2) / k",
+      latex: "t_{1/2} = \\dfrac{\\ln(2)}{k}",
       variables: [
         { symbol: "t₁/₂", name: "Half-life — time for the concentration to fall to half its value", unit: "s" },
         { symbol: "ln(2)", name: "Natural log of 2, a fixed constant ≈ 0.693", unit: "—" },

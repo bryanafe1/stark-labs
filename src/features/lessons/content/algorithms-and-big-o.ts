@@ -66,6 +66,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Why halving gives you log n",
       display: "comparisons ≈ log₂(n) = ln(n) / ln(2)",
+      latex: "\\text{comparisons} \\approx \\log_{2}(n) = \\dfrac{\\ln(n)}{\\ln(2)}",
       variables: [
         { symbol: "n", name: "Number of items in the sorted array", unit: "items" },
         { symbol: "log₂(n)", name: "Times you can halve n down to 1", unit: "steps" },

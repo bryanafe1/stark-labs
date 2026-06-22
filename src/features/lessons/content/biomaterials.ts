@@ -74,6 +74,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Implant stress from the load it carries",
       display: "σ = F / A",
+      latex: "\\sigma = \\dfrac{F}{A}",
       variables: [
         { symbol: "σ", name: "Stress in the implant", unit: "Pa (use MPa = 10⁶ Pa)" },
         { symbol: "F", name: "Load carried by the implant", unit: "N" },

@@ -65,6 +65,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The z-score: standardizing any value",
       display: "z = (x − μ) / σ",
+      latex: "z = \\dfrac{x - \\mu}{\\sigma}",
       variables: [
         { symbol: "z", name: "Z-score (number of standard deviations from the mean)", unit: "σ" },
         { symbol: "x", name: "The raw value you are evaluating" },

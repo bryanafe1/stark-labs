@@ -107,6 +107,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Lift equation",
       display: "L = ½ · ρ · V² · S · C_L",
+      latex: "L = \\tfrac{1}{2}\\,\\rho V^2 S\\, C_L",
       variables: [
         { symbol: "L", name: "Lift force", unit: "N" },
         { symbol: "ρ", name: "Air density", unit: "kg/m³" },
@@ -168,6 +169,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Induced drag coefficient and aspect ratio",
       display: "C_Di = C_L² / (π · e · AR),   AR = b² / S",
+      latex: "C_{Di} = \\dfrac{C_L^2}{\\pi\\, e\\, \\text{AR}}, \\qquad \\text{AR} = \\dfrac{b^2}{S}",
       variables: [
         { symbol: "C_Di", name: "Induced drag coefficient", unit: "–" },
         { symbol: "C_L", name: "Lift coefficient", unit: "–" },

@@ -77,6 +77,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Hydraulic retention time",
       display: "HRT = V / Q",
+      latex: "\\text{HRT} = \\dfrac{V}{Q}",
       variables: [
         { symbol: "HRT", name: "Hydraulic retention time (average time water spends in the tank)", unit: "h" },
         { symbol: "V", name: "Tank volume", unit: "m³" },

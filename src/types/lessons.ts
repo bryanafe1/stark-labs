@@ -28,8 +28,10 @@ export interface FormulaBlock {
   id: string;
   kind: "FORMULA";
   title?: string;
-  /** Human-readable rendering, e.g. "δ = P·L³ / (3·E·I)". */
+  /** Plain-text fallback, e.g. "δ = P·L³ / (3·E·I)". */
   display: string;
+  /** LaTeX source for proper typesetting (stacked fractions, etc.). Preferred. */
+  latex?: string;
   variables: FormulaVariable[];
   note?: string;
 }

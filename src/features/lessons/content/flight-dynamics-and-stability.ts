@@ -80,6 +80,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Static margin",
       display: "SM = (x_np − x_cg) / c × 100%",
+      latex: "SM = \\dfrac{x_{np} - x_{cg}}{c} \\times 100\\%",
       variables: [
         { symbol: "SM", name: "Static margin (% of MAC)", unit: "%" },
         { symbol: "x_np", name: "Neutral point location (aft of a reference)", unit: "m" },

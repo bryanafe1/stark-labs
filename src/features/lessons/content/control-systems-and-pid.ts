@@ -59,6 +59,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The PID control law",
       display: "u(t) = Kp·e(t) + Ki·∫₀ᵗ e(τ) dτ + Kd·(de/dt),    e(t) = r(t) − y(t)",
+      latex: "u(t) = K_p\\,e(t) + K_i\\int_0^{t} e(\\tau)\\,d\\tau + K_d\\,\\dfrac{de}{dt}, \\quad e(t) = r(t) - y(t)",
       variables: [
         { symbol: "u(t)", name: "Controller output (command to the plant)" },
         { symbol: "e(t)", name: "Error = setpoint − measurement" },
@@ -105,6 +106,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Second-order: natural frequency and damping",
       display: "ωn = √(k/m)        ζ = c / (2·√(k·m))        m·ẍ + c·ẋ + k·x = F",
+      latex: "\\omega_n = \\sqrt{\\dfrac{k}{m}}, \\quad \\zeta = \\dfrac{c}{2\\sqrt{k\\,m}}, \\quad m\\ddot{x} + c\\dot{x} + k x = F",
       variables: [
         { symbol: "ωn", name: "Undamped natural frequency", unit: "rad/s" },
         { symbol: "ζ", name: "Damping ratio (dimensionless)" },

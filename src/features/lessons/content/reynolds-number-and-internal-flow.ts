@@ -76,6 +76,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Reynolds number (internal flow)",
       display: "Re = ρ·V·D / µ = V·D / ν",
+      latex: "\\text{Re} = \\dfrac{\\rho V D}{\\mu} = \\dfrac{V D}{\\nu}",
       variables: [
         { symbol: "Re", name: "Reynolds number (dimensionless)", unit: "—" },
         { symbol: "ρ", name: "fluid density", unit: "kg/m³" },
@@ -185,6 +186,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Darcy–Weisbach head loss",
       display: "h_f = f · (L/D) · V² / (2·g)",
+      latex: "h_f = f\\,\\dfrac{L}{D}\\,\\dfrac{V^2}{2 g}",
       variables: [
         { symbol: "h_f", name: "major (friction) head loss", unit: "m" },
         { symbol: "f", name: "Darcy friction factor (dimensionless)", unit: "—" },

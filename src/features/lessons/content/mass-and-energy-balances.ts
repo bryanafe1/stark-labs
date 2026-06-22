@@ -54,6 +54,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The general balance equation",
       display: "In − Out + Gen − Cons = Accumulation",
+      latex: "\\text{In} - \\text{Out} + \\text{Gen} - \\text{Cons} = \\text{Accumulation}",
       variables: [
         { symbol: "In", name: "Rate of the quantity entering across the system boundary", unit: "kg/s" },
         { symbol: "Out", name: "Rate of the quantity leaving across the boundary", unit: "kg/s" },
@@ -105,6 +106,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Sensible-heat duty (steady-flow)",
       display: "Q = ṁ · cp · ΔT",
+      latex: "Q = \\dot{m}\\,c_p\\,\\Delta T",
       variables: [
         { symbol: "Q", name: "Heat duty — rate of heat added (or removed if negative)", unit: "kW" },
         { symbol: "ṁ", name: "Mass flow rate of the stream", unit: "kg/s" },

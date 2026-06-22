@@ -72,6 +72,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "ADC resolution (step size / LSB)",
       display: "Δ = Vref / 2ⁿ        (levels = 2ⁿ,    max quantization error ≈ Δ/2)",
+      latex: "\\Delta = \\dfrac{V_{ref}}{2^{n}} \\qquad \\left(\\text{levels} = 2^{n}, \\quad \\text{max quantization error} \\approx \\dfrac{\\Delta}{2}\\right)",
       variables: [
         { symbol: "Δ", name: "Step size / resolution (voltage of one LSB)", unit: "V" },
         { symbol: "Vref", name: "ADC reference voltage (full-scale input)", unit: "V" },

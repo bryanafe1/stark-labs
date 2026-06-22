@@ -122,6 +122,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Euler critical load (any end conditions)",
       display: "Pcr = π² · E · I / (K · L)²",
+      latex: "P_{cr} = \\dfrac{\\pi^{2}\\,E\\,I}{(K\\,L)^{2}}",
       variables: [
         { symbol: "Pcr", name: "Critical (Euler) buckling load", unit: "N" },
         { symbol: "E", name: "Young's modulus of the material", unit: "Pa" },
@@ -185,6 +186,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Slenderness ratio, radius of gyration, and Euler stress",
       display: "λ = K·L / r,   r = √(I/A),   σcr = π²·E / λ²",
+      latex: "\\lambda = \\dfrac{K\\,L}{r}, \\quad r = \\sqrt{\\dfrac{I}{A}}, \\quad \\sigma_{cr} = \\dfrac{\\pi^{2}\\,E}{\\lambda^{2}}",
       variables: [
         { symbol: "λ", name: "Slenderness ratio", unit: "–" },
         { symbol: "r", name: "Radius of gyration (smallest axis)", unit: "m" },

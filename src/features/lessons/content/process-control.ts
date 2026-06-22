@@ -58,6 +58,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "First-order step response and the stirred-tank time constant",
       display: "y(t) = K·Δu·(1 − e^(−t/τ)),    τ = V / Q",
+      latex: "y(t) = K\\,\\Delta u\\left(1 - e^{-t/\\tau}\\right), \\quad \\tau = \\dfrac{V}{Q}",
       variables: [
         { symbol: "y(t)", name: "Process output as a function of time" },
         { symbol: "K", name: "Process (steady-state) gain — how far the output moves per unit input" },
@@ -134,6 +135,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The feedback control law on the plant floor",
       display: "u(t) = Kc·e(t) + (Kc/τI)·∫₀ᵗ e dt + Kc·τD·(de/dt),    e(t) = r(t) − y(t)",
+      latex: "u(t) = K_c\\,e(t) + \\dfrac{K_c}{\\tau_I}\\int_0^{t} e\\,dt + K_c\\,\\tau_D\\,\\dfrac{de}{dt}, \\quad e(t) = r(t) - y(t)",
       variables: [
         { symbol: "u(t)", name: "Controller output (signal to the valve)" },
         { symbol: "e(t)", name: "Error = setpoint − measured process variable" },

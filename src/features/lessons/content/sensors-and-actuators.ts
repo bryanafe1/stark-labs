@@ -58,6 +58,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Reading temperature from an RTD",
       display: "T = (R − R0) / (R0 · α)",
+      latex: "T = \\dfrac{R - R_0}{R_0\\,\\alpha}",
       variables: [
         { symbol: "T", name: "Temperature", unit: "°C" },
         { symbol: "R", name: "Measured resistance of the RTD", unit: "Ω" },
@@ -124,6 +125,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The sense → decide → act loop",
       display: "world → [SENSOR] → condition → [CONTROLLER decides] → [ACTUATOR] → world (repeat)",
+      latex: "\\text{world} \\rightarrow [\\text{SENSOR}] \\rightarrow \\text{condition} \\rightarrow [\\text{CONTROLLER decides}] \\rightarrow [\\text{ACTUATOR}] \\rightarrow \\text{world (repeat)}",
       variables: [
         { symbol: "SENSOR", name: "Transducer: physical quantity → electrical signal" },
         { symbol: "condition", name: "Amplify, filter, calibrate the raw signal" },

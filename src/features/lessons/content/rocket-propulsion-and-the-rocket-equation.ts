@@ -96,6 +96,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Tsiolkovsky rocket equation",
       display: "Δv = Isp · g0 · ln(m0 / mf)",
+      latex: "\\Delta v = I_{sp} \\cdot g_0 \\cdot \\ln\\!\\left(\\dfrac{m_0}{m_f}\\right)",
       variables: [
         { symbol: "Δv", name: "Delta-v (achievable velocity change)", unit: "m/s" },
         { symbol: "Isp", name: "Specific impulse", unit: "s" },

@@ -66,6 +66,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "AMAT: the price of an average memory access",
       display: "AMAT = hitTime + missRate · missPenalty",
+      latex: "\\text{AMAT} = \\text{hitTime} + \\text{missRate} \\cdot \\text{missPenalty}",
       variables: [
         { symbol: "AMAT", name: "Average Memory Access Time", unit: "ns" },
         { symbol: "hitTime", name: "Time to access the cache (paid on every access)", unit: "ns" },

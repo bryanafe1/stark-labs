@@ -52,6 +52,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "RMS of a sinusoid",
       display: "Vrms = Vpeak / √2        Irms = Ipeak / √2        v(t) = Vpeak·sin(2π·f·t)",
+      latex: "V_{\\text{rms}} = \\dfrac{V_{\\text{peak}}}{\\sqrt{2}} \\qquad I_{\\text{rms}} = \\dfrac{I_{\\text{peak}}}{\\sqrt{2}} \\qquad v(t) = V_{\\text{peak}}\\sin(2\\pi f t)",
       variables: [
         { symbol: "Vrms", name: "RMS (effective) voltage", unit: "V" },
         { symbol: "Vpeak", name: "Peak (amplitude) voltage", unit: "V" },
@@ -80,6 +81,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The power triangle",
       display: "P = V·I·cos θ        Q = V·I·sin θ        S = V·I        S² = P² + Q²        pf = cos θ = P / S",
+      latex: "P = V I \\cos\\theta \\qquad Q = V I \\sin\\theta \\qquad S = V I \\qquad S^2 = P^2 + Q^2 \\qquad \\text{pf} = \\cos\\theta = \\dfrac{P}{S}",
       variables: [
         { symbol: "P", name: "Real (active) power", unit: "W" },
         { symbol: "Q", name: "Reactive power", unit: "VAR" },
@@ -124,6 +126,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Three-phase power (balanced)",
       display: "P = √3·V_L·I_L·cos θ        Single-phase: P = V·I·cos θ",
+      latex: "P = \\sqrt{3}\\,V_L I_L \\cos\\theta \\qquad \\text{Single-phase: } P = V I \\cos\\theta",
       variables: [
         { symbol: "P", name: "Total three-phase real power", unit: "W" },
         { symbol: "V_L", name: "Line-to-line RMS voltage", unit: "V" },

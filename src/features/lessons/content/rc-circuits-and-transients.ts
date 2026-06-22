@@ -61,6 +61,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The capacitor's three constitutive laws",
       display: "Q = C·V        i = C·dV/dt        E = ½·C·V²",
+      latex: "Q = C V \\qquad i = C\\,\\dfrac{dV}{dt} \\qquad E = \\tfrac{1}{2} C V^2",
       variables: [
         { symbol: "Q", name: "Stored charge", unit: "C" },
         { symbol: "C", name: "Capacitance", unit: "F" },
@@ -119,6 +120,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The charging law (and its mirror current)",
       display: "V(t) = Vs·(1 − e^(−t/τ))        τ = R·C        i(t) = (Vs/R)·e^(−t/τ)",
+      latex: "V(t) = V_s\\left(1 - e^{-t/\\tau}\\right) \\qquad \\tau = R C \\qquad i(t) = \\dfrac{V_s}{R}\\,e^{-t/\\tau}",
       variables: [
         { symbol: "V(t)", name: "Capacitor voltage at time t", unit: "V" },
         { symbol: "Vs", name: "Source (final) voltage", unit: "V" },
@@ -234,6 +236,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "The discharge (natural) law",
       display: "V(t) = V0·e^(−t/τ)        i(t) = (V0/R)·e^(−t/τ)        E = ½·C·V0²",
+      latex: "V(t) = V_0\\,e^{-t/\\tau} \\qquad i(t) = \\dfrac{V_0}{R}\\,e^{-t/\\tau} \\qquad E = \\tfrac{1}{2} C V_0^2",
       variables: [
         { symbol: "V(t)", name: "Capacitor voltage at time t", unit: "V" },
         { symbol: "V0", name: "Initial capacitor voltage", unit: "V" },

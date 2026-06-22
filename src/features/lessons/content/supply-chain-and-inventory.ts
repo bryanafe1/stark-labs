@@ -53,6 +53,7 @@ export const lesson: LessonDetail = {
       kind: "FORMULA",
       title: "Economic Order Quantity (EOQ)",
       display: "EOQ = √( 2 · D · S / H )",
+      latex: "\\text{EOQ} = \\sqrt{\\dfrac{2 \\cdot D \\cdot S}{H}}",
       variables: [
         { symbol: "EOQ", name: "Optimal order quantity (units per order)", unit: "units" },
         { symbol: "D", name: "Annual demand", unit: "units/yr" },

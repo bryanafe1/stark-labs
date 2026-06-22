@@ -1,6 +1,7 @@
 import { Sigma } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Markdown } from "@/components/markdown";
+import { Latex } from "@/components/latex";
 import type { FormulaBlock as FormulaBlockData } from "@/types/lessons";
 
 export function FormulaBlock({ block }: { block: FormulaBlockData }) {
@@ -11,11 +12,15 @@ export function FormulaBlock({ block }: { block: FormulaBlockData }) {
         <span className="text-sm font-semibold">{block.title ?? "Formula"}</span>
       </div>
       <div className="p-5">
-        {/* Production: render `display` with KaTeX. For now, a clean mono line. */}
-        <div className="overflow-x-auto rounded-md border border-border bg-background">
-          <p className="whitespace-nowrap px-4 py-3 text-center font-mono text-lg tracking-tight text-foreground">
-            {block.display}
-          </p>
+        {/* Proper math typesetting via KaTeX; plain-text fallback if no LaTeX. */}
+        <div className="overflow-x-auto rounded-md border border-border bg-background px-4 py-3 text-center">
+          {block.latex ? (
+            <Latex tex={block.latex} display className="my-0 text-lg" />
+          ) : (
+            <p className="whitespace-nowrap font-mono text-lg tracking-tight text-foreground">
+              {block.display}
+            </p>
+          )}
         </div>
 
         <dl className="mt-5 grid gap-x-6 gap-y-2 sm:grid-cols-2">

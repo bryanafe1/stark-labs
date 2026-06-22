@@ -13,6 +13,9 @@ import { cn } from "@/lib/utils";
 import { DISCIPLINE_LIST } from "@/lib/constants";
 import { LandingNav } from "@/components/marketing/landing-nav";
 import { HeroPreview } from "@/components/marketing/hero-preview";
+import { SampleLesson } from "@/components/marketing/sample-lesson";
+import { Testimonials } from "@/components/marketing/testimonials";
+import { Faq } from "@/components/marketing/faq";
 
 // ---------------------------------------------------------------------------
 //  Focused marketing page — one tight promise: learn, practice, rank.
@@ -182,6 +185,31 @@ export function Landing() {
         </div>
       </section>
 
+      {/* Sample lesson, testimonials, FAQ ------------------------------- */}
+      <SampleLesson />
+      <Testimonials />
+      <Faq />
+
+      {/* About / contact ------------------------------------------------- */}
+      <section className="border-b border-border/60">
+        <div className="mx-auto w-full max-w-3xl px-4 py-16 text-center sm:px-6">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            Built by engineers, for engineers
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
+            Technical interviews test the fundamentals you forget six months out of a textbook, and
+            cramming formulas the night before doesn&apos;t work. Stark turns the concepts
+            interviewers actually probe into deep, interactive lessons and realistic practice.
+          </p>
+          <p className="mt-4 font-mono text-sm text-muted-foreground">
+            Questions?{" "}
+            <a className="text-primary hover:underline" href="mailto:support@starklab.dev">
+              support@starklab.dev
+            </a>
+          </p>
+        </div>
+      </section>
+
       {/* Final CTA ------------------------------------------------------- */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-grid [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_70%)]" />
@@ -214,12 +242,18 @@ export function Landing() {
             <Link href="#features" className="hover:text-foreground">
               Features
             </Link>
+            <Link href="#faq" className="hover:text-foreground">
+              FAQ
+            </Link>
             <Link href="/terms" className="hover:text-foreground">
               Terms
             </Link>
             <Link href="/privacy" className="hover:text-foreground">
               Privacy
             </Link>
+            <a href="mailto:support@starklab.dev" className="hover:text-foreground">
+              Contact
+            </a>
             <Link href="/sign-in" className="hover:text-foreground">
               Sign in
             </Link>

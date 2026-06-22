@@ -24,7 +24,9 @@ export async function startCheckout(formData?: FormData): Promise<void> {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) redirect("/sign-in");
 
-  const tier: PlanTier = formData?.get("plan") === "annual" ? "annual" : "monthly";
+  const planRaw = formData?.get("plan");
+  const tier: PlanTier =
+    planRaw === "annual" ? "annual" : planRaw === "pass" ? "pass" : "monthly";
 
   // Ensure the user has a Stripe customer.
   let customerId = user.stripeCustomerId;
@@ -38,15 +40,24 @@ export async function startCheckout(formData?: FormData): Promise<void> {
   }
 
   const base = baseUrl();
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
+  const common = {
     customer: customerId,
     line_items: [{ price: priceIdFor(tier), quantity: 1 }],
     success_url: `${base}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${base}/pricing?canceled=1`,
     allow_promotion_codes: true,
-    subscription_data: { metadata: { userId, tier } },
-  });
+    metadata: { userId, plan: tier },
+  };
+
+  // The Season Pass is a one-time payment; monthly/annual are subscriptions.
+  const session =
+    tier === "pass"
+      ? await stripe.checkout.sessions.create({ ...common, mode: "payment" })
+      : await stripe.checkout.sessions.create({
+          ...common,
+          mode: "subscription",
+          subscription_data: { metadata: { userId, tier } },
+        });
 
   if (!session.url) redirect("/pricing?error=1");
   redirect(session.url);

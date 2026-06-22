@@ -19,12 +19,19 @@ export default async function SettingsPage() {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) redirect("/sign-in");
 
+  const active = user.subscriptionStatus === "active";
+  const isPass = active && user.subscriptionTier === "pass";
+  const accessUntil = user.currentPeriodEnd
+    ? new Date(user.currentPeriodEnd).toLocaleDateString()
+    : null;
   const plan =
     user.role === "ADMIN"
-      ? { label: "Admin", note: "Full access — no billing.", tone: "primary" as const }
-      : user.subscriptionStatus === "active"
-        ? { label: "Pro", note: "$20/mo — everything unlocked.", tone: "primary" as const }
-        : { label: "Free", note: "Easy Mechanical content only.", tone: "muted" as const };
+      ? { label: "Admin", note: "Full access, no billing.", tone: "primary" as const }
+      : isPass
+        ? { label: "Season Pass", note: "One-time pass. Everything unlocked.", tone: "primary" as const }
+        : active
+          ? { label: "Pro", note: "Everything unlocked.", tone: "primary" as const }
+          : { label: "Free", note: "Easy Mechanical content only.", tone: "muted" as const };
 
   const joined = new Date(user.createdAt).toLocaleDateString(undefined, {
     year: "numeric",
@@ -97,9 +104,13 @@ export default async function SettingsPage() {
         <CardContent className="flex flex-wrap items-center gap-2">
           {user.role === "ADMIN" ? (
             <span className="text-sm text-muted-foreground">
-              You have admin access — billing doesn&apos;t apply to your account.
+              You have admin access. Billing doesn&apos;t apply to your account.
             </span>
-          ) : user.subscriptionStatus === "active" ? (
+          ) : isPass ? (
+            <span className="text-sm text-muted-foreground">
+              Season Pass active{accessUntil ? ` through ${accessUntil}` : ""}. It won&apos;t auto-renew.
+            </span>
+          ) : active ? (
             <form action={openBillingPortal}>
               <Button type="submit" variant="secondary">
                 Manage subscription

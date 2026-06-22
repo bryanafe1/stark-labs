@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
-import { stripe, tierForPrice } from "@/lib/stripe";
+import { stripe, tierForPrice, PASS_DAYS } from "@/lib/stripe";
 
 export const metadata: Metadata = { title: "Welcome to Pro" };
 
@@ -24,7 +24,21 @@ export default async function BillingSuccessPage({
     try {
       const session = await stripe.checkout.sessions.retrieve(sessionId);
       const ok = session.status === "complete" || session.payment_status === "paid";
-      if (ok && session.subscription) {
+      if (ok && session.mode === "payment") {
+        // One-time Season Pass.
+        const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
+        await prisma.user.update({
+          where: { id: userId },
+          data: {
+            subscriptionStatus: "active",
+            subscriptionTier: "pass",
+            currentPeriodEnd: new Date(Date.now() + PASS_DAYS * 86_400_000),
+            cancelAtPeriodEnd: true,
+            stripeCustomerId: customerId ?? undefined,
+          },
+        });
+        activated = true;
+      } else if (ok && session.subscription) {
         const subId =
           typeof session.subscription === "string" ? session.subscription : session.subscription.id;
         const sub = await stripe.subscriptions.retrieve(subId);

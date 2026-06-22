@@ -18,7 +18,7 @@ export default async function AppLayout({
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { username: true, displayName: true, name: true, image: true },
+    select: { username: true, displayName: true, name: true, image: true, role: true },
   });
 
   return (
@@ -29,6 +29,7 @@ export default async function AppLayout({
           displayName={user?.displayName ?? user?.name ?? "Engineer"}
           username={user?.username ?? "you"}
           image={user?.image ?? null}
+          isAdmin={user?.role === "ADMIN"}
         />
         <main className="flex-1 px-4 py-6 lg:px-8">{children}</main>
       </div>

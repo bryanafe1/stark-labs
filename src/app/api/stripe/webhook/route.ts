@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type Stripe from "stripe";
-import { stripe, tierForPrice } from "@/lib/stripe";
+import { stripe, tierForPrice, PASS_DAYS } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -48,8 +48,24 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
       case "checkout.session.completed": {
         const s = event.data.object as Stripe.Checkout.Session;
-        // Pull the full subscription so we get period end, tier, and flags.
-        if (s.subscription) {
+        if (s.mode === "payment") {
+          // One-time Season Pass → grant a fixed window of access, no renewal.
+          const userId = s.metadata?.userId;
+          const customerId = typeof s.customer === "string" ? s.customer : s.customer?.id;
+          if (userId) {
+            await prisma.user.update({
+              where: { id: userId },
+              data: {
+                subscriptionStatus: "active",
+                subscriptionTier: "pass",
+                currentPeriodEnd: new Date(Date.now() + PASS_DAYS * 86_400_000),
+                cancelAtPeriodEnd: true,
+                stripeCustomerId: customerId ?? undefined,
+              },
+            });
+          }
+        } else if (s.subscription) {
+          // Subscription → pull the full object for period end, tier, flags.
           const subId = typeof s.subscription === "string" ? s.subscription : s.subscription.id;
           const sub = await stripe.subscriptions.retrieve(subId);
           await applySubscription(sub);

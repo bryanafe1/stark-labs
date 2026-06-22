@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { User, Settings, LogOut, Sparkles } from "lucide-react";
+import { User, Settings, LogOut, Sparkles, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MobileNav } from "@/components/dashboard/mobile-nav";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -17,9 +17,10 @@ interface TopbarProps {
   displayName: string;
   username: string;
   image: string | null;
+  isAdmin?: boolean;
 }
 
-export function Topbar({ displayName, username, image }: TopbarProps) {
+export function Topbar({ displayName, username, image, isAdmin }: TopbarProps) {
   const initials = displayName
     .split(" ")
     .map((p) => p[0])
@@ -51,6 +52,13 @@ export function Topbar({ displayName, username, image }: TopbarProps) {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>My account</DropdownMenuLabel>
             <DropdownMenuSeparator />
+            {isAdmin && (
+              <DropdownMenuItem asChild>
+                <Link href="/admin">
+                  <Shield /> Admin
+                </Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem asChild>
               <Link href="/profile">
                 <User /> Profile

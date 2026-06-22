@@ -5,22 +5,17 @@ import type { Bot, MatchPlan } from "./types";
 //  All client-side; opponents are fabricated near the user's local Elo.
 // ---------------------------------------------------------------------------
 
-/** 50+ believable engineering handles. */
+/** Realistic human-style handles (chess.com vibe — not obviously bots). */
 export const BOT_USERNAMES: string[] = [
-  "TurboFan_99", "Navier_Stokes_Fan", "CircuitBreakerME", "HVAC_God",
-  "BernoulliBandit", "FluxCapacitor", "TorqueWrench", "vortex_shedder",
-  "ThermoThanos", "MeshMaster3000", "LaminarLarry", "StressTensor",
-  "CarnotCarl", "ohmsLawEnforcer", "ReynoldsWrap", "FEA_or_die",
-  "EntropyEnjoyer", "MomentOfInertia", "DampedHarmonic", "PSI_Ops",
-  "BoundaryLayerBob", "yield_strength", "ServoSensei", "kelvin_kid",
-  "ShearLocked", "FourierTransformer", "drag_coefficient", "PIDcontroller",
-  "GearRatioGuru", "BoltPreload", "CFD_cowboy", "TheBigPSI",
-  "AmpereAce", "vonMisesVixen", "BucklingBaron", "HeatSinkHero",
-  "FractureMechanic", "Watt_a_Legend", "RankineRebel", "FilletKing",
-  "specific_impulse", "PoissonRatio", "GaugePressure", "MachOne",
-  "WeldNeck", "TheGradient", "CapacitorKid", "RotorDynamo",
-  "viscous_dissipation", "SolidWorksSlayer", "PascalsTriangle", "TheFlowRate",
-  "AeroAnnie", "QFactorQueen", "ColdStartCharlie", "RootLocus",
+  "mchen", "j_rodriguez", "Sarah_K", "tomwilson", "akira.t", "p.nguyen",
+  "DavidL", "emma_rose", "kofi.a", "lucasm", "AvaW", "samir.k",
+  "noah.h", "g.rossi", "priya_s", "leofitz", "h.larsen", "maya.r",
+  "diegop", "wmoore88", "ElenaV", "kenji_w", "anya.p", "fmercer",
+  "OliverB", "t.delgado", "ryan.k", "sofia_m", "nina.l", "marcus.t",
+  "j.okafor", "claire_b", "raj.p", "yuki.s", "ben.carter", "Amelia_R",
+  "l.silva", "k.tanaka", "owenh", "natalie.w", "z.ahmed", "grace.l",
+  "dmitri.v", "isla.m", "carlos.r", "TheoB", "hana.k", "liam_oc",
+  "vera.p", "n.haddad", "jesst", "andre.l", "mei.w", "robw",
 ];
 
 /** A reasonable human solve time for these sprints. The bot is tuned around it. */
@@ -35,7 +30,7 @@ function randInt(min: number, max: number): number {
 /** Fabricate an opponent within ±90 Elo of the player (clamped). */
 export function generateOpponent(userElo: number): Bot {
   const username =
-    BOT_USERNAMES[Math.floor(Math.random() * BOT_USERNAMES.length)] ?? "Rival_AI";
+    BOT_USERNAMES[Math.floor(Math.random() * BOT_USERNAMES.length)] ?? "alex.m";
   const elo = Math.max(100, userElo + randInt(-90, 90));
   return { id: `bot_${Date.now()}_${randInt(1000, 9999)}`, username, elo };
 }

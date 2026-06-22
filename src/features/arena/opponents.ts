@@ -6,18 +6,18 @@ import type { Opponent } from "@/types/arena";
 // queue; here we fabricate a believable rival near the user's Elo so the
 // ranked loop is fully playable without live infrastructure.
 const HANDLES = [
-  "ada.l",
-  "tesla_n",
-  "g.kármán",
-  "prandtl",
-  "n.bohr",
-  "k.johnson",
-  "h.reynolds",
-  "e.torvalds",
-  "m.curie",
-  "j.boyd",
-  "r.feynman",
-  "s.timoshenko",
+  "mchen",
+  "j_rodriguez",
+  "Sarah_K",
+  "akira.t",
+  "p.nguyen",
+  "DavidL",
+  "emma_rose",
+  "lucasm",
+  "samir.k",
+  "g.rossi",
+  "priya_s",
+  "h.larsen",
 ];
 
 /**

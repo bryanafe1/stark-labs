@@ -10,6 +10,7 @@ import { pickSprintProblem } from "./sprint-problems";
 import { QueuePanel } from "./QueuePanel";
 import { SprintArena } from "./SprintArena";
 import { ResultModal } from "./ResultModal";
+import { RankLadder } from "./rank-ladder";
 import type { Bot, MatchPlan, Outcome, RankedPhase, ResultState } from "./types";
 
 const ELO_K = 32;
@@ -113,6 +114,12 @@ export function Matchmaker() {
           onJoin={enterQueue}
           onCancel={leave}
         />
+      )}
+
+      {hydrated && phase !== "sprinting" && (
+        <div className="mt-6">
+          <RankLadder elo={elo} />
+        </div>
       )}
 
       {/* MATCH FOUND snap */}

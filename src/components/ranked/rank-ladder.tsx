@@ -4,25 +4,23 @@ import { RANK_TIERS, tierForElo } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 /**
- * The full rank ladder (Diamond → Bronze) with Elo ranges, so a player can see
- * every tier and exactly where they currently stand.
+ * The full rank ladder, laid out horizontally (Bronze → Grandmaster) with Elo
+ * ranges, so a player sees every tier and exactly where they stand.
  */
 export function RankLadder({ elo }: { elo: number }) {
   const current = tierForElo(elo);
-  const ordered = [...RANK_TIERS].reverse(); // highest tier first
 
   return (
     <div className="elevated rounded-xl border border-border bg-card p-5">
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-sm font-semibold">Rank ladder</h2>
         <span className="font-mono text-xs text-muted-foreground">
           You: {elo} Elo · {current.label}
         </span>
       </div>
 
-      <div className="space-y-2">
-        {ordered.map((t) => {
-          const idx = RANK_TIERS.findIndex((x) => x.key === t.key);
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+        {RANK_TIERS.map((t, idx) => {
           const next = RANK_TIERS[idx + 1];
           const range = next ? `${t.minElo}–${next.minElo - 1}` : `${t.minElo}+`;
           const isCurrent = t.key === current.key;
@@ -30,20 +28,18 @@ export function RankLadder({ elo }: { elo: number }) {
             <div
               key={t.key}
               className={cn(
-                "flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors",
-                isCurrent ? "border-primary bg-primary/5" : "border-border",
+                "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-colors",
+                isCurrent ? "border-primary bg-primary/10" : "border-border",
               )}
             >
               <span
-                className={cn("size-8 shrink-0 rounded-full bg-gradient-to-br", t.gradient)}
+                className={cn("size-7 shrink-0 rounded-full bg-gradient-to-br", t.gradient)}
                 aria-hidden
               />
-              <div className="min-w-0 flex-1">
-                <p className={cn("text-sm font-semibold", t.textClass)}>{t.label}</p>
-                <p className="font-mono text-xs text-muted-foreground">{range} Elo</p>
-              </div>
+              <p className={cn("text-xs font-semibold leading-tight", t.textClass)}>{t.label}</p>
+              <p className="font-mono text-[10px] text-muted-foreground">{range}</p>
               {isCurrent && (
-                <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">
                   You
                 </span>
               )}

@@ -2,12 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, Timer, Loader2, Bot as BotIcon } from "lucide-react";
+import { ChevronRight, Timer, User as UserIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { gradeAnswer } from "@/lib/grading";
 import { cn } from "@/lib/utils";
-import { botStage } from "./bots";
 import { ReferenceSheet } from "./reference-sheet";
 import type { MatchPlan, Outcome } from "./types";
 
@@ -56,9 +55,6 @@ export function SprintArena({
       setTimeout(() => setWrong(false), 500);
     }
   };
-
-  const botProgress = Math.min(1, elapsed / plan.botFinishMs);
-  const stage = botStage(botProgress);
 
   return (
     <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[1fr_260px]">
@@ -132,7 +128,7 @@ export function SprintArena({
         <div className="space-y-4 p-4">
           <div className="flex items-center gap-2">
             <span className="flex size-8 items-center justify-center rounded-md bg-secondary text-muted-foreground">
-              <BotIcon className="size-4" />
+              <UserIcon className="size-4" />
             </span>
             <div className="min-w-0">
               <p className="truncate font-mono text-sm font-medium">{plan.opponent.username}</p>
@@ -140,24 +136,16 @@ export function SprintArena({
             </div>
           </div>
 
-          <div>
-            <div className="mb-1.5 flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin" />
-              {stage.label}
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-              <div
-                className="h-full rounded-full bg-muted-foreground/80 transition-[width] duration-200"
-                style={{ width: `${Math.round(botProgress * 100)}%` }}
-              />
-            </div>
-            <p className="mt-1.5 font-mono text-[11px] text-muted-foreground/70">
-              step {Math.min(stage.index + 1, 6)} / 6
-            </p>
+          <div className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+            <span className="relative flex size-2.5 items-center justify-center">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terminal/60" />
+              <span className="relative inline-flex size-2 rounded-full bg-terminal" />
+            </span>
+            In the sprint
           </div>
 
           <p className="border-t border-border pt-3 font-mono text-[11px] leading-relaxed text-muted-foreground/70">
-            Submit a correct answer before your opponent finishes to take the match.
+            First to submit a correct answer takes the match. Solve fast.
           </p>
         </div>
       </Card>

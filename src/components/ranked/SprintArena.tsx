@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { gradeAnswer } from "@/lib/grading";
 import { cn } from "@/lib/utils";
 import { botStage } from "./bots";
+import { ReferenceSheet } from "./reference-sheet";
 import type { MatchPlan, Outcome } from "./types";
 
 function fmt(ms: number): string {
@@ -81,9 +82,12 @@ export function SprintArena({
           </div>
 
           <form onSubmit={submit} className="space-y-3">
-            <label className="block font-mono text-xs uppercase tracking-wide text-muted-foreground">
-              answer
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
+                answer
+              </label>
+              <ReferenceSheet equations={plan.problem.reference} />
+            </div>
             <motion.div
               animate={wrong ? { x: [0, -8, 8, -6, 6, 0] } : { x: 0 }}
               transition={{ duration: 0.4 }}

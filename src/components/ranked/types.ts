@@ -29,6 +29,8 @@ export interface SprintProblem {
   expectedValue: number;
   tolerance: number;
   unit: string;
+  /** Governing equations shown in the on-screen Reference Sheet (tools, not the answer). */
+  reference: string[];
 }
 
 /** The live match plan, fixed the instant a match starts. */

@@ -2,10 +2,10 @@ import type { SprintProblem } from "./types";
 
 // ---------------------------------------------------------------------------
 //  Procedurally-generated sprint problems. Each generator randomizes its inputs
-//  within realistic ranges and COMPUTES the answer in code — so every match is
-//  effectively unique ("infinite") while every answer is exactly correct (no
-//  AI guessing, no per-match cost, no latency). All multi-step: prompts never
-//  hand over the governing formula.
+//  and COMPUTES the answer in code — every match is unique, every answer exact.
+//  Problems test PROBLEM-SOLVING, not memorization: the governing equations are
+//  provided on the battle screen via the Reference Sheet (`reference` below).
+//  The challenge is choosing + combining them, unit work, and multi-step setup.
 // ---------------------------------------------------------------------------
 
 const G = 9.81;
@@ -34,6 +34,10 @@ const GENERATORS: Gen[] = [
       expectedValue: Math.round(pcr * 10) / 10,
       tolerance: tol(pcr, 0.02, 1),
       unit: "kN",
+      reference: [
+        "Euler (pinned–pinned): P_cr = π²·E·I / L²",
+        "Solid circular section: I = π·d⁴ / 64",
+      ],
     };
   },
 
@@ -51,6 +55,10 @@ const GENERATORS: Gen[] = [
       expectedValue: Math.round(w),
       tolerance: tol(w, 0.02, 8),
       unit: "kJ/kg",
+      reference: [
+        "Air-standard Otto efficiency: η = 1 − r^(1−γ)",
+        "Net work per unit mass: w = η · q_in",
+      ],
     };
   },
 
@@ -72,6 +80,11 @@ const GENERATORS: Gen[] = [
       expectedValue: Math.round(dp),
       tolerance: tol(dp, 0.03, 4),
       unit: "kPa",
+      reference: [
+        "Continuity: V = Q / A,  A = π·D² / 4",
+        "Darcy–Weisbach: h_f = f·(L/D)·V² / (2g)",
+        "Pressure drop: Δp = ρ·g·h_f",
+      ],
     };
   },
 
@@ -92,6 +105,10 @@ const GENERATORS: Gen[] = [
       expectedValue: Math.round(t),
       tolerance: tol(t, 0.02, 8),
       unit: "ms",
+      reference: [
+        "Capacitor charging: V(t) = V_s·(1 − e^(−t/τ))",
+        "Time constant: τ = R·C",
+      ],
     };
   },
 
@@ -110,6 +127,11 @@ const GENERATORS: Gen[] = [
       expectedValue: Math.round(a * 100) / 100,
       tolerance: tol(a, 0.04, 0.1),
       unit: "m/s²",
+      reference: [
+        "Newton's 2nd law along the slope: ΣF = m·a",
+        "Gravity component down-slope: m·g·sinθ",
+        "Kinetic friction: f = μ·N,  with N = m·g·cosθ",
+      ],
     };
   },
 
@@ -129,6 +151,11 @@ const GENERATORS: Gen[] = [
       expectedValue: Math.round(q),
       tolerance: tol(q, 0.02, 3),
       unit: "W/m²",
+      reference: [
+        'Conduction resistance (per area): R" = L / k',
+        'Convection resistance (per area): R" = 1 / h',
+        'Resistances in series: q = ΔT / ΣR"',
+      ],
     };
   },
 
@@ -149,6 +176,11 @@ const GENERATORS: Gen[] = [
       expectedValue: Math.round(sigma * 10) / 10,
       tolerance: tol(sigma, 0.02, 0.5),
       unit: "MPa",
+      reference: [
+        "Simply supported, uniform load: M_max = w·L² / 8",
+        "Rectangular section: I = b·h³ / 12",
+        "Bending stress: σ = M·c / I,  with c = h / 2",
+      ],
     };
   },
 
@@ -169,6 +201,12 @@ const GENERATORS: Gen[] = [
       expectedValue: Math.round(P * 100) / 100,
       tolerance: tol(P, 0.03, 0.3),
       unit: "kW",
+      reference: [
+        "Hydraulic power: P_h = ρ·g·Q·H",
+        "Total head: H = static lift + friction head",
+        "Shaft (input) power: P = P_h / η",
+        "1000 L/min = 0.0167 m³/s",
+      ],
     };
   },
 
@@ -190,6 +228,10 @@ const GENERATORS: Gen[] = [
       expectedValue: Math.round(os * 10) / 10,
       tolerance: tol(os, 0.05, 0.6),
       unit: "%",
+      reference: [
+        "Standard 2nd-order form: s² + 2ζ·ω_n·s + ω_n² = 0",
+        "Percent overshoot: %OS = 100·e^(−ζπ / √(1−ζ²))",
+      ],
     };
   },
 
@@ -208,6 +250,10 @@ const GENERATORS: Gen[] = [
       expectedValue: Math.round(Re / 100) * 100,
       tolerance: tol(Re, 0.02, 200),
       unit: "",
+      reference: [
+        "Continuity: V = Q / A,  A = π·D² / 4",
+        "Reynolds number: Re = ρ·V·D / μ",
+      ],
     };
   },
 
@@ -224,6 +270,11 @@ const GENERATORS: Gen[] = [
       expectedValue: Math.round(R * 10) / 10,
       tolerance: tol(R, 0.02, 1),
       unit: "m",
+      reference: [
+        "Horizontal motion: x = v·cosθ · t",
+        "Vertical motion: y = v·sinθ · t − ½·g·t²",
+        "Range = x when the projectile returns to y = 0",
+      ],
     };
   },
 
@@ -240,6 +291,10 @@ const GENERATORS: Gen[] = [
       expectedValue: Math.round(fn * 100) / 100,
       tolerance: tol(fn, 0.02, 0.05),
       unit: "Hz",
+      reference: [
+        "Angular natural frequency: ω_n = √(k / m)",
+        "Frequency in Hz: f = ω_n / (2π)",
+      ],
     };
   },
 
@@ -260,6 +315,11 @@ const GENERATORS: Gen[] = [
       expectedValue: Math.round(sigMax * 10) / 10,
       tolerance: tol(sigMax, 0.02, 1),
       unit: "MPa",
+      reference: [
+        "Net-section area (through the hole): A = (w − d)·t",
+        "Nominal stress: σ_nom = P / A",
+        "Peak stress at the hole: σ_max = K_t · σ_nom",
+      ],
     };
   },
 ];

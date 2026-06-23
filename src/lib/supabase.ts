@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 // ---------------------------------------------------------------------------
-//  Supabase client for the "Stark" project.
+//  Supabase client for the "Overclocker" project.
 //  Data access goes through Prisma (see lib/prisma.ts); this client is for
 //  Supabase-native features — Storage (avatars/images), Realtime, and (later)
 //  Auth helpers. Uses the public anon/publishable key, safe for the browser.

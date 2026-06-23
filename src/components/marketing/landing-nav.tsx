@@ -14,7 +14,7 @@ export function LandingNav() {
         <Link href="/" className="flex items-center gap-2">
           <Hexagon className="size-6 text-foreground" strokeWidth={1.75} />
           <span className="font-mono text-lg font-semibold tracking-tight">
-            Stark
+            OC // LABS
           </span>
         </Link>
 

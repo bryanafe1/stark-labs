@@ -82,7 +82,7 @@ export default async function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
-          <CardDescription>How you appear across Stark.</CardDescription>
+          <CardDescription>How you appear across Overclocker.</CardDescription>
         </CardHeader>
         <CardContent>
           <ProfileForm

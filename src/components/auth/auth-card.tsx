@@ -28,7 +28,7 @@ export function AuthCard({ title, subtitle, children, footer }: AuthCardProps) {
         className="mb-6 flex items-center gap-2 transition-opacity hover:opacity-80"
       >
         <Hexagon className="size-7 fill-primary/20 text-primary" />
-        <span className="text-lg font-bold tracking-tight">Stark</span>
+        <span className="text-lg font-bold tracking-tight">OVERCLOCK_</span>
       </Link>
 
       <Card className="w-full">

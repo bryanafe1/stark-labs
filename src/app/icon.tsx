@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
-// Generated favicon — the Stark hexagon mark on the near-black canvas.
+// Generated favicon — the Overclocker hexagon mark on the near-black canvas.
 export default function Icon() {
   return new ImageResponse(
     (

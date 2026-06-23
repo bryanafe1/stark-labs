@@ -3,7 +3,7 @@ import { AuthCard } from "@/components/auth/auth-card";
 import { ForgotPasswordForm } from "@/components/auth/auth-form";
 
 export const metadata: Metadata = {
-  title: "Reset password · Stark",
+  title: "Reset password · Overclocker",
 };
 
 export default function ForgotPasswordPage() {

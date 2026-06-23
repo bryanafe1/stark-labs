@@ -7,7 +7,7 @@ import { GoogleButton } from "@/components/auth/google-button";
 import { GitHubButton } from "@/components/auth/github-button";
 
 export const metadata: Metadata = {
-  title: "Sign up · Stark",
+  title: "Sign up · Overclocker",
 };
 
 export default async function SignUpPage() {
@@ -16,7 +16,7 @@ export default async function SignUpPage() {
   return (
     <AuthCard
       title="Create your account"
-      subtitle="Start building with Stark in seconds."
+      subtitle="Start building with Overclocker in seconds."
       footer={{
         prompt: "Already have an account?",
         linkLabel: "Sign in",

@@ -22,7 +22,7 @@ const FAQS = [
     a: "Yes. One click in Settings, and you keep access through the end of your billing period.",
   },
   {
-    q: "Who is Stark for?",
+    q: "Who is Overclocker for?",
     a: "Students prepping for internships and new-grad roles, and working engineers brushing up before interviews.",
   },
   {

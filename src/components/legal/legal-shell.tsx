@@ -17,7 +17,7 @@ export function LegalShell({
           href="/"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="size-4" /> Back to Starklab
+          <ArrowLeft className="size-4" /> Back to Overclocker
         </Link>
         <h1 className="mt-6 text-3xl font-bold tracking-tight">{title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">Last updated: {updated}</p>

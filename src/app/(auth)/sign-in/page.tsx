@@ -7,7 +7,7 @@ import { GoogleButton } from "@/components/auth/google-button";
 import { GitHubButton } from "@/components/auth/github-button";
 
 export const metadata: Metadata = {
-  title: "Sign in · Stark",
+  title: "Sign in · Overclocker",
 };
 
 export default async function SignInPage() {

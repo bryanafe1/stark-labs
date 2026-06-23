@@ -198,7 +198,7 @@ export function Landing() {
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
             Technical interviews test the fundamentals you forget six months out of a textbook, and
-            cramming formulas the night before doesn&apos;t work. Stark turns the concepts
+            cramming formulas the night before doesn&apos;t work. Overclocker turns the concepts
             interviewers actually probe into deep, interactive lessons and realistic practice.
           </p>
           <p className="mt-4 font-mono text-sm text-muted-foreground">
@@ -236,7 +236,7 @@ export function Landing() {
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6">
           <Link href="/" className="flex items-center gap-2">
             <Hexagon className="size-5 text-foreground" strokeWidth={1.75} />
-            <span className="font-mono text-sm font-semibold tracking-tight">Stark</span>
+            <span className="font-mono text-sm font-semibold tracking-tight">OVERCLOCK_</span>
           </Link>
           <div className="flex items-center gap-5 font-mono text-xs text-muted-foreground">
             <Link href="#features" className="hover:text-foreground">
@@ -258,7 +258,7 @@ export function Landing() {
               Sign in
             </Link>
           </div>
-          <p className="font-mono text-xs text-muted-foreground">© {new Date().getFullYear()} Stark</p>
+          <p className="font-mono text-xs text-muted-foreground">© {new Date().getFullYear()} Overclocker</p>
         </div>
       </footer>
     </div>

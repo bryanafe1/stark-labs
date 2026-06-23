@@ -32,7 +32,7 @@ export function Topbar({ displayName, username, image, isAdmin }: TopbarProps) {
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl lg:px-8">
       <MobileNav />
       <Link href="/dashboard" className="flex items-center gap-2 lg:hidden">
-        <span className="text-base font-bold tracking-tight">Stark</span>
+        <span className="text-base font-bold tracking-tight">OC // LABS</span>
       </Link>
 
       <div className="ml-auto flex items-center gap-2">

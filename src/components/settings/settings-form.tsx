@@ -48,7 +48,7 @@ export function SettingsForm({ initial }: { initial: SettingsInitial }) {
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
-          <CardDescription>How you appear across Stark.</CardDescription>
+          <CardDescription>How you appear across Overclocker.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Field label="Display name">
@@ -78,7 +78,7 @@ export function SettingsForm({ initial }: { initial: SettingsInitial }) {
       <Card>
         <CardHeader>
           <CardTitle>Notifications</CardTitle>
-          <CardDescription>Choose what Stark pings you about.</CardDescription>
+          <CardDescription>Choose what Overclocker pings you about.</CardDescription>
         </CardHeader>
         <CardContent className="divide-y divide-border">
           <Toggle label="Ranked match alerts" desc="When a match is found in the Arena." checked={prefs.matchAlerts} onChange={(v) => { setPrefs((p) => ({ ...p, matchAlerts: v })); setSaved(false); }} />

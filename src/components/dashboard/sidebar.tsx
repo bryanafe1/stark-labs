@@ -13,7 +13,7 @@ export function Sidebar() {
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col overflow-y-auto border-r border-border bg-card/40 lg:flex">
       <Link href="/dashboard" className="flex h-16 items-center gap-2 px-6">
         <Hexagon className="size-7 fill-primary/20 text-primary" />
-        <span className="text-lg font-bold tracking-tight">Stark</span>
+        <span className="text-lg font-bold tracking-tight">OC // LABS</span>
       </Link>
 
       <nav className="flex-1 space-y-1 px-3 py-4">

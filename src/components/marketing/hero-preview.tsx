@@ -19,7 +19,7 @@ export function HeroPreview() {
           <span className="size-2.5 rounded-full bg-amber-400/70" />
           <span className="size-2.5 rounded-full bg-success/70" />
           <span className="ml-2 font-mono text-xs text-muted-foreground">
-            Stark · Mock Interview — Mechanical
+            OVERCLOCK_ · Mock Interview — Mechanical
           </span>
         </div>
 

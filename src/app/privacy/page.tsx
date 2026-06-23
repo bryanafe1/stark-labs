@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalShell, H2, P, Bullets } from "@/components/legal/legal-shell";
 
-export const metadata: Metadata = { title: "Privacy Policy · Starklab" };
+export const metadata: Metadata = { title: "Privacy Policy · Overclocker" };
 
 export default function PrivacyPage() {
   return (
     <LegalShell title="Privacy Policy" updated="June 21, 2026">
       <P>
-        This Privacy Policy explains how Starklab, operated by Mark-1 Performance LLC
+        This Privacy Policy explains how Overclocker, operated by Mark-1 Performance LLC
         (&ldquo;we&rdquo;, &ldquo;us&rdquo;), collects, uses, and shares information when you use
         starklab.dev (the &ldquo;Service&rdquo;).
       </P>

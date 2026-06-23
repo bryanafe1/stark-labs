@@ -67,7 +67,7 @@ export function MobileNav() {
                   <div className="flex h-16 shrink-0 items-center justify-between px-4">
                     <div className="flex items-center gap-2">
                       <Hexagon className="size-7 fill-primary/20 text-primary" />
-                      <span className="text-lg font-bold tracking-tight">Stark</span>
+                      <span className="text-lg font-bold tracking-tight">OC // LABS</span>
                     </div>
                     <Button
                       variant="ghost"

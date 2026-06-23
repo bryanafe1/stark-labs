@@ -11,8 +11,8 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mon
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: {
-    default: "Stark — Engineer your edge",
-    template: "%s · Stark",
+    default: "Overclocker",
+    template: "%s · Overclocker",
   },
   description:
     "Gamified, multidisciplinary engineering interview prep across Mechanical, Aerospace, Electrical, Computer, Civil, Chemical, Mechatronics, Industrial, Biomedical, and Environmental engineering.",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     "CFD",
   ],
   openGraph: {
-    title: "Stark — Engineer your edge",
+    title: "Overclocker",
     description:
       "Ranked sprints, interactive lessons, and an auto-graded problem bank for physical-engineering interviews.",
     type: "website",

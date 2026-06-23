@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
 import { LegalShell, H2, P, Bullets } from "@/components/legal/legal-shell";
 
-export const metadata: Metadata = { title: "Terms of Service · Starklab" };
+export const metadata: Metadata = { title: "Terms of Service · Overclocker" };
 
 export default function TermsPage() {
   return (
     <LegalShell title="Terms of Service" updated="June 21, 2026">
       <P>
-        These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of Starklab
-        (the &ldquo;Service&rdquo;), operated by Mark-1 Performance LLC (&ldquo;Starklab&rdquo;,
+        These Terms of Service (&ldquo;Terms&rdquo;) govern your access to and use of Overclocker
+        (the &ldquo;Service&rdquo;), operated by Mark-1 Performance LLC (&ldquo;Overclocker&rdquo;,
         &ldquo;we&rdquo;, &ldquo;us&rdquo;). By creating an account or using the Service, you agree
         to these Terms. If you do not agree, do not use the Service.
       </P>
 
       <H2>1. The Service</H2>
       <P>
-        Starklab is an educational platform that provides engineering interview-preparation
+        Overclocker is an educational platform that provides engineering interview-preparation
         lessons, practice problems, progress tracking, and AI-assisted mock interviews. The Service
         is provided for personal, educational use. It is not professional engineering advice and
         does not provide certification, licensure, or any guarantee of employment or exam results.

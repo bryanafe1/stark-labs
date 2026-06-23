@@ -113,10 +113,10 @@ function WelcomeStep() {
     <div className="flex flex-col items-center gap-6 py-6 text-center">
       <div className="flex items-center gap-2.5">
         <Hexagon className="size-8 text-foreground" strokeWidth={1.75} />
-        <span className="text-3xl font-semibold tracking-tight">Stark</span>
+        <span className="text-3xl font-semibold tracking-tight">OVERCLOCK_</span>
       </div>
       <p className="max-w-md text-balance text-base text-muted-foreground">
-        Interview-grade engineering practice. Let&apos;s tune Stark to the work
+        Interview-grade engineering practice. Let&apos;s tune Overclocker to the work
         you actually want to do.
       </p>
     </div>
@@ -347,7 +347,7 @@ export function OnboardingFlow() {
           >
             {step === 1 && (
               <>
-                <StepHeading step={1} title="Welcome to Stark" />
+                <StepHeading step={1} title="Welcome to Overclocker" />
                 <WelcomeStep />
               </>
             )}
@@ -414,7 +414,7 @@ export function OnboardingFlow() {
 
           {isLast ? (
             <Button onClick={finish} className="ml-auto">
-              Enter Stark
+              Enter Overclocker
               <ArrowRight className="size-4" />
             </Button>
           ) : (

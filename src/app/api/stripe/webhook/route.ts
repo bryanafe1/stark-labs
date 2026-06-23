@@ -17,9 +17,17 @@ function mapStatus(s: Stripe.Subscription.Status): string {
 /** Write a Stripe subscription's state onto the matching user. */
 async function applySubscription(sub: Stripe.Subscription) {
   const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
-  const priceId = sub.items.data[0]?.price?.id ?? null;
-  // Prefer the tier we stamped on the subscription metadata (survives price changes).
-  const tier = (sub.metadata?.tier as PlanTier | undefined) ?? tierForPrice(priceId);
+  const price = sub.items.data[0]?.price;
+  // For a subscription the billing interval is the source of truth for the tier
+  // (survives admin price changes AND plan switches in the portal, where stamped
+  // metadata would be stale). Fall back to metadata / known price ids otherwise.
+  const interval = price?.recurring?.interval;
+  const tier: PlanTier | null =
+    interval === "year"
+      ? "annual"
+      : interval === "month"
+        ? "monthly"
+        : ((sub.metadata?.tier as PlanTier | undefined) ?? tierForPrice(price?.id ?? null));
   const data = {
     subscriptionStatus: mapStatus(sub.status),
     subscriptionTier: tier,
@@ -28,7 +36,10 @@ async function applySubscription(sub: Stripe.Subscription) {
     currentPeriodEnd: new Date(sub.current_period_end * 1000),
     cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
   };
-  await prisma.user.updateMany({ where: { stripeCustomerId: customerId }, data });
+  const res = await prisma.user.updateMany({ where: { stripeCustomerId: customerId }, data });
+  if (res.count === 0) {
+    console.warn("[stripe webhook] no user found for customer", customerId);
+  }
 }
 
 /**
@@ -129,14 +140,19 @@ export async function POST(req: NextRequest) {
         break;
       }
       case "invoice.paid": {
-        // Subscription payments (initial + renewals) → credit the creator.
         const inv = event.data.object as Stripe.Invoice;
+        // Credit ONLY the initial charge and true renewals. Skip plan-change
+        // prorations (subscription_update) and one-off invoices, which would
+        // otherwise over-pay the creator on every upgrade/downgrade.
+        if (inv.billing_reason !== "subscription_create" && inv.billing_reason !== "subscription_cycle") {
+          break;
+        }
         const customerId = typeof inv.customer === "string" ? inv.customer : inv.customer?.id;
         await creditCreator({
           customerId,
           grossCents: inv.amount_paid ?? 0,
           eventId: event.id,
-          description: "Subscription payment",
+          description: inv.billing_reason === "subscription_create" ? "First subscription payment" : "Subscription renewal",
         });
         break;
       }

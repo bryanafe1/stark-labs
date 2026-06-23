@@ -12,8 +12,11 @@ export const ADMIN_COOKIE = "oc_admin";
 const ADMIN_USER = process.env.ADMIN_USERNAME ?? "admin";
 const ADMIN_PASS = process.env.ADMIN_PASSWORD ?? "";
 
+// Returns "" when AUTH_SECRET is missing so the gate fails closed rather than
+// signing tokens with a guessable default secret.
 function expectedToken(): string {
-  const secret = process.env.AUTH_SECRET ?? "dev-secret";
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) return "";
   return crypto.createHmac("sha256", secret).update(`admin-ok:${ADMIN_PASS}`).digest("hex");
 }
 
@@ -37,6 +40,8 @@ export function adminSessionToken(): string {
 /** True if the current request carries a valid admin session cookie. */
 export function isAdminAuthed(): boolean {
   if (!ADMIN_PASS) return false;
+  const expected = expectedToken();
+  if (!expected) return false; // no AUTH_SECRET → fail closed
   const c = cookies().get(ADMIN_COOKIE)?.value;
-  return !!c && safeEqual(c, expectedToken());
+  return !!c && safeEqual(c, expected);
 }

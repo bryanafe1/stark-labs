@@ -43,6 +43,10 @@ export async function createCreator(formData: FormData) {
   if (await prisma.creator.findUnique({ where: { code } })) {
     throw new Error("That code already exists.");
   }
+  // Keep creator emails unique so comp-linking on signup is unambiguous.
+  if (email && (await prisma.creator.findFirst({ where: { email } }))) {
+    throw new Error("A creator with that email already exists.");
+  }
 
   // Stripe coupon + promotion code backing the creator code.
   const { couponId, promoId } = await createCreatorPromo(code, discountPercent);

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Check, Sparkles, Tag } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,8 +46,8 @@ export default async function PricingPage({
     : null;
   const [subbed, pro, amounts] = await Promise.all([isSubscribed(), hasProAccess(), getPlanAmounts()]);
 
-  // Optional creator code from the URL (?code=JANE20).
-  const rawCode = (searchParams.code ?? "").trim().toUpperCase();
+  // Optional creator code from the URL (?code=JANE20) or the /r/<code> cookie.
+  const rawCode = (searchParams.code ?? cookies().get("oc_ref")?.value ?? "").trim().toUpperCase();
   const creator = rawCode ? await prisma.creator.findUnique({ where: { code: rawCode } }) : null;
   const validCode = creator?.active ? creator.code : "";
   const discountPct = creator?.active ? creator.discountPercent : 0;

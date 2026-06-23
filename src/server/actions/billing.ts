@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import type Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
@@ -30,8 +30,11 @@ export async function startCheckout(formData?: FormData): Promise<void> {
     planRaw === "annual" ? "annual" : planRaw === "pass" ? "pass" : "monthly";
 
   // Optional creator code → attribute this user to the creator + apply their
-  // discount. We pre-apply the promo (can't combine with allow_promotion_codes).
-  const code = String(formData?.get("code") ?? "").trim().toUpperCase();
+  // discount. Falls back to the oc_ref cookie set by a /r/<code> referral link.
+  const code =
+    (String(formData?.get("code") ?? "").trim().toUpperCase() ||
+      cookies().get("oc_ref")?.value?.trim().toUpperCase()) ??
+    "";
   let promotionCodeId: string | null = null;
   if (code) {
     const creator = await prisma.creator.findUnique({ where: { code } });

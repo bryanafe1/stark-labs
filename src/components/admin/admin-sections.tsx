@@ -105,7 +105,7 @@ export function CreatorsSection({ creators, baseUrl }: { creators: CreatorRow[];
                 </tr>
               )}
               {creators.map((c) => {
-                const link = `${baseUrl}/pricing?code=${c.code}`;
+                const link = `${baseUrl}/r/${c.code}`;
                 return (
                   <tr key={c.id} className={c.active ? "" : "opacity-50"}>
                     <td className="px-4 py-3">

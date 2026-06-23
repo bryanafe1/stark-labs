@@ -2,9 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import type Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
-import { stripe, priceIdFor, type PlanTier } from "@/lib/stripe";
+import { stripe, getActivePriceId, type PlanTier } from "@/lib/stripe";
 
 function baseUrl(): string {
   if (process.env.AUTH_URL) return process.env.AUTH_URL;
@@ -28,6 +29,23 @@ export async function startCheckout(formData?: FormData): Promise<void> {
   const tier: PlanTier =
     planRaw === "annual" ? "annual" : planRaw === "pass" ? "pass" : "monthly";
 
+  // Optional creator code → attribute this user to the creator + apply their
+  // discount. We pre-apply the promo (can't combine with allow_promotion_codes).
+  const code = String(formData?.get("code") ?? "").trim().toUpperCase();
+  let promotionCodeId: string | null = null;
+  if (code) {
+    const creator = await prisma.creator.findUnique({ where: { code } });
+    if (creator?.active) {
+      promotionCodeId = creator.stripePromoCodeId ?? null;
+      if (creator.id !== user.referredByCreatorId) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { referredByCreatorId: creator.id },
+        });
+      }
+    }
+  }
+
   // Ensure the user has a Stripe customer.
   let customerId = user.stripeCustomerId;
   if (!customerId) {
@@ -40,13 +58,15 @@ export async function startCheckout(formData?: FormData): Promise<void> {
   }
 
   const base = baseUrl();
-  const common = {
+  const common: Stripe.Checkout.SessionCreateParams = {
     customer: customerId,
-    line_items: [{ price: priceIdFor(tier), quantity: 1 }],
+    line_items: [{ price: await getActivePriceId(tier), quantity: 1 }],
     success_url: `${base}/billing/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${base}/pricing?canceled=1`,
-    allow_promotion_codes: true,
     metadata: { userId, plan: tier },
+    ...(promotionCodeId
+      ? { discounts: [{ promotion_code: promotionCodeId }] }
+      : { allow_promotion_codes: true }),
   };
 
   // The Season Pass is a one-time payment; monthly/annual are subscriptions.

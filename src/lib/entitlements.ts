@@ -52,10 +52,11 @@ export async function hasProAccess(): Promise<boolean> {
   if (!userId) return false;
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { role: true, subscriptionStatus: true, currentPeriodEnd: true },
+    select: { role: true, comped: true, subscriptionStatus: true, currentPeriodEnd: true },
   });
   if (!user) return false;
-  if (user.role === "ADMIN") return true;
+  // Admins and comped accounts (e.g. creators) get full access, no payment.
+  if (user.role === "ADMIN" || user.comped) return true;
   return (
     user.subscriptionStatus === "active" &&
     !!user.currentPeriodEnd &&

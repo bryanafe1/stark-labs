@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type Stripe from "stripe";
-import { stripe, tierForPrice, PASS_DAYS } from "@/lib/stripe";
+import { stripe, tierForPrice, PASS_DAYS, type PlanTier } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -18,15 +18,63 @@ function mapStatus(s: Stripe.Subscription.Status): string {
 async function applySubscription(sub: Stripe.Subscription) {
   const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
   const priceId = sub.items.data[0]?.price?.id ?? null;
+  // Prefer the tier we stamped on the subscription metadata (survives price changes).
+  const tier = (sub.metadata?.tier as PlanTier | undefined) ?? tierForPrice(priceId);
   const data = {
     subscriptionStatus: mapStatus(sub.status),
-    subscriptionTier: tierForPrice(priceId),
+    subscriptionTier: tier,
     stripeSubscriptionId: sub.id,
     stripeCustomerId: customerId,
     currentPeriodEnd: new Date(sub.current_period_end * 1000),
     cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
   };
   await prisma.user.updateMany({ where: { stripeCustomerId: customerId }, data });
+}
+
+/**
+ * Record a creator commission for a paid conversion, if the paying user was
+ * referred by a creator. Idempotent on the Stripe event id.
+ */
+async function creditCreator(opts: {
+  userId?: string | null;
+  customerId?: string | null;
+  grossCents: number;
+  eventId: string;
+  description: string;
+}) {
+  if (!opts.grossCents || opts.grossCents <= 0) return;
+  const user = opts.userId
+    ? await prisma.user.findUnique({
+        where: { id: opts.userId },
+        select: { id: true, referredByCreatorId: true },
+      })
+    : opts.customerId
+      ? await prisma.user.findFirst({
+          where: { stripeCustomerId: opts.customerId },
+          select: { id: true, referredByCreatorId: true },
+        })
+      : null;
+  if (!user?.referredByCreatorId) return;
+  const creator = await prisma.creator.findUnique({
+    where: { id: user.referredByCreatorId },
+    select: { id: true, commissionPercent: true },
+  });
+  if (!creator) return;
+  const commissionCents = Math.round((opts.grossCents * creator.commissionPercent) / 100);
+  try {
+    await prisma.creatorEarning.create({
+      data: {
+        creatorId: creator.id,
+        userId: user.id,
+        stripeEventId: opts.eventId,
+        grossCents: opts.grossCents,
+        commissionCents,
+        description: opts.description,
+      },
+    });
+  } catch {
+    // Unique stripeEventId violation → this event was already credited.
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -63,13 +111,33 @@ export async function POST(req: NextRequest) {
                 stripeCustomerId: customerId ?? undefined,
               },
             });
+            // One-time pass is paid in full here → credit the creator now.
+            await creditCreator({
+              userId,
+              grossCents: s.amount_total ?? 0,
+              eventId: event.id,
+              description: "Season Pass",
+            });
           }
         } else if (s.subscription) {
           // Subscription → pull the full object for period end, tier, flags.
+          // (Commission is credited on invoice.paid, covering first + renewals.)
           const subId = typeof s.subscription === "string" ? s.subscription : s.subscription.id;
           const sub = await stripe.subscriptions.retrieve(subId);
           await applySubscription(sub);
         }
+        break;
+      }
+      case "invoice.paid": {
+        // Subscription payments (initial + renewals) → credit the creator.
+        const inv = event.data.object as Stripe.Invoice;
+        const customerId = typeof inv.customer === "string" ? inv.customer : inv.customer?.id;
+        await creditCreator({
+          customerId,
+          grossCents: inv.amount_paid ?? 0,
+          eventId: event.id,
+          description: "Subscription payment",
+        });
         break;
       }
       case "customer.subscription.created":

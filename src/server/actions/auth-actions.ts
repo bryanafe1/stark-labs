@@ -6,6 +6,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signIn } from "@/auth";
+import { linkCreatorByEmail } from "@/lib/creator-link";
 
 export type AuthFormState = { error?: string };
 
@@ -65,7 +66,7 @@ export async function signUpWithPassword(
   while (await prisma.user.findUnique({ where: { username } })) username = `${base}${i++}`;
 
   const passwordHash = await bcrypt.hash(password, 10);
-  await prisma.user.create({
+  const createdUser = await prisma.user.create({
     data: {
       email,
       passwordHash,
@@ -74,6 +75,7 @@ export async function signUpWithPassword(
       displayName: name ?? username,
     },
   });
+  await linkCreatorByEmail(createdUser.id, email);
 
   try {
     await signIn("credentials", { email, password, redirect: false });

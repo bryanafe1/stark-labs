@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, Tag } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
 import { isSubscribed, hasProAccess } from "@/lib/entitlements";
+import { getPlanAmounts } from "@/lib/stripe";
 import { startCheckout, openBillingPortal } from "@/server/actions/billing";
 
 export const metadata: Metadata = { title: "Pricing" };
+export const dynamic = "force-dynamic";
 
 const FREE = ["Easy Mechanical lessons", "Sample practice problems", "Progress tracking"];
 const PRO = [
@@ -29,7 +31,11 @@ function CheckItem({ children, muted }: { children: React.ReactNode; muted?: boo
   );
 }
 
-export default async function PricingPage() {
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: { code?: string };
+}) {
   const userId = await getCurrentUserId();
   const user = userId
     ? await prisma.user.findUnique({
@@ -37,8 +43,16 @@ export default async function PricingPage() {
         select: { subscriptionTier: true, cancelAtPeriodEnd: true, currentPeriodEnd: true },
       })
     : null;
-  const subbed = await isSubscribed();
-  const pro = await hasProAccess();
+  const [subbed, pro, amounts] = await Promise.all([isSubscribed(), hasProAccess(), getPlanAmounts()]);
+
+  // Optional creator code from the URL (?code=JANE20).
+  const rawCode = (searchParams.code ?? "").trim().toUpperCase();
+  const creator = rawCode ? await prisma.creator.findUnique({ where: { code: rawCode } }) : null;
+  const validCode = creator?.active ? creator.code : "";
+  const discountPct = creator?.active ? creator.discountPercent : 0;
+
+  const annualMo = (amounts.annual / 12).toFixed(2);
+  const annualSave = Math.max(0, Math.round(amounts.monthly * 12 - amounts.annual));
 
   // CTA for a paid plan card.
   function PaidCTA({ plan }: { plan: "monthly" | "annual" | "pass" }) {
@@ -62,7 +76,7 @@ export default async function PricingPage() {
     if (pro) {
       return (
         <Button variant="secondary" className="mt-6 w-full" disabled>
-          Unlocked (admin)
+          Unlocked
         </Button>
       );
     }
@@ -71,6 +85,7 @@ export default async function PricingPage() {
     return (
       <form action={startCheckout} className="mt-6">
         <input type="hidden" name="plan" value={plan} />
+        {validCode && <input type="hidden" name="code" value={validCode} />}
         <Button type="submit" size="lg" className="w-full">
           {label}
         </Button>
@@ -87,6 +102,13 @@ export default async function PricingPage() {
         </p>
       </div>
 
+      {validCode && (
+        <div className="mx-auto flex max-w-md items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-medium text-primary">
+          <Tag className="size-4" />
+          Code <span className="font-mono">{validCode}</span> applied — {discountPct}% off at checkout
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Season Pass — hero */}
         <Card className="relative flex flex-col border-primary/50 bg-gradient-to-br from-primary/10 to-transparent p-6 pt-9 sm:pt-6">
@@ -95,7 +117,8 @@ export default async function PricingPage() {
           </span>
           <p className="text-sm font-semibold text-primary">Season Pass</p>
           <p className="mt-2 text-3xl font-bold">
-            $39<span className="text-base font-normal text-muted-foreground"> one-time</span>
+            ${amounts.pass}
+            <span className="text-base font-normal text-muted-foreground"> one-time</span>
           </p>
           <p className="mt-1 text-xs text-muted-foreground">3 months full access · no auto-renew</p>
           <ul className="mt-5 flex-1 space-y-2">
@@ -115,9 +138,12 @@ export default async function PricingPage() {
             </span>
           </div>
           <p className="mt-2 text-3xl font-bold">
-            $15.83<span className="text-base font-normal text-muted-foreground">/mo</span>
+            ${annualMo}
+            <span className="text-base font-normal text-muted-foreground">/mo</span>
           </p>
-          <p className="mt-1 text-xs text-muted-foreground">$190 billed yearly · save $50</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            ${amounts.annual} billed yearly{annualSave > 0 ? ` · save $${annualSave}` : ""}
+          </p>
           <ul className="mt-5 flex-1 space-y-2">
             {PRO.map((f) => (
               <CheckItem key={f}>{f}</CheckItem>
@@ -130,7 +156,8 @@ export default async function PricingPage() {
         <Card className="flex flex-col p-6">
           <p className="text-sm font-semibold">Monthly</p>
           <p className="mt-2 text-3xl font-bold">
-            $20<span className="text-base font-normal text-muted-foreground">/mo</span>
+            ${amounts.monthly}
+            <span className="text-base font-normal text-muted-foreground">/mo</span>
           </p>
           <p className="mt-1 text-xs text-muted-foreground">Full access, billed monthly</p>
           <ul className="mt-5 flex-1 space-y-2">
@@ -162,7 +189,7 @@ export default async function PricingPage() {
       </div>
 
       <p className="text-center text-xs text-muted-foreground">
-        Cancel anytime from Settings · Secure checkout by Stripe
+        {validCode ? "Discount applied at checkout · " : ""}Cancel anytime from Settings · Secure checkout by Stripe
       </p>
 
       {subbed && (
@@ -176,7 +203,7 @@ export default async function PricingPage() {
       )}
       {!subbed && pro && (
         <p className="text-center text-sm font-medium text-emerald-500">
-          ✓ Admin access. Everything is unlocked.
+          ✓ Full access. Everything is unlocked.
         </p>
       )}
     </div>

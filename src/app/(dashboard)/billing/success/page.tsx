@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
-import { stripe, tierForPrice, PASS_DAYS } from "@/lib/stripe";
+import { stripe, tierForPrice, PASS_DAYS, type PlanTier } from "@/lib/stripe";
 
 export const metadata: Metadata = { title: "Welcome to Pro" };
 
@@ -53,7 +53,9 @@ export default async function BillingSuccessPage({
           where: { id: userId },
           data: {
             subscriptionStatus: status,
-            subscriptionTier: tierForPrice(sub.items.data[0]?.price?.id ?? null),
+            subscriptionTier:
+              (sub.metadata?.tier as PlanTier | undefined) ??
+              tierForPrice(sub.items.data[0]?.price?.id ?? null),
             stripeCustomerId: customerId,
             stripeSubscriptionId: sub.id,
             currentPeriodEnd: new Date(sub.current_period_end * 1000),

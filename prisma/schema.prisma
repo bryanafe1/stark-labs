@@ -161,10 +161,17 @@ model User {
   // Email+password sign-in (null for OAuth-only users)
   passwordHash String?
 
+  // Comp / creator access (free Pro without paying) + referral attribution
+  comped              Boolean @default(false)
+  compReason          String?
+  referredByCreatorId String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
+  referredByCreator Creator? @relation("CreatorReferrals", fields: [referredByCreatorId], references: [id], onDelete: SetNull)
+  creatorProfile    Creator? @relation("CreatorAccount")
   accounts        Account[]
   sessions        Session[]
   eloRatings      EloRating[]
@@ -197,6 +204,61 @@ model LessonProgress {
 
   @@unique([userId, lessonSlug])
   @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+//  CREATOR / AFFILIATE PROGRAM
+//  A creator gets a comped account (free Pro) + a code. Their code is a Stripe
+//  promotion code that discounts the audience's plan; paid conversions are
+//  attributed back and accrue a commission for the creator.
+// ---------------------------------------------------------------------------
+
+model Creator {
+  id                String  @id @default(cuid())
+  name              String
+  email             String?
+  code              String  @unique // the code their audience enters (== Stripe promo code)
+  discountPercent   Int     @default(20) // audience discount
+  commissionPercent Int     @default(10) // creator's cut of paid conversions
+  active            Boolean @default(true)
+  stripeCouponId    String?
+  stripePromoCodeId String?
+  userId            String? @unique // their own comped account, once linked
+  notes             String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  account       User?            @relation("CreatorAccount", fields: [userId], references: [id], onDelete: SetNull)
+  referredUsers User[]           @relation("CreatorReferrals")
+  earnings      CreatorEarning[]
+
+  @@index([active])
+}
+
+/// One paid conversion attributed to a creator (recorded by the Stripe webhook).
+model CreatorEarning {
+  id              String   @id @default(cuid())
+  creatorId       String
+  userId          String?
+  stripeEventId   String   @unique // idempotency: one earning per Stripe event
+  grossCents      Int
+  commissionCents Int
+  currency        String   @default("usd")
+  description     String?
+  createdAt       DateTime @default(now())
+
+  creator Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@index([creatorId, createdAt])
+}
+
+/// Simple key/value app settings (e.g. the active Stripe price ids the
+/// checkout uses, so prices can be changed from the admin without a redeploy).
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }
 
 model Account {

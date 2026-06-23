@@ -6,6 +6,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { AdapterUser } from "next-auth/adapters";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { linkCreatorByEmail } from "@/lib/creator-link";
 
 // ---------------------------------------------------------------------------
 //  Auth.js (NextAuth v5) — Google OAuth + email/password (Credentials).
@@ -34,6 +35,7 @@ adapter.createUser = async (user) => {
       displayName: user.name ?? username,
     },
   });
+  await linkCreatorByEmail(created.id, created.email);
   return created as unknown as AdapterUser;
 };
 

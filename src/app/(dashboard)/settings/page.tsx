@@ -27,11 +27,13 @@ export default async function SettingsPage() {
   const plan =
     user.role === "ADMIN"
       ? { label: "Admin", note: "Full access, no billing.", tone: "primary" as const }
-      : isPass
-        ? { label: "Season Pass", note: "One-time pass. Everything unlocked.", tone: "primary" as const }
-        : active
-          ? { label: "Pro", note: "Everything unlocked.", tone: "primary" as const }
-          : { label: "Free", note: "Easy Mechanical content only.", tone: "muted" as const };
+      : user.comped
+        ? { label: "Creator", note: "Comped — full access, free.", tone: "primary" as const }
+        : isPass
+          ? { label: "Season Pass", note: "One-time pass. Everything unlocked.", tone: "primary" as const }
+          : active
+            ? { label: "Pro", note: "Everything unlocked.", tone: "primary" as const }
+            : { label: "Free", note: "Easy Mechanical content only.", tone: "muted" as const };
 
   const joined = new Date(user.createdAt).toLocaleDateString(undefined, {
     year: "numeric",
@@ -105,6 +107,10 @@ export default async function SettingsPage() {
           {user.role === "ADMIN" ? (
             <span className="text-sm text-muted-foreground">
               You have admin access. Billing doesn&apos;t apply to your account.
+            </span>
+          ) : user.comped ? (
+            <span className="text-sm text-muted-foreground">
+              You have free creator access. Billing doesn&apos;t apply to your account.
             </span>
           ) : isPass ? (
             <span className="text-sm text-muted-foreground">

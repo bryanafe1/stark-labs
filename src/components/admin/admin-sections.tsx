@@ -21,6 +21,29 @@ const btnCls =
 const btnGhost =
   "inline-flex items-center justify-center rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-secondary";
 
+export function Metric({
+  icon: Icon,
+  label,
+  value,
+  sub,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  sub?: string;
+}) {
+  return (
+    <Card className="p-4">
+      <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <Icon className="size-5" />
+      </div>
+      <p className="mt-3 text-2xl font-bold tracking-tight tabular-nums">{value}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      {sub && <p className="mt-0.5 text-xs text-muted-foreground/70">{sub}</p>}
+    </Card>
+  );
+}
+
 function SectionHeading({ title, sub }: { title: string; sub?: string }) {
   return (
     <div className="mb-4">

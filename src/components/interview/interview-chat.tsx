@@ -37,13 +37,20 @@ export function InterviewChat() {
   const [phase, setPhase] = useState<"setup" | "live">("setup");
   const [focus, setFocus] = useState("General fundamentals");
   const [level, setLevel] = useState<InterviewLevel>("New grad");
+  const [jobDescription, setJobDescription] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
-  const config: InterviewConfig = { disciplineLabel: "Mechanical", focus, level };
+  const jd = jobDescription.trim();
+  const config: InterviewConfig = {
+    disciplineLabel: "Mechanical",
+    focus,
+    level,
+    jobDescription: jd || undefined,
+  };
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -158,6 +165,21 @@ export function InterviewChat() {
                 ))}
               </div>
             </Field>
+
+            <Field label="Job description (optional)">
+              <textarea
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                rows={5}
+                placeholder="Paste a job posting here, and the interviewer will tailor its questions to the engineering fundamentals this role needs."
+                className="w-full rounded-lg border border-input bg-background p-3 text-sm leading-relaxed outline-none ring-ring transition focus-visible:ring-2 placeholder:text-muted-foreground/50"
+              />
+              {jd && (
+                <p className="mt-1.5 text-xs text-primary">
+                  This interview will be tailored to the pasted role (the focus selection is ignored).
+                </p>
+              )}
+            </Field>
           </div>
 
           <Button className="mt-6 w-full sm:w-auto" onClick={start}>
@@ -181,7 +203,7 @@ export function InterviewChat() {
           <div>
             <h1 className="text-lg font-bold leading-none tracking-tight">Mock Interview</h1>
             <p className="mt-1 font-mono text-xs text-muted-foreground">
-              Mechanical · {focus} · {level}
+              Mechanical · {jd ? "Tailored to your role" : focus} · {level}
             </p>
           </div>
         </div>

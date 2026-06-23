@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { Users, DollarSign, TrendingUp, Activity } from "lucide-react";
-import { prisma } from "@/lib/prisma";
-import { getCurrentUserId } from "@/lib/auth";
+import { Users, DollarSign, TrendingUp, Activity, Lock, LogOut } from "lucide-react";
 import { getAdminMetrics } from "@/features/admin/get-admin-metrics";
 import {
   getCreatorsWithStats,
@@ -19,10 +16,10 @@ import {
   CouponsSection,
   SalesSection,
 } from "@/components/admin/admin-sections";
+import { isAdminAuthed } from "@/lib/admin-auth";
+import { adminLogin, adminLogout } from "@/server/actions/admin-auth";
 
-export const metadata: Metadata = { title: "Admin" };
-
-// Always fresh — this is an operational dashboard.
+export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 function Metric({
@@ -48,6 +45,45 @@ function Metric({
   );
 }
 
+// ---- Login gate -----------------------------------------------------------
+
+function AdminLogin({ error }: { error?: string }) {
+  const input =
+    "w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none ring-ring transition focus-visible:ring-2";
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <Card className="w-full max-w-sm p-7">
+        <div className="mb-5 flex items-center gap-2">
+          <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Lock className="size-5" />
+          </span>
+          <div>
+            <h1 className="text-base font-bold leading-none tracking-tight">OC // LABS Admin</h1>
+            <p className="mt-1 text-xs text-muted-foreground">Restricted access</p>
+          </div>
+        </div>
+        <form action={adminLogin} className="space-y-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Username</label>
+            <input name="username" autoComplete="username" required className={input} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Password</label>
+            <input name="password" type="password" autoComplete="current-password" required className={input} />
+          </div>
+          {error && <p className="text-sm font-medium text-destructive">Invalid username or password.</p>}
+          <button
+            type="submit"
+            className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Sign in
+          </button>
+        </form>
+      </Card>
+    </div>
+  );
+}
+
 const NAV = [
   { href: "#sales", label: "Sales" },
   { href: "#creators", label: "Creators" },
@@ -57,12 +93,8 @@ const NAV = [
   { href: "#signups", label: "Signups" },
 ];
 
-export default async function AdminPage() {
-  const userId = await getCurrentUserId();
-  const me = userId
-    ? await prisma.user.findUnique({ where: { id: userId }, select: { role: true } })
-    : null;
-  if (me?.role !== "ADMIN") notFound();
+export default async function AdminPage({ searchParams }: { searchParams: { error?: string } }) {
+  if (!isAdminAuthed()) return <AdminLogin error={searchParams.error} />;
 
   const [m, creators, comped, pricing, coupons, sales] = await Promise.all([
     getAdminMetrics(),
@@ -76,21 +108,31 @@ export default async function AdminPage() {
   const maxDay = Math.max(1, ...m.signupsByDay.map((d) => d.count));
 
   return (
-    <div className="mx-auto max-w-5xl space-y-10 pb-16">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Admin</h1>
-        <p className="text-sm text-muted-foreground">Business metrics, creators, pricing, and sales — live.</p>
-        <nav className="mt-3 flex flex-wrap gap-2">
-          {NAV.map((n) => (
-            <a
-              key={n.href}
-              href={n.href}
-              className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-            >
-              {n.label}
-            </a>
-          ))}
-        </nav>
+    <div className="mx-auto max-w-5xl space-y-10 px-4 py-8 pb-16 sm:px-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Admin</h1>
+          <p className="text-sm text-muted-foreground">Business metrics, creators, pricing, and sales — live.</p>
+          <nav className="mt-3 flex flex-wrap gap-2">
+            {NAV.map((n) => (
+              <a
+                key={n.href}
+                href={n.href}
+                className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                {n.label}
+              </a>
+            ))}
+          </nav>
+        </div>
+        <form action={adminLogout}>
+          <button
+            type="submit"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <LogOut className="size-3.5" /> Log out
+          </button>
+        </form>
       </div>
 
       {/* Headline KPIs */}

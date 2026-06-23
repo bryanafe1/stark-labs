@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { isAdmin } from "@/lib/entitlements";
+import { isAdminAuthed } from "@/lib/admin-auth";
 import {
   createCreatorPromo,
   createPromo,
@@ -14,7 +14,7 @@ import {
 // Every action is admin-only. Throwing here is fine: the admin UI is the only
 // caller and a non-admin can't reach it.
 async function requireAdmin() {
-  if (!(await isAdmin())) throw new Error("Not authorized");
+  if (!isAdminAuthed()) throw new Error("Not authorized");
 }
 
 function clampPct(n: number): number {

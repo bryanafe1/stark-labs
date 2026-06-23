@@ -10,7 +10,7 @@ export default function PrivacyPage() {
       <P>
         This Privacy Policy explains how Overclocker, operated by Mark-1 Performance LLC
         (&ldquo;we&rdquo;, &ldquo;us&rdquo;), collects, uses, and shares information when you use
-        starklab.dev (the &ldquo;Service&rdquo;).
+        overclocker.dev (the &ldquo;Service&rdquo;).
       </P>
 
       <H2>1. Information We Collect</H2>
@@ -81,8 +81,8 @@ export default function PrivacyPage() {
         data at any time. Depending on where you live (e.g., the EU/UK or California), you may have
         additional rights to access, correct, delete, or port your data, or to object to certain
         processing. To exercise these rights, contact us at{" "}
-        <a className="text-primary hover:underline" href="mailto:support@starklab.dev">
-          support@starklab.dev
+        <a className="text-primary hover:underline" href="mailto:support@overclocker.dev">
+          support@overclocker.dev
         </a>
         .
       </P>
@@ -109,8 +109,8 @@ export default function PrivacyPage() {
       <H2>11. Contact</H2>
       <P>
         Questions? Contact us at{" "}
-        <a className="text-primary hover:underline" href="mailto:support@starklab.dev">
-          support@starklab.dev
+        <a className="text-primary hover:underline" href="mailto:support@overclocker.dev">
+          support@overclocker.dev
         </a>
         . See also our{" "}
         <Link className="text-primary hover:underline" href="/terms">

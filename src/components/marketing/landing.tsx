@@ -203,8 +203,8 @@ export function Landing() {
           </p>
           <p className="mt-4 font-mono text-sm text-muted-foreground">
             Questions?{" "}
-            <a className="text-primary hover:underline" href="mailto:support@starklab.dev">
-              support@starklab.dev
+            <a className="text-primary hover:underline" href="mailto:support@overclocker.dev">
+              support@overclocker.dev
             </a>
           </p>
         </div>
@@ -251,7 +251,7 @@ export function Landing() {
             <Link href="/privacy" className="hover:text-foreground">
               Privacy
             </Link>
-            <a href="mailto:support@starklab.dev" className="hover:text-foreground">
+            <a href="mailto:support@overclocker.dev" className="hover:text-foreground">
               Contact
             </a>
             <Link href="/sign-in" className="hover:text-foreground">

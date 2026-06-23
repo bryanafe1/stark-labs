@@ -110,8 +110,8 @@ export default function TermsPage() {
       <H2>12. Contact</H2>
       <P>
         Questions about these Terms? Contact us at{" "}
-        <a className="text-primary hover:underline" href="mailto:support@starklab.dev">
-          support@starklab.dev
+        <a className="text-primary hover:underline" href="mailto:support@overclocker.dev">
+          support@overclocker.dev
         </a>
         .
       </P>

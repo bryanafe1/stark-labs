@@ -27,7 +27,7 @@ const FAQS = [
   },
   {
     q: "How do I get help?",
-    a: "Email support@starklab.dev and we'll get back to you.",
+    a: "Email support@overclocker.dev and we'll get back to you.",
   },
 ];
 

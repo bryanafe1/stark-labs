@@ -7,6 +7,7 @@ export interface CreatorRow {
   name: string;
   email: string | null;
   code: string;
+  notes: string | null;
   discountPercent: number;
   commissionPercent: number;
   active: boolean;
@@ -44,6 +45,7 @@ export async function getCreatorsWithStats(): Promise<CreatorRow[]> {
     name: c.name,
     email: c.email,
     code: c.code,
+    notes: c.notes,
     discountPercent: c.discountPercent,
     commissionPercent: c.commissionPercent,
     active: c.active,

@@ -31,7 +31,12 @@ function refresh() {
 
 // ---- Creators -------------------------------------------------------------
 
-export async function createCreator(formData: FormData) {
+export type CreatorFormState = { ok?: boolean; error?: string };
+
+export async function createCreator(
+  _prev: CreatorFormState,
+  formData: FormData,
+): Promise<CreatorFormState> {
   await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase() || null;
@@ -39,43 +44,49 @@ export async function createCreator(formData: FormData) {
   const discountPercent = clampPct(Number(formData.get("discountPercent")) || 20);
   const commissionPercent = clampPct(Number(formData.get("commissionPercent")) || 10);
   const notes = String(formData.get("notes") ?? "").trim() || null;
-  if (!name || !code) throw new Error("Name and code are required.");
+  if (!name || !code) return { error: "Name and code are required." };
   if (await prisma.creator.findUnique({ where: { code } })) {
-    throw new Error("That code already exists.");
+    return { error: "That code already exists." };
   }
   // Keep creator emails unique so comp-linking on signup is unambiguous.
   if (email && (await prisma.creator.findFirst({ where: { email } }))) {
-    throw new Error("A creator with that email already exists.");
+    return { error: "A creator with that email already exists." };
   }
 
-  // Stripe coupon + promotion code backing the creator code.
-  const { couponId, promoId } = await createCreatorPromo(code, discountPercent);
-  const creator = await prisma.creator.create({
-    data: {
-      name,
-      email,
-      code,
-      discountPercent,
-      commissionPercent,
-      notes,
-      stripeCouponId: couponId,
-      stripePromoCodeId: promoId,
-    },
-  });
+  try {
+    // Stripe coupon + promotion code backing the creator code.
+    const { couponId, promoId } = await createCreatorPromo(code, discountPercent);
+    const creator = await prisma.creator.create({
+      data: {
+        name,
+        email,
+        code,
+        discountPercent,
+        commissionPercent,
+        notes,
+        stripeCouponId: couponId,
+        stripePromoCodeId: promoId,
+      },
+    });
 
-  // If they already have an account, link + comp it immediately. Otherwise the
-  // link happens automatically when they sign up (linkCreatorByEmail).
-  if (email) {
-    const u = await prisma.user.findUnique({ where: { email } });
-    if (u) {
-      await prisma.creator.update({ where: { id: creator.id }, data: { userId: u.id } });
-      await prisma.user.update({
-        where: { id: u.id },
-        data: { comped: true, compReason: `Creator: ${name}` },
-      });
+    // If they already have an account, link + comp it immediately. Otherwise the
+    // link happens automatically when they sign up (linkCreatorByEmail).
+    if (email) {
+      const u = await prisma.user.findUnique({ where: { email } });
+      if (u) {
+        await prisma.creator.update({ where: { id: creator.id }, data: { userId: u.id } });
+        await prisma.user.update({
+          where: { id: u.id },
+          data: { comped: true, compReason: `Creator: ${name}` },
+        });
+      }
     }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Could not create the code in Stripe." };
   }
+
   refresh();
+  return { ok: true };
 }
 
 export async function setCreatorActive(formData: FormData) {

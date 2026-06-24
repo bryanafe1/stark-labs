@@ -1,5 +1,4 @@
 import {
-  createCreator,
   setCreatorActive,
   grantComp,
   revokeComp,
@@ -9,6 +8,8 @@ import {
 } from "@/server/actions/admin";
 import { Card } from "@/components/ui/card";
 import { CopyButton } from "@/components/admin/copy-button";
+import { AddCreatorForm } from "@/components/admin/add-creator-form";
+import { ResettingForm } from "@/components/admin/resetting-form";
 import type { CreatorRow, CompedUser, CouponRow, SalesInfo } from "@/features/admin/get-admin-extras";
 
 const dollars = (cents: number) => `$${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -67,41 +68,7 @@ export function CreatorsSection({ creators, baseUrl }: { creators: CreatorRow[];
 
       <Card className="mb-4 p-5">
         <h3 className="mb-3 text-sm font-semibold">Add a creator</h3>
-        <form action={createCreator} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div>
-            <label className={labelCls}>Name</label>
-            <input name="name" required placeholder="Jane Doe" className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Email (for free access)</label>
-            <input name="email" type="email" placeholder="jane@youtube.com" className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Code</label>
-            <input name="code" required placeholder="JANE20" className={inputCls} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls}>Discount %</label>
-              <input name="discountPercent" type="number" min={0} max={100} defaultValue={20} className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls}>Commission %</label>
-              <input name="commissionPercent" type="number" min={0} max={100} defaultValue={10} className={inputCls} />
-            </div>
-          </div>
-          <div className="sm:col-span-2">
-            <label className={labelCls}>Notes (optional)</label>
-            <input name="notes" placeholder="450k subs, mechanical content" className={inputCls} />
-          </div>
-          <div className="sm:col-span-2">
-            <button type="submit" className={btnCls}>Create creator</button>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Creates a Stripe coupon + promo code. If the email already has an account, it is comped now;
-              otherwise it is comped automatically when they sign up.
-            </p>
-          </div>
-        </form>
+        <AddCreatorForm />
       </Card>
 
       <Card className="overflow-hidden">
@@ -136,6 +103,7 @@ export function CreatorsSection({ creators, baseUrl }: { creators: CreatorRow[];
                       <div className="text-xs text-muted-foreground">
                         {c.email ?? "no email"} {c.hasAccount ? "· linked" : "· not signed up"}
                       </div>
+                      {c.notes && <div className="mt-0.5 max-w-xs text-xs italic text-muted-foreground/70">{c.notes}</div>}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -177,7 +145,7 @@ export function CompSection({ comped }: { comped: CompedUser[] }) {
     <section>
       <SectionHeading title="Free (comp) access" sub="Grant any existing account full Pro access without payment." />
       <Card className="mb-4 p-5">
-        <form action={grantComp} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <ResettingForm action={grantComp} className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1">
             <label className={labelCls}>Email</label>
             <input name="email" type="email" required placeholder="person@example.com" className={inputCls} />
@@ -187,7 +155,7 @@ export function CompSection({ comped }: { comped: CompedUser[] }) {
             <input name="reason" placeholder="Beta tester" className={inputCls} />
           </div>
           <button type="submit" className={btnCls}>Grant access</button>
-        </form>
+        </ResettingForm>
       </Card>
       <Card className="overflow-hidden">
         <div className="border-b border-border px-5 py-3 text-sm font-semibold">
@@ -257,7 +225,7 @@ export function CouponsSection({ coupons }: { coupons: CouponRow[] }) {
       <SectionHeading title="Coupons" sub="General promo codes (creator codes also appear here)." />
       <Card className="mb-4 p-5">
         <h3 className="mb-3 text-sm font-semibold">Create a coupon</h3>
-        <form action={createCouponAction} className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <ResettingForm action={createCouponAction} className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="col-span-2 sm:col-span-1">
             <label className={labelCls}>Code</label>
             <input name="code" required placeholder="LAUNCH25" className={inputCls} />
@@ -280,7 +248,7 @@ export function CouponsSection({ coupons }: { coupons: CouponRow[] }) {
           <div className="col-span-2 sm:col-span-4">
             <button type="submit" className={btnCls}>Create coupon</button>
           </div>
-        </form>
+        </ResettingForm>
       </Card>
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">

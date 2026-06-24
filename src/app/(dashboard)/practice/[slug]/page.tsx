@@ -6,6 +6,7 @@ import { getProblemBySlug, getProblems } from "@/features/practice/problems";
 import { Card } from "@/components/ui/card";
 import { DisciplinePill, DifficultyBadge } from "@/components/practice/badges";
 import { ProblemWorkspace } from "@/components/practice/problem-workspace";
+import { ConceptualWorkspace } from "@/components/practice/conceptual-workspace";
 import { HintButton } from "@/components/practice/hint-button";
 import { GiveUpButton } from "@/components/practice/give-up-button";
 import { isFreeContent, hasProAccess } from "@/lib/entitlements";
@@ -39,6 +40,40 @@ export default async function ProblemPage({ params }: Params) {
 
   if (!isFreeContent(problem.discipline, problem.difficulty) && !(await hasProAccess())) {
     return <Paywall feature="this problem" backHref="/practice" backLabel="Back to Practice" />;
+  }
+
+  // Open-ended conceptual question → multi-part, AI-graded layout.
+  if (problem.parts?.length) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-4">
+        <Link
+          href="/practice"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" />
+          Back to Practice
+        </Link>
+
+        <Card className="overflow-hidden">
+          <PanelHeader label="// conceptual" />
+          <div className="space-y-4 p-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <DisciplinePill discipline={problem.discipline} />
+              <DifficultyBadge difficulty={problem.difficulty} />
+              <span className="ml-auto rounded bg-secondary px-2 py-0.5 font-mono text-xs text-muted-foreground">
+                AI-graded · {problem.parts.length} parts
+              </span>
+            </div>
+            <h1 className="text-xl font-semibold tracking-tight">{problem.title}</h1>
+            <div className="whitespace-pre-wrap break-words rounded-lg border border-border bg-background p-4 text-sm leading-relaxed text-foreground/90">
+              {problem.prompt}
+            </div>
+          </div>
+        </Card>
+
+        <ConceptualWorkspace slug={problem.slug} partPrompts={problem.parts.map((p) => p.prompt)} />
+      </div>
+    );
   }
 
   return (

@@ -18,6 +18,7 @@ import { problems as industrial } from "./content/industrial-engineering";
 import { problems as biomedical } from "./content/biomedical-engineering";
 import { problems as environmental } from "./content/environmental-engineering";
 import { problems as conceptualMech } from "./content/conceptual-mechanical";
+import { problems as conceptualThermal } from "./content/conceptual-thermal";
 
 // Re-export the type so existing importers (`@/features/practice/problems`) keep working.
 export type { PracticeProblem } from "./types";
@@ -44,6 +45,7 @@ const CATALOG: PracticeProblem[] = [
   ...biomedical,
   ...environmental,
   ...conceptualMech,
+  ...conceptualThermal,
 ];
 
 export async function getProblems(filter?: {

@@ -6,6 +6,9 @@ import { gradeAnswer, type AnswerInput } from "@/lib/grading";
 import { getProblemBySlug } from "@/features/practice/problems";
 import { findOpponent, simulateOpponentScore } from "@/features/arena/opponents";
 import type { FindMatchState, SprintResolution } from "@/types/arena";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUserId } from "@/lib/auth";
+import type { RankTier } from "@prisma/client";
 
 const DISCIPLINE = z.enum([
   "MECHANICAL",
@@ -124,4 +127,35 @@ export async function resolveSprint(
     delta: update.delta,
     tier: update.tier,
   };
+}
+
+// ---------------------------------------------------------------------------
+//  Persist a ranked result to the signed-in user's account. The new Elo is
+//  computed server-side from the stored rating (clients can't set it directly),
+//  so rank survives logout/login and is consistent across devices.
+// ---------------------------------------------------------------------------
+
+const ARENA_K = 32;
+
+export async function recordSprintResult(input: {
+  opponentElo: number;
+  outcome: "WIN" | "LOSS" | "DRAW";
+}): Promise<{ eloBefore: number; eloAfter: number; delta: number; tier: RankTier } | { error: string }> {
+  const userId = await getCurrentUserId();
+  if (!userId) return { error: "Not signed in." };
+
+  const opp = z.coerce.number().int().min(100).max(4000).safeParse(input.opponentElo);
+  if (!opp.success) return { error: "Invalid opponent rating." };
+  const actual = input.outcome === "WIN" ? 1 : input.outcome === "DRAW" ? 0.5 : 0;
+
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { overallElo: true } });
+  const before = user?.overallElo ?? 1200;
+  const update = applyElo(before, opp.data, actual as 0 | 0.5 | 1, ARENA_K);
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { overallElo: update.elo, rankTier: update.tier, lastActive: new Date() },
+  });
+
+  return { eloBefore: before, eloAfter: update.elo, delta: update.delta, tier: update.tier };
 }

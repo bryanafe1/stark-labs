@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Swords } from "lucide-react";
 import { applyElo } from "@/lib/elo";
-import { useLocalElo } from "./use-local-elo";
+import { recordSprintResult } from "@/server/actions/arena";
 import { generateOpponent, computeBotPlan } from "./bots";
 import { pickSprintProblem } from "./sprint-problems";
 import { QueuePanel } from "./QueuePanel";
@@ -17,11 +17,12 @@ const ELO_K = 32;
 
 /**
  * The ranked matchmaking state container. Drives the whole flow with local
- * state + timers: idle → queueing → matchFound → sprinting → result. No DB,
- * no sockets — opponents and timing are fully simulated.
+ * state + timers: idle → queueing → matchFound → sprinting → result. Opponents
+ * and timing are simulated, but the Elo is the user's real account rating:
+ * seeded from the DB and persisted after each match.
  */
-export function Matchmaker() {
-  const [elo, setElo, hydrated] = useLocalElo();
+export function Matchmaker({ initialElo }: { initialElo: number }) {
+  const [elo, setElo] = useState(initialElo);
   const [phase, setPhase] = useState<RankedPhase>("idle");
   const [elapsedMs, setElapsedMs] = useState(0);
   const [opponent, setOpponent] = useState<Bot | null>(null);
@@ -81,7 +82,7 @@ export function Matchmaker() {
       if (!plan) return;
       const before = elo;
       const upd = applyElo(before, plan.opponent.elo, outcome === "WIN" ? 1 : 0, ELO_K);
-      setElo(upd.elo);
+      setElo(upd.elo); // optimistic
       setResult({
         outcome,
         opponent: plan.opponent,
@@ -90,8 +91,12 @@ export function Matchmaker() {
         delta: upd.delta,
       });
       setPhase("result");
+      // Persist to the account (server recomputes authoritatively).
+      void recordSprintResult({ opponentElo: plan.opponent.elo, outcome }).then((r) => {
+        if (r && "eloAfter" in r) setElo(r.eloAfter);
+      });
     },
-    [plan, elo, setElo],
+    [plan, elo],
   );
 
   return (
@@ -101,10 +106,7 @@ export function Matchmaker() {
         <h1 className="text-2xl font-bold tracking-tight">Ranked Arena</h1>
       </div>
 
-      {/* Avoid an Elo flash before localStorage hydrates. */}
-      {!hydrated ? (
-        <div className="h-40" />
-      ) : phase === "sprinting" && plan ? (
+      {phase === "sprinting" && plan ? (
         <SprintArena plan={plan} onResult={handleResult} />
       ) : (
         <QueuePanel
@@ -116,7 +118,7 @@ export function Matchmaker() {
         />
       )}
 
-      {hydrated && phase !== "sprinting" && (
+      {phase !== "sprinting" && (
         <div className="mt-6">
           <RankLadder elo={elo} />
         </div>

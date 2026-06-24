@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { CopyButton } from "@/components/admin/copy-button";
 import { AddCreatorForm } from "@/components/admin/add-creator-form";
 import { ResettingForm } from "@/components/admin/resetting-form";
+import { DeleteCreatorButton } from "@/components/admin/delete-creator-button";
 import type { CreatorRow, CompedUser, CouponRow, SalesInfo } from "@/features/admin/get-admin-extras";
 
 const dollars = (cents: number) => `$${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -118,12 +119,15 @@ export function CreatorsSection({ creators, baseUrl }: { creators: CreatorRow[];
                     <td className="px-4 py-3 text-center tabular-nums">{c.activePayers}</td>
                     <td className="px-4 py-3 text-right tabular-nums">{dollars(c.grossCents)}</td>
                     <td className="px-4 py-3 text-right font-semibold tabular-nums">{dollars(c.commissionCents)}</td>
-                    <td className="px-4 py-3 text-right">
-                      <form action={setCreatorActive}>
-                        <input type="hidden" name="id" value={c.id} />
-                        <input type="hidden" name="active" value={(!c.active).toString()} />
-                        <button type="submit" className={btnGhost}>{c.active ? "Disable" : "Enable"}</button>
-                      </form>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        <form action={setCreatorActive}>
+                          <input type="hidden" name="id" value={c.id} />
+                          <input type="hidden" name="active" value={(!c.active).toString()} />
+                          <button type="submit" className={btnGhost}>{c.active ? "Disable" : "Enable"}</button>
+                        </form>
+                        <DeleteCreatorButton id={c.id} name={c.name} />
+                      </div>
                     </td>
                   </tr>
                 );

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { isAdminAuthed } from "@/lib/admin-auth";
 import {
+  stripe,
   createCreatorPromo,
   createPromo,
   setPromoActive,
@@ -103,6 +104,24 @@ export async function setCreatorActive(formData: FormData) {
     }
   }
   await prisma.creator.update({ where: { id }, data: { active } });
+  refresh();
+}
+
+export async function deleteCreator(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  const creator = await prisma.creator.findUnique({ where: { id } });
+  if (!creator) return;
+  // Remove the backing Stripe coupon (this also deletes its promotion code).
+  if (creator.stripeCouponId) {
+    try {
+      await stripe.coupons.del(creator.stripeCouponId);
+    } catch {
+      /* already gone in Stripe — proceed */
+    }
+  }
+  // Cascades CreatorEarning rows; referred users' attribution is set null (FK).
+  await prisma.creator.delete({ where: { id } });
   refresh();
 }
 

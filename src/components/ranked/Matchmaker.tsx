@@ -80,8 +80,8 @@ export function Matchmaker({
     if (phase !== "matchFound" || !opponent) return;
     const t = setTimeout(() => {
       const botPlan = computeBotPlan();
-      // Mix in conceptual sprints (~half) when available (Pro users only).
-      const useConcept = conceptualPool.length > 0 && Math.random() < 0.5;
+      // Conceptual is the focus — favor it heavily when available (Pro only).
+      const useConcept = conceptualPool.length > 0 && Math.random() < 0.7;
       const problem = useConcept
         ? conceptualPool[Math.floor(Math.random() * conceptualPool.length)]!
         : pickSprintProblem();

@@ -22,6 +22,10 @@ import type { PracticeProblem } from "@/features/practice/types";
 
 type DiscFilter = Discipline | "ALL";
 type DiffFilter = Difficulty | "ALL";
+type FormatFilter = "ALL" | "conceptual" | "numeric";
+
+/** Open-ended conceptual question (AI-graded) vs a numeric/auto-graded one. */
+const isConceptual = (p: PracticeProblem) => !!p.parts && p.parts.length > 0;
 
 const DIFFICULTY_ORDER: Difficulty[] = [
   "INTRODUCTORY",
@@ -61,6 +65,8 @@ export function PracticeBrowser({
   const [skill, setSkill] = useState<string>(initialSkill);
   const [difficulty, setDifficulty] = useState<DiffFilter>("ALL");
   const [query, setQuery] = useState("");
+  // Conceptual is the primary focus of the product, so it leads by default.
+  const [format, setFormat] = useState<FormatFilter>("conceptual");
 
   const selectDiscipline = (d: DiscFilter) => {
     setDiscipline(d);
@@ -68,13 +74,15 @@ export function PracticeBrowser({
   };
 
   const q = query.trim().toLowerCase();
-  const filtersActive = discipline !== "ALL" || skill !== "ALL" || difficulty !== "ALL" || q !== "";
+  const filtersActive =
+    format !== "ALL" || discipline !== "ALL" || skill !== "ALL" || difficulty !== "ALL" || q !== "";
 
   // Apply every active filter.
   const filtered = useMemo(
     () =>
       problems.filter(
         (p) =>
+          (format === "ALL" || (format === "conceptual" ? isConceptual(p) : !isConceptual(p))) &&
           (discipline === "ALL" || p.discipline === discipline) &&
           (skill === "ALL" || p.skillAreas?.includes(skill)) &&
           (difficulty === "ALL" || p.difficulty === difficulty) &&
@@ -83,7 +91,7 @@ export function PracticeBrowser({
             p.prompt.toLowerCase().includes(q) ||
             p.tags.some((t) => t.toLowerCase().includes(q))),
       ),
-    [problems, discipline, skill, difficulty, q],
+    [problems, format, discipline, skill, difficulty, q],
   );
 
   // Skill chips for the selected discipline.
@@ -131,6 +139,20 @@ export function PracticeBrowser({
             <X className="size-4" />
           </button>
         )}
+      </div>
+
+      {/* Format filter — conceptual leads (the product's primary focus) */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-mono text-xs uppercase tracking-wide text-muted-foreground">format</span>
+        <FilterPill active={format === "conceptual"} onClick={() => setFormat("conceptual")}>
+          Conceptual
+        </FilterPill>
+        <FilterPill active={format === "numeric"} onClick={() => setFormat("numeric")}>
+          Numeric
+        </FilterPill>
+        <FilterPill active={format === "ALL"} onClick={() => setFormat("ALL")}>
+          All
+        </FilterPill>
       </div>
 
       {/* Difficulty filter */}
@@ -232,6 +254,7 @@ export function PracticeBrowser({
             selectDiscipline("ALL");
             setDifficulty("ALL");
             setQuery("");
+            setFormat("ALL");
           }}
         />
       )}

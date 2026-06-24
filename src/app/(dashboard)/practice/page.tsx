@@ -26,9 +26,9 @@ export default async function PracticePage({
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Practice</h1>
         <p className="text-sm text-muted-foreground">
-          {problems.length} problems across 10 disciplines. Filter by discipline,
-          by subject (thermo, fluids, materials…), or by technical skill (FEA,
-          CFD, CAD…). Numeric, multiple-choice, short-answer, and AI-graded.
+          Conceptual, interview-style questions that test how you reason — answer
+          in your own words, get AI feedback, and handle the constraints changing
+          as you go. Numeric problems are here too; switch the format below.
         </p>
       </div>
 

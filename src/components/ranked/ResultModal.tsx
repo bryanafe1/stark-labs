@@ -94,6 +94,26 @@ export function ResultModal({
             </p>
           </div>
 
+          {/* Conceptual match: accuracy %s + AI feedback */}
+          {result.conceptual && (
+            <div className="rounded-lg border border-border bg-background p-3">
+              <div className="flex items-center justify-center gap-4 font-mono text-sm">
+                <span className={cn("font-bold", win ? "text-terminal" : "text-foreground")}>
+                  You {result.userScore}%
+                </span>
+                <span className="text-muted-foreground">vs</span>
+                <span className="font-bold text-foreground">
+                  {result.opponent.username} {result.oppScore}%
+                </span>
+              </div>
+              {result.feedback && (
+                <p className="mt-2 text-left text-xs leading-relaxed text-foreground/80">
+                  {result.feedback}
+                </p>
+              )}
+            </div>
+          )}
+
           {promoted && (
             <motion.div
               initial={{ opacity: 0, y: 6 }}

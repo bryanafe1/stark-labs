@@ -42,11 +42,10 @@ export async function gradeConceptualPractice(input: {
   return { ok: true, score: grade.score, feedback: grade.feedback };
 }
 
-/** Grade a conceptual Arena answer. The prompt/rubric are passed in from the match plan. */
+/** Grade a conceptual Arena answer. The client passes only the question slug;
+ *  the rubric is looked up server-side so it never reaches the browser. */
 export async function gradeConceptualSprint(input: {
-  scenario: string;
-  question: string;
-  rubric: string;
+  id: string; // practice problem slug
   answer: string;
 }): Promise<ConceptResult> {
   const userId = await getCurrentUserId();
@@ -56,10 +55,14 @@ export async function gradeConceptualSprint(input: {
   const answer = (input.answer ?? "").trim();
   if (answer.length < 2) return { ok: false, error: "Write your answer first." };
 
+  const problem = await getProblemBySlug(input.id);
+  const part = problem?.parts?.[0];
+  if (!problem || !part) return { ok: false, error: "Question not found." };
+
   const grade = await gradeConcept({
-    scenario: input.scenario,
-    question: input.question,
-    rubric: input.rubric,
+    scenario: problem.prompt,
+    question: part.prompt,
+    rubric: part.rubric,
     answer,
   });
   return { ok: true, score: grade.score, feedback: grade.feedback };

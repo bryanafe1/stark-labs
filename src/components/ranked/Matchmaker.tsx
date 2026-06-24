@@ -5,13 +5,21 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Swords } from "lucide-react";
 import { applyElo } from "@/lib/elo";
 import { recordSprintResult } from "@/server/actions/arena";
-import { generateOpponent, computeBotPlan } from "./bots";
+import { gradeConceptualSprint } from "@/server/actions/conceptual";
+import { generateOpponent, computeBotPlan, simulateBotConceptualScore } from "./bots";
 import { pickSprintProblem } from "./sprint-problems";
 import { QueuePanel } from "./QueuePanel";
 import { SprintArena } from "./SprintArena";
 import { ResultModal } from "./ResultModal";
 import { RankLadder } from "./rank-ladder";
-import type { Bot, MatchPlan, Outcome, RankedPhase, ResultState } from "./types";
+import type {
+  Bot,
+  ConceptualSprintProblem,
+  MatchPlan,
+  Outcome,
+  RankedPhase,
+  ResultState,
+} from "./types";
 
 const ELO_K = 32;
 
@@ -21,7 +29,13 @@ const ELO_K = 32;
  * and timing are simulated, but the Elo is the user's real account rating:
  * seeded from the DB and persisted after each match.
  */
-export function Matchmaker({ initialElo }: { initialElo: number }) {
+export function Matchmaker({
+  initialElo,
+  conceptualPool,
+}: {
+  initialElo: number;
+  conceptualPool: ConceptualSprintProblem[];
+}) {
   const [elo, setElo] = useState(initialElo);
   const [phase, setPhase] = useState<RankedPhase>("idle");
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -66,16 +80,16 @@ export function Matchmaker({ initialElo }: { initialElo: number }) {
     if (phase !== "matchFound" || !opponent) return;
     const t = setTimeout(() => {
       const botPlan = computeBotPlan();
-      setPlan({
-        opponent,
-        problem: pickSprintProblem(),
-        startedAt: Date.now(),
-        ...botPlan,
-      });
+      // Mix in conceptual sprints (~half) when available (Pro users only).
+      const useConcept = conceptualPool.length > 0 && Math.random() < 0.5;
+      const problem = useConcept
+        ? conceptualPool[Math.floor(Math.random() * conceptualPool.length)]!
+        : pickSprintProblem();
+      setPlan({ opponent, problem, startedAt: Date.now(), ...botPlan });
       setPhase("sprinting");
     }, 1400);
     return () => clearTimeout(t);
-  }, [phase, opponent]);
+  }, [phase, opponent, conceptualPool]);
 
   const handleResult = useCallback(
     (outcome: Outcome) => {
@@ -99,6 +113,37 @@ export function Matchmaker({ initialElo }: { initialElo: number }) {
     [plan, elo],
   );
 
+  // Conceptual match: AI grades the answer 0–100, the (simulated) opponent gets
+  // a calibrated score, higher % wins, and both get feedback.
+  const handleConceptualSubmit = useCallback(
+    async (answerText: string) => {
+      if (!plan || plan.problem.kind !== "conceptual") return;
+      const r = await gradeConceptualSprint({ id: plan.problem.id, answer: answerText });
+      const userScore = r.ok ? (r.score ?? 0) : 0;
+      const oppScore = simulateBotConceptualScore(plan.opponent.elo, plan.perfectBot);
+      const outcome: Outcome = userScore >= oppScore ? "WIN" : "LOSS";
+      const before = elo;
+      const upd = applyElo(before, plan.opponent.elo, outcome === "WIN" ? 1 : 0, ELO_K);
+      setElo(upd.elo);
+      setResult({
+        outcome,
+        opponent: plan.opponent,
+        eloBefore: before,
+        eloAfter: upd.elo,
+        delta: upd.delta,
+        conceptual: true,
+        userScore,
+        oppScore,
+        feedback: r.ok ? r.feedback : r.error,
+      });
+      setPhase("result");
+      void recordSprintResult({ opponentElo: plan.opponent.elo, outcome }).then((res) => {
+        if (res && "eloAfter" in res) setElo(res.eloAfter);
+      });
+    },
+    [plan, elo],
+  );
+
   return (
     <div className="mx-auto max-w-5xl">
       <div className="mb-8 flex items-center gap-2">
@@ -107,7 +152,7 @@ export function Matchmaker({ initialElo }: { initialElo: number }) {
       </div>
 
       {phase === "sprinting" && plan ? (
-        <SprintArena plan={plan} onResult={handleResult} />
+        <SprintArena plan={plan} onResult={handleResult} onSubmitConceptual={handleConceptualSubmit} />
       ) : (
         <QueuePanel
           queueing={phase === "queueing"}

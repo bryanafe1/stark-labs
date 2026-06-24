@@ -52,6 +52,18 @@ export function computeBotPlan(): Pick<MatchPlan, "botFinishMs" | "perfectBot"> 
   return { perfectBot: false, botFinishMs: Math.round(HUMAN_AVERAGE_MS * factor) };
 }
 
+/**
+ * Simulated opponent accuracy (0–100) for a conceptual sprint, scaled by the
+ * bot's Elo. A ~1200 bot lands around 45%, a ~1900 bot around 75%; a "perfect"
+ * bot answers strongly. Spread keeps outcomes uncertain so wins feel earned.
+ */
+export function simulateBotConceptualScore(oppElo: number, perfect: boolean): number {
+  if (perfect) return randInt(88, 99);
+  const base = 45 + (oppElo - 1200) / 23; // ~ +1% per 23 Elo over 1200
+  const noise = (Math.random() - 0.5) * 28; // ±14
+  return Math.max(12, Math.min(96, Math.round(base + noise)));
+}
+
 // Opponent progress narration as the sprint runs.
 export const BOT_STAGES = [
   "Reading the brief",

@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, Timer, User as UserIcon } from "lucide-react";
+import { ChevronRight, Timer, User as UserIcon, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { gradeAnswer } from "@/lib/grading";
 import { cn } from "@/lib/utils";
 import { ReferenceSheet } from "./reference-sheet";
-import type { MatchPlan, Outcome } from "./types";
+import type { MatchPlan, Outcome, SprintProblem, ConceptualSprintProblem } from "./types";
 
 function fmt(ms: number): string {
   const s = Math.floor(ms / 1000);
@@ -18,8 +18,26 @@ function fmt(ms: number): string {
 export function SprintArena({
   plan,
   onResult,
+  onSubmitConceptual,
 }: {
   plan: MatchPlan;
+  onResult: (outcome: Outcome) => void;
+  onSubmitConceptual?: (answer: string) => Promise<void> | void;
+}) {
+  const problem = plan.problem;
+  if (problem.kind === "conceptual") {
+    return <ConceptualSprintView plan={plan} problem={problem} onSubmit={onSubmitConceptual} />;
+  }
+  return <NumericSprintView plan={plan} problem={problem} onResult={onResult} />;
+}
+
+function NumericSprintView({
+  plan,
+  problem,
+  onResult,
+}: {
+  plan: MatchPlan;
+  problem: SprintProblem;
   onResult: (outcome: Outcome) => void;
 }) {
   const [elapsed, setElapsed] = useState(0);
@@ -46,7 +64,7 @@ export function SprintArena({
     e.preventDefault();
     if (resolved.current) return;
     const num = answer.trim() === "" ? undefined : Number(answer);
-    const res = gradeAnswer(plan.problem, { numericAnswer: num });
+    const res = gradeAnswer(problem, { numericAnswer: num });
     if (res.status === "CORRECT") {
       resolved.current = true;
       onResult("WIN");
@@ -71,9 +89,9 @@ export function SprintArena({
         </div>
         <div className="space-y-5 p-5">
           <div>
-            <h2 className="text-lg font-semibold tracking-tight">{plan.problem.title}</h2>
+            <h2 className="text-lg font-semibold tracking-tight">{problem.title}</h2>
             <div className="mt-2 whitespace-pre-wrap break-words rounded-lg border border-border bg-background p-4 text-sm leading-relaxed text-foreground/90">
-              {plan.problem.prompt}
+              {problem.prompt}
             </div>
           </div>
 
@@ -82,7 +100,7 @@ export function SprintArena({
               <label className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
                 answer
               </label>
-              <ReferenceSheet equations={plan.problem.reference} />
+              <ReferenceSheet equations={problem.reference} />
             </div>
             <motion.div
               animate={wrong ? { x: [0, -8, 8, -6, 6, 0] } : { x: 0 }}
@@ -102,9 +120,9 @@ export function SprintArena({
                 placeholder="0.000"
                 className="h-full w-full bg-transparent font-mono text-sm outline-none placeholder:text-muted-foreground/50"
               />
-              {plan.problem.unit && (
+              {problem.unit && (
                 <span className="shrink-0 font-mono text-sm text-muted-foreground">
-                  {plan.problem.unit}
+                  {problem.unit}
                 </span>
               )}
             </motion.div>
@@ -146,6 +164,115 @@ export function SprintArena({
 
           <p className="border-t border-border pt-3 font-mono text-[11px] leading-relaxed text-muted-foreground/70">
             First to submit a correct answer takes the match. Solve fast.
+          </p>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+//  Conceptual sprint — free-form answer, AI-graded on % accuracy. No first-to-
+//  submit race: both answers are scored and the higher % wins.
+// ---------------------------------------------------------------------------
+
+function ConceptualSprintView({
+  plan,
+  problem,
+  onSubmit,
+}: {
+  plan: MatchPlan;
+  problem: ConceptualSprintProblem;
+  onSubmit?: (answer: string) => Promise<void> | void;
+}) {
+  const [answer, setAnswer] = useState("");
+  const [elapsed, setElapsed] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const s = Date.now();
+    const iv = setInterval(() => setElapsed(Date.now() - s), 500);
+    return () => clearInterval(iv);
+  }, []);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (submitting || answer.trim().length < 2 || !onSubmit) return;
+    setSubmitting(true);
+    await onSubmit(answer); // parent grades, then switches to the result phase
+  };
+
+  return (
+    <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[1fr_260px]">
+      <Card className="overflow-hidden">
+        <div className="flex items-center justify-between border-b border-border bg-card/60 px-5 py-2.5">
+          <span className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
+            {"// conceptual sprint"}
+          </span>
+          <span className="flex items-center gap-1.5 font-mono text-sm tabular-nums">
+            <Timer className="size-4 text-terminal" />
+            {fmt(elapsed)}
+          </span>
+        </div>
+        <div className="space-y-5 p-5">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">{problem.title}</h2>
+            <div className="mt-2 whitespace-pre-wrap break-words rounded-lg border border-border bg-background p-4 text-sm leading-relaxed text-foreground/90">
+              {problem.scenario}
+            </div>
+            <p className="mt-3 text-sm font-medium text-foreground">{problem.question}</p>
+          </div>
+
+          <form onSubmit={submit} className="space-y-3">
+            <label className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
+              your answer
+            </label>
+            <textarea
+              autoFocus
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              disabled={submitting}
+              rows={7}
+              placeholder="Explain your reasoning, like you would out loud in an interview."
+              className="w-full rounded-lg border border-input bg-background p-3 text-sm leading-relaxed outline-none ring-ring transition focus-visible:ring-2 disabled:opacity-70 placeholder:text-muted-foreground/50"
+            />
+            <Button type="submit" disabled={submitting || answer.trim().length < 2}>
+              {submitting && <Loader2 className="size-4 animate-spin" />}
+              {submitting ? "AI is grading both answers…" : "Submit answer"}
+            </Button>
+            <p className="font-mono text-[11px] text-muted-foreground/70">
+              Highest accuracy % wins. Both answers are graded by AI.
+            </p>
+          </form>
+        </div>
+      </Card>
+
+      {/* OPPONENT */}
+      <Card className="h-fit overflow-hidden">
+        <div className="border-b border-border bg-card/60 px-4 py-2.5">
+          <span className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
+            {"// opponent"}
+          </span>
+        </div>
+        <div className="space-y-4 p-4">
+          <div className="flex items-center gap-2">
+            <span className="flex size-8 items-center justify-center rounded-md bg-secondary text-muted-foreground">
+              <UserIcon className="size-4" />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate font-mono text-sm font-medium">{plan.opponent.username}</p>
+              <p className="font-mono text-xs text-muted-foreground">{plan.opponent.elo} Elo</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+            <span className="relative flex size-2.5 items-center justify-center">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terminal/60" />
+              <span className="relative inline-flex size-2 rounded-full bg-terminal" />
+            </span>
+            Answering…
+          </div>
+          <p className="border-t border-border pt-3 font-mono text-[11px] leading-relaxed text-muted-foreground/70">
+            Whoever&apos;s answer scores the higher % accuracy wins the match.
           </p>
         </div>
       </Card>

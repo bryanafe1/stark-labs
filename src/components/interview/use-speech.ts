@@ -44,6 +44,7 @@ export function useSpeech(): SpeechApi {
   const [speaking, setSpeaking] = useState(false);
   const [listening, setListening] = useState(false);
   const recRef = useRef<unknown>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const w = window as unknown as {
@@ -58,6 +59,7 @@ export function useSpeech(): SpeechApi {
     return () => {
       try {
         window.speechSynthesis?.cancel();
+        audioRef.current?.pause();
         (recRef.current as { abort?: () => void } | null)?.abort?.();
       } catch {
         /* ignore */
@@ -65,9 +67,11 @@ export function useSpeech(): SpeechApi {
     };
   }, []);
 
-  const speak = useCallback((text: string, onEnd?: () => void) => {
+  // Browser SpeechSynthesis — the free, robotic fallback when no TTS key is set.
+  const browserSpeak = useCallback((text: string, onEnd?: () => void) => {
     const clean = speechClean(text);
     if (!clean || !("speechSynthesis" in window)) {
+      setSpeaking(false);
       onEnd?.();
       return;
     }
@@ -90,6 +94,54 @@ export function useSpeech(): SpeechApi {
     synth.speak(u);
   }, []);
 
+  // Prefer the human-voice server TTS (/api/tts); fall back to the browser voice.
+  const speak = useCallback(
+    async (text: string, onEnd?: () => void) => {
+      const clean = speechClean(text);
+      if (!clean) {
+        onEnd?.();
+        return;
+      }
+      setSpeaking(true);
+      try {
+        const res = await fetch("/api/tts", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ text: clean }),
+        });
+        if (res.ok) {
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const audio = new Audio(url);
+          audioRef.current = audio;
+          audio.onended = () => {
+            setSpeaking(false);
+            URL.revokeObjectURL(url);
+            audioRef.current = null;
+            onEnd?.();
+          };
+          audio.onerror = () => {
+            URL.revokeObjectURL(url);
+            audioRef.current = null;
+            browserSpeak(text, onEnd);
+          };
+          try {
+            await audio.play();
+            return; // human voice is playing
+          } catch {
+            URL.revokeObjectURL(url);
+            audioRef.current = null;
+            // autoplay blocked → fall through to browser voice
+          }
+        }
+      } catch {
+        /* network / route error → fall back */
+      }
+      browserSpeak(text, onEnd);
+    },
+    [browserSpeak],
+  );
+
   const listen = useCallback((onFinal: (text: string) => void) => {
     const w = window as unknown as {
       SpeechRecognition?: new () => unknown;
@@ -98,6 +150,10 @@ export function useSpeech(): SpeechApi {
     const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
     if (!Ctor) return;
     window.speechSynthesis?.cancel(); // don't capture our own voice
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
     setSpeaking(false);
 
     const rec = new Ctor() as {
@@ -152,6 +208,10 @@ export function useSpeech(): SpeechApi {
       window.speechSynthesis?.cancel();
     } catch {
       /* ignore */
+    }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
     }
     setSpeaking(false);
     (recRef.current as { abort?: () => void } | null)?.abort?.();

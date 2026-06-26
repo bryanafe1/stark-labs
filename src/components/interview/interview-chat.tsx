@@ -14,6 +14,8 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/markdown";
 import { cn } from "@/lib/utils";
@@ -170,6 +172,18 @@ export function InterviewChat() {
             question at a time, probes your reasoning, and ends with structured
             feedback on your interview readiness.
           </p>
+
+          <Link
+            href="/simulation"
+            className="mt-4 flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm transition-colors hover:bg-primary/10"
+          >
+            <Mic className="size-4 shrink-0 text-primary" />
+            <span className="flex-1">
+              <span className="font-medium text-foreground">New: full voice simulation</span>
+              <span className="text-muted-foreground"> — a real-time spoken interview you talk to out loud.</span>
+            </span>
+            <ArrowRight className="size-4 shrink-0 text-primary" />
+          </Link>
 
           <div className="mt-6 space-y-5">
             <Field label="Discipline">

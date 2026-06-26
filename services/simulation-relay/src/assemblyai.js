@@ -4,7 +4,9 @@ const logger = require('./logger');
 
 async function createAssemblyConnection(relay) {
   return new Promise((resolve) => {
-    const ws = new WebSocket('wss://api.assemblyai.com/v2/realtime/ws?sample_rate=16000', {
+    // 24 kHz to match the browser's PCM16 stream + OpenAI Realtime (same bytes
+    // are forwarded to both, so the sample rates must agree).
+    const ws = new WebSocket('wss://api.assemblyai.com/v2/realtime/ws?sample_rate=24000', {
       headers: { Authorization: process.env.ASSEMBLYAI_API_KEY }
     });
 

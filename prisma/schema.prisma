@@ -185,6 +185,7 @@ model User {
   comments        Comment[]
   notifications   Notification[]
   lessonProgress  LessonProgress[]
+  interviewSessions InterviewSession[]
 
   @@index([rankTier, overallElo])
   @@index([username])
@@ -259,6 +260,70 @@ model AppSetting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+//  VOICE INTERVIEW SIMULATION  (relayed by the Railway service)
+//  The relay validates the per-session token, streams audio, and posts events
+//  back here; the main app owns all persistence + the debrief.
+// ---------------------------------------------------------------------------
+
+model InterviewSession {
+  id              String    @id @default(cuid())
+  userId          String
+  discipline      String
+  topic           String
+  difficulty      String    @default("mid") // entry | mid | senior
+  status          String    @default("pending") // pending | active | completed | abandoned
+  relayToken      String    @unique // per-session secret the browser passes to the relay
+  durationSeconds Int?
+  questionCount   Int?
+  transcript      String?   @db.Text
+  debrief         Json? // structured post-session feedback
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+  updatedAt       DateTime  @updatedAt
+
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  SessionMessage[]
+  speechData SessionSpeechData[]
+
+  @@index([userId, createdAt])
+}
+
+/// One turn of the conversation. `id` is assigned by the relay (UUID).
+model SessionMessage {
+  id                   String   @id
+  sessionId            String
+  role                 String // interviewer | candidate
+  content              String   @db.Text
+  audioDurationSeconds Float?
+  sequence             Int
+  createdAt            DateTime @default(now())
+
+  session InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, sequence])
+}
+
+/// Per-candidate-turn speech analysis (filler words, pace, pauses) from AssemblyAI.
+model SessionSpeechData {
+  id                  String   @id @default(cuid())
+  sessionId           String
+  messageId           String?
+  wordsPerMinute      Int?
+  fillerWordCount     Int?
+  fillerWordsDetail   Json?
+  pauseCount          Int?
+  longestPauseSeconds Float?
+  averagePauseSeconds Float?
+  confidenceScore     Float?
+  wordCount           Int?
+  createdAt           DateTime @default(now())
+
+  session InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
 }
 
 model Account {

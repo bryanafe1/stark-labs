@@ -1,10 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send, Loader2, MessageSquare, RotateCcw, Flag, Bot, User } from "lucide-react";
+import {
+  Send,
+  Loader2,
+  MessageSquare,
+  RotateCcw,
+  Flag,
+  Bot,
+  User,
+  Mic,
+  Square,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/markdown";
 import { cn } from "@/lib/utils";
+import { useSpeech } from "@/components/interview/use-speech";
 import {
   INTERVIEW_KICKOFF,
   type InterviewConfig,
@@ -42,8 +55,12 @@ export function InterviewChat() {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"text" | "voice">("text");
+  const [muted, setMuted] = useState(false);
+  const speech = useSpeech();
 
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<Msg[]>([]);
   const jd = jobDescription.trim();
   const config: InterviewConfig = {
     disciplineLabel: "Mechanical",
@@ -53,6 +70,7 @@ export function InterviewChat() {
   };
 
   useEffect(() => {
+    messagesRef.current = messages;
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
@@ -77,13 +95,19 @@ export function InterviewChat() {
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
+      let full = "";
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
+        full += chunk;
         setMessages((prev) =>
           prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + chunk } : m)),
         );
+      }
+      // Voice mode: the interviewer reads the reply aloud.
+      if (mode === "voice" && speech.supported && !muted && full.trim()) {
+        speech.speak(full);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -105,6 +129,16 @@ export function InterviewChat() {
     streamTurn([...messages, { id: uid(), role: "user", content: text }]);
   }
 
+  // Voice mode: capture the spoken answer, then send it as the user's message.
+  function listenAndSend() {
+    if (streaming) return;
+    speech.listen((transcript) => {
+      const text = transcript.trim();
+      if (!text) return;
+      streamTurn([...messagesRef.current, { id: uid(), role: "user", content: text }]);
+    });
+  }
+
   function endInterview() {
     if (streaming) return;
     streamTurn([
@@ -114,6 +148,7 @@ export function InterviewChat() {
   }
 
   function reset() {
+    speech.cancel();
     setMessages([]);
     setInput("");
     setError(null);
@@ -166,6 +201,27 @@ export function InterviewChat() {
               </div>
             </Field>
 
+            <Field label="Mode">
+              <div className="flex flex-wrap gap-2">
+                <Pill active={mode === "text"} onClick={() => setMode("text")}>
+                  Type your answers
+                </Pill>
+                <Pill
+                  active={mode === "voice"}
+                  onClick={() => {
+                    if (speech.supported) setMode("voice");
+                  }}
+                >
+                  Voice — talk to the interviewer
+                </Pill>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {speech.supported
+                  ? "Voice mode reads the interviewer's questions aloud and lets you answer out loud — like the real thing."
+                  : "Voice mode needs Chrome, Edge, or Safari."}
+              </p>
+            </Field>
+
             <Field label="Job description (optional)">
               <textarea
                 value={jobDescription}
@@ -204,6 +260,7 @@ export function InterviewChat() {
             <h1 className="text-lg font-bold leading-none tracking-tight">Mock Interview</h1>
             <p className="mt-1 font-mono text-xs text-muted-foreground">
               Mechanical · {jd ? "Tailored to your role" : focus} · {level}
+              {mode === "voice" ? " · Voice" : ""}
             </p>
           </div>
         </div>
@@ -268,24 +325,105 @@ export function InterviewChat() {
 
       {/* Composer */}
       <div className="border-t border-border pt-3">
-        <div className="flex items-end gap-2">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                send();
-              }
+        {mode === "voice" ? (
+          <VoiceComposer
+            streaming={streaming}
+            speaking={speech.speaking}
+            listening={speech.listening}
+            muted={muted}
+            onTalk={listenAndSend}
+            onFinish={() => speech.stopListening()}
+            onToggleMute={() => {
+              setMuted((m) => !m);
+              speech.cancel();
             }}
-            rows={1}
-            placeholder="Type your answer…  (Enter to send, Shift+Enter for a new line)"
-            className="max-h-40 min-h-11 flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none ring-ring transition focus-visible:ring-2 placeholder:text-muted-foreground/60"
           />
-          <Button onClick={send} disabled={streaming || !input.trim()} className="h-11 shrink-0">
-            {streaming ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+        ) : (
+          <div className="flex items-end gap-2">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  send();
+                }
+              }}
+              rows={1}
+              placeholder="Type your answer…  (Enter to send, Shift+Enter for a new line)"
+              className="max-h-40 min-h-11 flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none ring-ring transition focus-visible:ring-2 placeholder:text-muted-foreground/60"
+            />
+            <Button onClick={send} disabled={streaming || !input.trim()} className="h-11 shrink-0">
+              {streaming ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function VoiceComposer({
+  streaming,
+  speaking,
+  listening,
+  muted,
+  onTalk,
+  onFinish,
+  onToggleMute,
+}: {
+  streaming: boolean;
+  speaking: boolean;
+  listening: boolean;
+  muted: boolean;
+  onTalk: () => void;
+  onFinish: () => void;
+  onToggleMute: () => void;
+}) {
+  const status = streaming
+    ? "Interviewer is thinking…"
+    : listening
+      ? "Listening — speak your answer"
+      : speaking
+        ? "Interviewer is speaking…"
+        : "Tap the mic to answer";
+
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span
+          className={cn(
+            "relative flex size-2.5 items-center justify-center",
+            listening ? "text-terminal" : "text-muted-foreground/50",
+          )}
+        >
+          {listening && (
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terminal/60" />
+          )}
+          <span className="relative inline-flex size-2 rounded-full bg-current" />
+        </span>
+        {status}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggleMute}
+          title={muted ? "Unmute the interviewer" : "Mute the interviewer"}
+        >
+          {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
+        </Button>
+        {listening ? (
+          <Button onClick={onFinish} className="h-11 gap-2">
+            <Square className="size-4" /> Finish answer
           </Button>
-        </div>
+        ) : (
+          <Button onClick={onTalk} disabled={streaming} className="h-11 gap-2">
+            <Mic className="size-4" />
+            {speaking ? "Answer now" : "Tap to speak"}
+          </Button>
+        )}
       </div>
     </div>
   );

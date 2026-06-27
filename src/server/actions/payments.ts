@@ -117,7 +117,7 @@ export async function openPortal(): Promise<void> {
   const configuration = await ensurePortalConfiguration();
   const portal = await stripe.billingPortal.sessions.create({
     customer: user.stripeCustomerId,
-    return_url: `${baseUrl()}/settings`,
+    return_url: `${baseUrl()}/dashboard`,
     ...(configuration ? { configuration } : {}),
   });
   redirect(portal.url);

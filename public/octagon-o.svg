@@ -1,10 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
-  <!-- Overclocker mark: an octagon that doubles as the "O". -->
-  <rect width="256" height="256" rx="60" fill="#0A0A0A"/>
-  <!-- subtle brand glow -->
-  <path d="M88 32 H168 L224 88 V168 L168 224 H88 L32 168 V88 Z"
-        fill="none" stroke="#6366F1" stroke-width="58" stroke-linejoin="round" opacity="0.16"/>
-  <!-- the octagon ring -->
-  <path d="M88 32 H168 L224 88 V168 L168 224 H88 L32 168 V88 Z"
-        fill="none" stroke="#6366F1" stroke-width="30" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="256" height="256">
+  <!-- Overclocker mark: the Lucide octagon as the "O". -->
+  <rect width="28" height="28" rx="6" fill="#0A0A0A"/>
+  <g transform="translate(2 2)">
+    <path d="M2.586 16.726A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2h6.624a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586z"
+          fill="none" stroke="#6366F1" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
 </svg>

@@ -3,11 +3,14 @@ import { ImageResponse } from "next/og";
 export const size = { width: 64, height: 64 };
 export const contentType = "image/png";
 
-// Overclocker favicon — an octagon that doubles as the "O", indigo on near-black.
+// Overclocker favicon — the exact Lucide "octagon" (rounded corners) as the "O",
+// indigo on near-black. Path lifted verbatim from lucide-react's Octagon icon.
 const MARK =
-  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>` +
-  `<rect width='64' height='64' rx='15' fill='#0A0A0A'/>` +
-  `<path d='M22 8 H42 L56 22 V42 L42 56 H22 L8 42 V22 Z' fill='none' stroke='#6366F1' stroke-width='8.5' stroke-linejoin='round'/>` +
+  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'>` +
+  `<rect width='28' height='28' rx='6' fill='#0A0A0A'/>` +
+  `<g transform='translate(2 2)'>` +
+  `<path d='M2.586 16.726A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2h6.624a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586z' fill='none' stroke='#6366F1' stroke-width='2.5' stroke-linejoin='round' stroke-linecap='round'/>` +
+  `</g>` +
   `</svg>`;
 
 export default function Icon() {

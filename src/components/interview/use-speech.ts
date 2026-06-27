@@ -114,9 +114,16 @@ export function useSpeech(): SpeechApi {
     if ("speechSynthesis" in window) window.speechSynthesis.getVoices();
     return () => {
       try {
+        // Kill the whole queue on unmount, not just the current utterance —
+        // otherwise the next prefetched sentence keeps speaking after you
+        // navigate away from the interview.
+        cancelledRef.current = true;
+        segQueue.current = [];
         window.speechSynthesis?.cancel();
         audioRef.current?.pause();
+        audioRef.current = null;
         (recRef.current as { abort?: () => void } | null)?.abort?.();
+        recRef.current = null;
       } catch {
         /* ignore */
       }

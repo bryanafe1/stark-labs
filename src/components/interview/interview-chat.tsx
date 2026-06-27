@@ -13,6 +13,7 @@ import {
   Square,
   Volume2,
   VolumeX,
+  Lock,
 } from "lucide-react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -57,7 +58,7 @@ const FOCUS_OPTIONS = [
 ];
 const LEVELS: InterviewLevel[] = ["Intern", "New grad", "Experienced"];
 
-export function InterviewChat() {
+export function InterviewChat({ pro = false }: { pro?: boolean }) {
   const [phase, setPhase] = useState<"setup" | "live">("setup");
   const [focus, setFocus] = useState("General fundamentals");
   const [level, setLevel] = useState<InterviewLevel>("New grad");
@@ -242,20 +243,41 @@ export function InterviewChat() {
                 <Pill active={mode === "text"} onClick={() => setMode("text")}>
                   Type your answers
                 </Pill>
-                <Pill
-                  active={mode === "voice"}
-                  onClick={() => {
-                    if (speech.supported) setMode("voice");
-                  }}
-                >
-                  Voice — talk to the interviewer
-                </Pill>
+                {pro ? (
+                  <Pill
+                    active={mode === "voice"}
+                    onClick={() => {
+                      if (speech.supported) setMode("voice");
+                    }}
+                  >
+                    Voice — talk to the interviewer
+                  </Pill>
+                ) : (
+                  <Link
+                    href="/pricing"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                  >
+                    <Lock className="size-3.5" /> Voice — Pro
+                  </Link>
+                )}
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                Voice mode reads the questions aloud and lets you answer out loud. Answering by voice
-                needs <span className="text-foreground">Chrome, Edge, or Safari</span> — Opera and
-                Brave don&apos;t support speech input. (For a seamless real-time conversation that
-                works in more browsers, try the full voice simulation above.)
+                {pro ? (
+                  <>
+                    Voice mode reads the questions aloud and lets you answer out loud. Answering by
+                    voice needs <span className="text-foreground">Chrome, Edge, or Safari</span> —
+                    Opera and Brave don&apos;t support speech input. (For a seamless real-time
+                    conversation, try the full voice simulation above.)
+                  </>
+                ) : (
+                  <>
+                    Answering out loud is a{" "}
+                    <Link href="/pricing" className="text-primary underline-offset-2 hover:underline">
+                      Pro feature
+                    </Link>
+                    . Standard includes the full text mock interview.
+                  </>
+                )}
               </p>
             </Field>
 

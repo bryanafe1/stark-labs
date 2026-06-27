@@ -8,6 +8,8 @@ const ERRORS: Record<string, string> = {
   min: "Balance is below the payout minimum.",
   transfer: "The transfer failed — check the creator's Connect account in Stripe.",
   notfound: "Creator not found.",
+  connect:
+    "Stripe Connect isn't enabled on your account yet. Turn it on at dashboard.stripe.com/connect, then try again.",
 };
 
 export default async function AdminPayoutsPage({

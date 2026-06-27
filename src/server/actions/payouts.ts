@@ -31,25 +31,32 @@ export async function createConnectLink(formData: FormData) {
   const creator = await prisma.creator.findUnique({ where: { id: creatorId } });
   if (!creator) redirect("/admin/payouts?error=notfound");
 
-  let accountId = creator.stripeConnectId;
-  if (!accountId) {
-    const account = await stripe.accounts.create({
-      type: "express",
-      email: creator.email ?? undefined,
-      metadata: { creatorId },
-      capabilities: { transfers: { requested: true } },
+  let onboardingUrl = "";
+  try {
+    let accountId = creator.stripeConnectId;
+    if (!accountId) {
+      const account = await stripe.accounts.create({
+        type: "express",
+        email: creator.email ?? undefined,
+        metadata: { creatorId },
+        capabilities: { transfers: { requested: true } },
+      });
+      accountId = account.id;
+      await prisma.creator.update({ where: { id: creatorId }, data: { stripeConnectId: accountId } });
+    }
+    const link = await stripe.accountLinks.create({
+      account: accountId,
+      refresh_url: `${baseUrl()}/admin/payouts`,
+      return_url: `${baseUrl()}/admin/payouts?onboarded=1`,
+      type: "account_onboarding",
     });
-    accountId = account.id;
-    await prisma.creator.update({ where: { id: creatorId }, data: { stripeConnectId: accountId } });
+    onboardingUrl = link.url;
+  } catch (err) {
+    // Most common: Connect isn't enabled on the platform account yet.
+    console.error("[payouts] createConnectLink failed", err);
+    redirect("/admin/payouts?error=connect");
   }
-
-  const link = await stripe.accountLinks.create({
-    account: accountId,
-    refresh_url: `${baseUrl()}/admin/payouts`,
-    return_url: `${baseUrl()}/admin/payouts?onboarded=1`,
-    type: "account_onboarding",
-  });
-  redirect(`/admin/payouts?link=${encodeURIComponent(link.url)}&for=${encodeURIComponent(creator.name)}`);
+  redirect(`/admin/payouts?link=${encodeURIComponent(onboardingUrl)}&for=${encodeURIComponent(creator.name)}`);
 }
 
 /** Transfer the full owed balance to a creator's connected account. */

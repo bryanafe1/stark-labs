@@ -344,8 +344,13 @@ export function InterviewChat() {
             streaming={streaming}
             speaking={speech.speaking}
             listening={speech.listening}
+            interim={speech.interim}
+            error={speech.error}
             muted={muted}
-            onTalk={listenAndSend}
+            onTalk={() => {
+              speech.clearError();
+              listenAndSend();
+            }}
             onFinish={() => speech.stopListening()}
             onToggleMute={() => {
               setMuted((m) => !m);
@@ -381,6 +386,8 @@ function VoiceComposer({
   streaming,
   speaking,
   listening,
+  interim,
+  error,
   muted,
   onTalk,
   onFinish,
@@ -389,6 +396,8 @@ function VoiceComposer({
   streaming: boolean;
   speaking: boolean;
   listening: boolean;
+  interim: string;
+  error: string | null;
   muted: boolean;
   onTalk: () => void;
   onFinish: () => void;
@@ -397,48 +406,64 @@ function VoiceComposer({
   const status = streaming
     ? "Interviewer is thinking…"
     : listening
-      ? "Listening — speak your answer"
+      ? interim
+        ? "Listening…"
+        : "Listening — start talking"
       : speaking
         ? "Interviewer is speaking…"
         : "Tap the mic to answer";
 
   return (
-    <div className="flex items-center justify-between gap-3">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span
-          className={cn(
-            "relative flex size-2.5 items-center justify-center",
-            listening ? "text-terminal" : "text-muted-foreground/50",
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span
+            className={cn(
+              "relative flex size-2.5 items-center justify-center",
+              listening ? "text-terminal" : "text-muted-foreground/50",
+            )}
+          >
+            {listening && (
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terminal/60" />
+            )}
+            <span className="relative inline-flex size-2 rounded-full bg-current" />
+          </span>
+          {status}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggleMute}
+            title={muted ? "Unmute the interviewer" : "Mute the interviewer"}
+          >
+            {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
+          </Button>
+          {listening ? (
+            <Button onClick={onFinish} className="h-11 gap-2">
+              <Square className="size-4" /> Finish answer
+            </Button>
+          ) : (
+            <Button onClick={onTalk} disabled={streaming} className="h-11 gap-2">
+              <Mic className="size-4" />
+              {speaking ? "Answer now" : "Tap to speak"}
+            </Button>
           )}
-        >
-          {listening && (
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terminal/60" />
-          )}
-          <span className="relative inline-flex size-2 rounded-full bg-current" />
-        </span>
-        {status}
+        </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onToggleMute}
-          title={muted ? "Unmute the interviewer" : "Mute the interviewer"}
-        >
-          {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
-        </Button>
-        {listening ? (
-          <Button onClick={onFinish} className="h-11 gap-2">
-            <Square className="size-4" /> Finish answer
-          </Button>
-        ) : (
-          <Button onClick={onTalk} disabled={streaming} className="h-11 gap-2">
-            <Mic className="size-4" />
-            {speaking ? "Answer now" : "Tap to speak"}
-          </Button>
-        )}
-      </div>
+      {listening && (
+        <p className="min-h-[2.5rem] rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground/90">
+          {interim || <span className="text-muted-foreground/60">Listening — your words will appear here…</span>}
+        </p>
+      )}
+
+      {error && (
+        <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

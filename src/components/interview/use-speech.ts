@@ -20,14 +20,32 @@ export function speechClean(text: string): string {
     .trim();
 }
 
+interface RecAlt {
+  transcript: string;
+}
+interface RecResult {
+  isFinal: boolean;
+  0: RecAlt;
+}
+interface RecEvent {
+  resultIndex: number;
+  results: ArrayLike<RecResult>;
+}
+interface RecError {
+  error?: string;
+}
+
 interface SpeechApi {
   supported: boolean;
   speaking: boolean;
   listening: boolean;
+  interim: string; // live transcript while you speak
+  error: string | null; // mic / recognition error to show the user
   speak: (text: string, onEnd?: () => void) => void;
   listen: (onFinal: (text: string) => void) => void;
   stopListening: () => void; // graceful: ends capture, fires the final result
   cancel: () => void; // abort TTS + STT, no callback
+  clearError: () => void;
 }
 
 function pickVoice(): SpeechSynthesisVoice | null {
@@ -43,6 +61,8 @@ export function useSpeech(): SpeechApi {
   const [supported, setSupported] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [listening, setListening] = useState(false);
+  const [interim, setInterim] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const recRef = useRef<unknown>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -148,13 +168,26 @@ export function useSpeech(): SpeechApi {
       webkitSpeechRecognition?: new () => unknown;
     };
     const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
-    if (!Ctor) return;
-    window.speechSynthesis?.cancel(); // don't capture our own voice
+    if (!Ctor) {
+      setError("Speech recognition isn't supported here — use Chrome, Edge, or Safari.");
+      return;
+    }
+    // Stop our own audio so the mic doesn't capture the interviewer's voice.
+    window.speechSynthesis?.cancel();
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
     }
     setSpeaking(false);
+    setError(null);
+    setInterim("");
+    // Clear any stale recognizer before starting a fresh one.
+    try {
+      (recRef.current as { abort?: () => void } | null)?.abort?.();
+    } catch {
+      /* ignore */
+    }
+    recRef.current = null;
 
     const rec = new Ctor() as {
       lang: string;
@@ -162,32 +195,59 @@ export function useSpeech(): SpeechApi {
       continuous: boolean;
       maxAlternatives: number;
       start: () => void;
-      onresult: (e: unknown) => void;
-      onerror: () => void;
+      onresult: (e: RecEvent) => void;
+      onerror: (e: RecError) => void;
       onend: () => void;
     };
     rec.lang = "en-US";
-    rec.interimResults = false;
-    rec.continuous = false;
+    rec.interimResults = true; // show words live (proof the mic is heard)
+    rec.continuous = true; // keep listening until the user taps "Finish"
     rec.maxAlternatives = 1;
-    let finalText = "";
 
-    rec.onresult = (e: unknown) => {
-      const ev = e as { results: ArrayLike<ArrayLike<{ transcript: string }>> };
-      let t = "";
-      for (let i = 0; i < ev.results.length; i++) {
-        t += ev.results[i]?.[0]?.transcript ?? "";
+    let finalText = "";
+    let sawError = false;
+
+    rec.onresult = (e: RecEvent) => {
+      let live = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        const txt = r?.[0]?.transcript ?? "";
+        if (r?.isFinal) finalText += (finalText ? " " : "") + txt.trim();
+        else live += txt;
       }
-      finalText = t;
+      setInterim((finalText + " " + live).trim());
     };
-    rec.onerror = () => {
-      setListening(false);
+
+    rec.onerror = (e: RecError) => {
+      const code = e?.error ?? "unknown";
+      if (code === "aborted") return; // we aborted intentionally
+      sawError = true;
+      if (code === "not-allowed" || code === "service-not-allowed") {
+        setError(
+          "Microphone access is blocked. Click the lock/camera icon in your address bar, allow the microphone, then try again.",
+        );
+      } else if (code === "no-speech") {
+        setError("I didn't catch anything — check your mic is on, then tap and speak up a little.");
+      } else if (code === "audio-capture") {
+        setError("No microphone found. Check your input device and try again.");
+      } else if (code === "network") {
+        setError("The speech service couldn't be reached (it needs internet). Try again.");
+      } else {
+        setError(`Microphone error (${code}). Try again.`);
+      }
     };
+
     rec.onend = () => {
       setListening(false);
+      setInterim("");
       recRef.current = null;
       const text = finalText.trim();
-      if (text) onFinal(text);
+      if (text) {
+        setError(null);
+        onFinal(text);
+      } else if (!sawError) {
+        setError("I didn't hear anything. Tap to speak, then talk — your words appear here as you go.");
+      }
     };
 
     recRef.current = rec;
@@ -195,6 +255,7 @@ export function useSpeech(): SpeechApi {
       rec.start();
       setListening(true);
     } catch {
+      setError("Couldn't start the microphone. Make sure nothing else is using it, then try again.");
       setListening(false);
     }
   }, []);
@@ -217,7 +278,21 @@ export function useSpeech(): SpeechApi {
     (recRef.current as { abort?: () => void } | null)?.abort?.();
     recRef.current = null;
     setListening(false);
+    setInterim("");
   }, []);
 
-  return { supported, speaking, listening, speak, listen, stopListening, cancel };
+  const clearError = useCallback(() => setError(null), []);
+
+  return {
+    supported,
+    speaking,
+    listening,
+    interim,
+    error,
+    speak,
+    listen,
+    stopListening,
+    cancel,
+    clearError,
+  };
 }

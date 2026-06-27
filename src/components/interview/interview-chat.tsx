@@ -230,9 +230,10 @@ export function InterviewChat() {
                 </Pill>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                {speech.supported
-                  ? "Voice mode reads the interviewer's questions aloud and lets you answer out loud — like the real thing."
-                  : "Voice mode needs Chrome, Edge, or Safari."}
+                Voice mode reads the questions aloud and lets you answer out loud. Answering by voice
+                needs <span className="text-foreground">Chrome, Edge, or Safari</span> — Opera and
+                Brave don&apos;t support speech input. (For a seamless real-time conversation that
+                works in more browsers, try the full voice simulation above.)
               </p>
             </Field>
 

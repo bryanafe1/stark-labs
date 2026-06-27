@@ -1,14 +1,22 @@
 import type { Metadata } from "next";
-import { hasPaidAccess } from "@/lib/access";
+import { getCurrentUserId } from "@/lib/auth";
+import { canStartVoiceSimulation } from "@/lib/access";
 import { Paywall } from "@/components/billing/paywall";
+import { VoiceGate } from "@/components/billing/voice-gate";
 import { VoiceSimulation } from "@/components/simulation/voice-simulation";
 
 export const metadata: Metadata = { title: "Voice Simulation" };
 export const dynamic = "force-dynamic";
 
 export default async function SimulationPage() {
-  if (!(await hasPaidAccess())) {
-    return <Paywall feature="the voice simulation" backHref="/interview" backLabel="Back to Interview" />;
+  const userId = await getCurrentUserId();
+  const check = await canStartVoiceSimulation(userId);
+
+  if (!check.ok) {
+    if (check.reason === "free") {
+      return <Paywall feature="voice interview simulation" backHref="/interview" backLabel="Back to Interview" />;
+    }
+    return <VoiceGate reason={check.reason} resetAt={check.reason === "pro_exhausted" ? check.resetAt : undefined} />;
   }
   return <VoiceSimulation />;
 }

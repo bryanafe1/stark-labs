@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Mail, Calendar, ShieldCheck, Sparkles, ExternalLink, LogOut } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
+import { getAccess } from "@/lib/access";
 import { signOut } from "@/auth";
-import { openBillingPortal } from "@/server/actions/billing";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProfileForm } from "@/components/settings/profile-form";
+import { BillingCard } from "@/components/settings/billing-card";
 import { DeleteAccount } from "@/components/settings/danger-zone";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -19,21 +19,18 @@ export default async function SettingsPage() {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) redirect("/sign-in");
 
-  const active = user.subscriptionStatus === "active";
-  const isPass = active && user.subscriptionTier === "pass";
-  const accessUntil = user.currentPeriodEnd
-    ? new Date(user.currentPeriodEnd).toLocaleDateString()
-    : null;
-  const plan =
+  const access = await getAccess(userId);
+  const planLabel =
     user.role === "ADMIN"
-      ? { label: "Admin", note: "Full access, no billing.", tone: "primary" as const }
+      ? "Admin"
       : user.comped
-        ? { label: "Creator", note: "Comped — full access, free.", tone: "primary" as const }
-        : isPass
-          ? { label: "Season Pass", note: "One-time pass. Everything unlocked.", tone: "primary" as const }
-          : active
-            ? { label: "Pro", note: "Everything unlocked.", tone: "primary" as const }
-            : { label: "Free", note: "Easy Mechanical content only.", tone: "muted" as const };
+        ? "Creator"
+        : access.tier === "pro"
+          ? "Pro"
+          : access.tier === "standard"
+            ? "Standard"
+            : "Free";
+  const planPrimary = user.role === "ADMIN" || user.comped || access.paid;
 
   const joined = new Date(user.createdAt).toLocaleDateString(undefined, {
     year: "numeric",
@@ -69,12 +66,12 @@ export default async function SettingsPage() {
           <Row icon={Sparkles} label="Plan">
             <span
               className={
-                plan.tone === "primary"
+                planPrimary
                   ? "rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary"
                   : "rounded-full bg-secondary px-2 py-0.5 text-xs font-semibold text-muted-foreground"
               }
             >
-              {plan.label}
+              {planLabel}
             </span>
           </Row>
         </CardContent>
@@ -98,37 +95,7 @@ export default async function SettingsPage() {
       </Card>
 
       {/* Billing */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Billing &amp; plan</CardTitle>
-          <CardDescription>{plan.note}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap items-center gap-2">
-          {user.role === "ADMIN" ? (
-            <span className="text-sm text-muted-foreground">
-              You have admin access. Billing doesn&apos;t apply to your account.
-            </span>
-          ) : user.comped ? (
-            <span className="text-sm text-muted-foreground">
-              You have free creator access. Billing doesn&apos;t apply to your account.
-            </span>
-          ) : isPass ? (
-            <span className="text-sm text-muted-foreground">
-              Season Pass active{accessUntil ? ` through ${accessUntil}` : ""}. It won&apos;t auto-renew.
-            </span>
-          ) : active ? (
-            <form action={openBillingPortal}>
-              <Button type="submit" variant="secondary">
-                Manage subscription
-              </Button>
-            </form>
-          ) : (
-            <Button asChild>
-              <Link href="/pricing">Upgrade to Pro</Link>
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+      <BillingCard userId={userId} />
 
       {/* Security */}
       <Card>

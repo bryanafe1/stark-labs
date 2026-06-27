@@ -7,6 +7,7 @@ import {
   Swords,
   Network,
   ArrowRight,
+  CheckCircle2,
 } from "lucide-react";
 import { getDashboard } from "@/features/dashboard/get-dashboard";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -25,7 +26,11 @@ const MODULES = [
   { href: "/skills", icon: Network, title: "Progress", desc: "Track mastery across every discipline." },
 ] as const;
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: { upgraded?: string; voice?: string };
+}) {
   const data = await getDashboard();
   const first = (data.user.displayName || "there").split(" ")[0];
   const started = data.disciplines.some((d) => d.masteredNodes > 0);
@@ -36,6 +41,15 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
+      {(searchParams.upgraded || searchParams.voice) && (
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+          <CheckCircle2 className="size-4 shrink-0" />
+          {searchParams.voice
+            ? "Voice session added — you're ready to go."
+            : "You're all set — your plan is active. Welcome aboard."}
+        </div>
+      )}
+
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">

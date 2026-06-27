@@ -8,6 +8,7 @@ import { getCurrentUserId } from "@/lib/auth";
 import {
   stripe,
   planPriceId,
+  ensurePortalConfiguration,
   VOICE_SESSION_PRICE_ID,
   type PlanTierName,
   type BillingInterval,
@@ -104,9 +105,14 @@ export async function openPortal(): Promise<void> {
   if (!userId) redirect("/sign-in");
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user?.stripeCustomerId) redirect("/pricing");
+  // Use a portal configuration that lists the Standard + Pro products, so the
+  // "Switch plan" option actually offers plans to switch to (the default config
+  // enables subscription_update but with zero products → nothing to switch to).
+  const configuration = await ensurePortalConfiguration();
   const portal = await stripe.billingPortal.sessions.create({
     customer: user.stripeCustomerId,
     return_url: `${baseUrl()}/settings`,
+    ...(configuration ? { configuration } : {}),
   });
   redirect(portal.url);
 }

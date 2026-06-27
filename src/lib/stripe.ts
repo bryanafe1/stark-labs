@@ -162,6 +162,88 @@ export function planPriceId(tier: PlanTierName, interval: BillingInterval): stri
     : (process.env.STRIPE_STANDARD_MONTHLY_PRICE_ID ?? "");
 }
 
+// ---------------------------------------------------------------------------
+//  Customer Portal configuration. The default test/live portal config enables
+//  "subscription_update" but with an EMPTY products list, so the "Switch plan"
+//  option has nothing to offer and appears to do nothing. We build (once) a
+//  configuration that lists the Standard + Pro products with all their prices,
+//  cache its id in AppSetting, and reuse it for every portal session.
+// ---------------------------------------------------------------------------
+
+const PORTAL_CONFIG_KEY = "billing_portal_config";
+
+/** Resolve the productId for a configured price id (best-effort). */
+async function productIdForPrice(priceId: string): Promise<string | null> {
+  if (!priceId) return null;
+  try {
+    const p = await stripe.prices.retrieve(priceId);
+    return typeof p.product === "string" ? p.product : p.product.id;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Ensure a billing-portal configuration exists that allows switching across the
+ * Standard + Pro plans (both intervals) and canceling. Returns its id, or null
+ * if the plan prices aren't configured (caller falls back to the default).
+ */
+export async function ensurePortalConfiguration(): Promise<string | null> {
+  // Reuse a cached config if it still has products wired up.
+  const cached = await prisma.appSetting.findUnique({ where: { key: PORTAL_CONFIG_KEY } });
+  if (cached?.value) {
+    try {
+      // `products` is only returned when explicitly expanded.
+      const cfg = await stripe.billingPortal.configurations.retrieve(cached.value, {
+        expand: ["features.subscription_update.products"],
+      });
+      if (cfg.active && (cfg.features.subscription_update?.products?.length ?? 0) >= 2) return cfg.id;
+    } catch {
+      /* stale id → rebuild */
+    }
+  }
+
+  const priceIds = [
+    planPriceId("standard", "monthly"),
+    planPriceId("standard", "annual"),
+    planPriceId("pro", "monthly"),
+    planPriceId("pro", "annual"),
+  ].filter(Boolean);
+  if (priceIds.length === 0) return null;
+
+  // Group price ids by their product.
+  const byProduct = new Map<string, Set<string>>();
+  for (const id of priceIds) {
+    const prod = await productIdForPrice(id);
+    if (!prod) continue;
+    if (!byProduct.has(prod)) byProduct.set(prod, new Set());
+    byProduct.get(prod)!.add(id);
+  }
+  const products = [...byProduct.entries()].map(([product, prices]) => ({ product, prices: [...prices] }));
+  if (products.length === 0) return null;
+
+  const cfg = await stripe.billingPortal.configurations.create({
+    business_profile: { headline: "Manage your Overclocker subscription" },
+    features: {
+      subscription_cancel: { enabled: true, mode: "at_period_end" },
+      subscription_update: {
+        enabled: true,
+        default_allowed_updates: ["price"],
+        proration_behavior: "create_prorations",
+        products,
+      },
+      payment_method_update: { enabled: true },
+      invoice_history: { enabled: true },
+    },
+  });
+  await prisma.appSetting.upsert({
+    where: { key: PORTAL_CONFIG_KEY },
+    create: { key: PORTAL_CONFIG_KEY, value: cfg.id },
+    update: { value: cfg.id },
+  });
+  return cfg.id;
+}
+
 /** Map a Stripe price id back to a plan tier + interval (the webhook's source of truth). */
 export function planForPrice(priceId: string | null | undefined): { tier: PlanTierName; interval: BillingInterval } | null {
   if (!priceId) return null;

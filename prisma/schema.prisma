@@ -227,6 +227,8 @@ model Creator {
   active            Boolean @default(true)
   stripeCouponId    String?
   stripePromoCodeId String?
+  stripeConnectId   String? // Stripe Connect (Express) account for payouts
+  payoutsEnabled    Boolean @default(false) // Connect onboarding complete
   userId            String? @unique // their own comped account, once linked
   notes             String?
 
@@ -236,8 +238,23 @@ model Creator {
   account       User?            @relation("CreatorAccount", fields: [userId], references: [id], onDelete: SetNull)
   referredUsers User[]           @relation("CreatorReferrals")
   earnings      CreatorEarning[]
+  payouts       CreatorPayout[]
 
   @@index([active])
+}
+
+model CreatorPayout {
+  id               String   @id @default(cuid())
+  creatorId        String
+  amountCents      Int
+  status           String   @default("pending") // pending | paid | failed
+  stripeTransferId String?
+  note             String?
+  createdAt        DateTime @default(now())
+
+  creator Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@index([creatorId, createdAt])
 }
 
 /// One paid conversion attributed to a creator (recorded by the Stripe webhook).

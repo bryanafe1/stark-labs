@@ -10,6 +10,7 @@ import {
   Tag,
   Ticket,
   BarChart3,
+  Banknote,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ import { adminLogout } from "@/server/actions/admin-auth";
 
 const ITEMS = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
+  { href: "/admin/payouts", label: "Business", icon: Banknote },
   { href: "/admin/sales", label: "Sales", icon: DollarSign },
   { href: "/admin/creators", label: "Creators", icon: Users },
   { href: "/admin/comp", label: "Comp access", icon: Gift },

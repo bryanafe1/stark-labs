@@ -28,6 +28,7 @@ export async function getCreatorsWithStats(): Promise<CreatorRow[]> {
     }),
     prisma.creatorEarning.groupBy({
       by: ["creatorId"],
+      where: { reversed: false },
       _sum: { grossCents: true, commissionCents: true },
     }),
     prisma.user.groupBy({
@@ -139,7 +140,10 @@ export async function getSalesInfo(): Promise<SalesInfo> {
   } catch {
     /* Stripe unavailable → empty feed */
   }
-  const commission = await prisma.creatorEarning.aggregate({ _sum: { commissionCents: true } });
+  const commission = await prisma.creatorEarning.aggregate({
+    where: { reversed: false },
+    _sum: { commissionCents: true },
+  });
   return {
     recentVolumeCents,
     commissionOwedCents: commission._sum.commissionCents ?? 0,

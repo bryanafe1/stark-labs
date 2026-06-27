@@ -197,6 +197,17 @@ export async function POST(req: NextRequest) {
         }
         break;
       }
+
+      case "account.updated": {
+        // A creator finished (or changed) Connect onboarding.
+        const acct = event.data.object as Stripe.Account;
+        const enabled = !!acct.payouts_enabled && !!acct.details_submitted;
+        await prisma.creator.updateMany({
+          where: { stripeConnectId: acct.id },
+          data: { payoutsEnabled: enabled },
+        });
+        break;
+      }
     }
   } catch (err) {
     console.error("[payments webhook] handler error", err);

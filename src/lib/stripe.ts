@@ -138,3 +138,40 @@ export async function createPromo(opts: {
 export async function setPromoActive(promoId: string, active: boolean) {
   await stripe.promotionCodes.update(promoId, { active });
 }
+
+// ---------------------------------------------------------------------------
+//  New two-tier model (Standard / Pro) + one-time Voice Session credit.
+//  Price ids come from the Stripe setup script (scripts/stripe-setup.js).
+// ---------------------------------------------------------------------------
+
+export type PlanTierName = "standard" | "pro";
+export type BillingInterval = "monthly" | "annual";
+
+export const VOICE_SESSION_PRICE_ID = process.env.STRIPE_VOICE_SESSION_PRICE_ID ?? "";
+export const VOICE_SESSION_EXPIRY_DAYS = Number(process.env.VOICE_SESSION_EXPIRY_DAYS ?? 90);
+
+/** The Stripe price id for a plan tier + interval. */
+export function planPriceId(tier: PlanTierName, interval: BillingInterval): string {
+  if (tier === "pro") {
+    return interval === "annual"
+      ? (process.env.STRIPE_PRO_ANNUAL_PRICE_ID ?? "")
+      : (process.env.STRIPE_PRO_MONTHLY_PRICE_ID ?? "");
+  }
+  return interval === "annual"
+    ? (process.env.STRIPE_STANDARD_ANNUAL_PRICE_ID ?? "")
+    : (process.env.STRIPE_STANDARD_MONTHLY_PRICE_ID ?? "");
+}
+
+/** Map a Stripe price id back to a plan tier + interval (the webhook's source of truth). */
+export function planForPrice(priceId: string | null | undefined): { tier: PlanTierName; interval: BillingInterval } | null {
+  if (!priceId) return null;
+  const m: Record<string, { tier: PlanTierName; interval: BillingInterval }> = {};
+  const add = (id: string | undefined, tier: PlanTierName, interval: BillingInterval) => {
+    if (id) m[id] = { tier, interval };
+  };
+  add(process.env.STRIPE_STANDARD_MONTHLY_PRICE_ID, "standard", "monthly");
+  add(process.env.STRIPE_STANDARD_ANNUAL_PRICE_ID, "standard", "annual");
+  add(process.env.STRIPE_PRO_MONTHLY_PRICE_ID, "pro", "monthly");
+  add(process.env.STRIPE_PRO_ANNUAL_PRICE_ID, "pro", "annual");
+  return m[priceId] ?? null;
+}

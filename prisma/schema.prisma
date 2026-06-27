@@ -152,7 +152,9 @@ model User {
 
   // Billing (Stripe)
   subscriptionStatus   String    @default("none") // none | active | canceled | past_due
-  subscriptionTier     String? // monthly | annual | null
+  subscriptionTier     String? // legacy: monthly | annual | pass
+  planTier             String? // standard | pro  (new two-tier model)
+  billingInterval      String? // monthly | annual
   stripeCustomerId     String?   @unique
   stripeSubscriptionId String?   @unique
   currentPeriodEnd     DateTime? // access valid through this time
@@ -186,6 +188,7 @@ model User {
   notifications   Notification[]
   lessonProgress  LessonProgress[]
   interviewSessions InterviewSession[]
+  sessionCredits  SessionCredit[]
 
   @@index([rankTier, overallElo])
   @@index([username])
@@ -280,6 +283,8 @@ model InterviewSession {
   questionCount   Int?
   transcript      String?   @db.Text
   debrief         Json? // structured post-session feedback
+  creditId        String? // SessionCredit spent (Standard tier); null for Pro/admin
+  refunded        Boolean   @default(false) // early-failure refund → doesn't count toward usage
   createdAt       DateTime  @default(now())
   completedAt     DateTime?
   updatedAt       DateTime  @updatedAt
@@ -304,6 +309,23 @@ model SessionMessage {
   session InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId, sequence])
+}
+
+/// A purchased one-time voice-session credit (Standard tier). Soonest-expiring
+/// is spent first; deducted when a session starts; returned on early failure.
+model SessionCredit {
+  id            String    @id @default(cuid())
+  userId        String
+  status        String    @default("available") // available | used | refunded | expired
+  expiresAt     DateTime
+  usedAt        DateTime?
+  usedSessionId String?
+  stripeRef     String    @unique // checkout session / payment intent id (idempotency)
+  createdAt     DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status, expiresAt])
 }
 
 /// Per-candidate-turn speech analysis (filler words, pace, pauses) from AssemblyAI.

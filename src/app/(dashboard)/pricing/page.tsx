@@ -52,11 +52,23 @@ export default async function PricingPage({ searchParams }: { searchParams: { co
 
   // CTA for a paid tier column.
   function PaidCTA({ tier }: { tier: "standard" | "pro" }) {
-    if (access.paid) {
-      const isCurrent = access.tier === tier;
+    const isCurrent = access.tier === tier;
+    // Comped / admin accounts are a direct grant — there is no Stripe
+    // subscription to manage, so don't offer a (dead) portal button.
+    if (access.comped || access.status === "admin") {
+      return (
+        <div className="mt-6">
+          <Button variant="secondary" className="w-full" disabled>
+            {isCurrent ? "Included with your access" : "Included"}
+          </Button>
+        </div>
+      );
+    }
+    // A real paying subscriber → manage or switch via the Customer Portal.
+    if (access.status === "active" || access.status === "past_due") {
       return (
         <form action={openPortal} className="mt-6">
-          <Button type="submit" variant={isCurrent ? "default" : "secondary"} className="w-full" disabled={isCurrent && access.status === "admin"}>
+          <Button type="submit" variant={isCurrent ? "default" : "secondary"} className="w-full">
             {isCurrent ? "Current plan — manage" : "Switch plan"}
           </Button>
         </form>

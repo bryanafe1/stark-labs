@@ -85,11 +85,10 @@ export async function buyVoiceSession(): Promise<void> {
   if (!user) redirect("/sign-in");
   if (!VOICE_SESSION_PRICE_ID) redirect("/pricing?error=notconfigured");
 
-  // Voice credits only work for Standard-tier accounts. Free users must
-  // subscribe first; Pro already gets monthly sessions (credits wouldn't apply).
+  // Voice credits are for paid accounts only — free users must subscribe first.
+  // Pro can buy extra sessions; they're spent once the monthly allotment runs out.
   const access = await getAccess(userId);
   if (!access.paid) redirect("/pricing");
-  if (access.pro) redirect("/simulation");
 
   const customer = await ensureCustomer(userId, user.email, user.stripeCustomerId);
   const base = baseUrl();

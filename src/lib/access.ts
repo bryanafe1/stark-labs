@@ -136,21 +136,30 @@ export async function canStartVoiceSimulation(userId?: string | null): Promise<V
     const used = await proSessionsUsedThisMonth(uid);
     const remaining = Math.max(0, PRO_MONTHLY_LIMIT - used);
     const resetAt = startOfNextMonth();
-    return remaining > 0
-      ? { ok: true, via: "pro", remaining, resetAt }
-      : { ok: false, reason: "pro_exhausted", resetAt };
+    if (remaining > 0) return { ok: true, via: "pro", remaining, resetAt };
+    // Monthly allotment spent → fall through to any extra sessions they bought.
+    const credit = await findAvailableCredit(uid);
+    if (credit) return { ok: true, via: "credit", creditId: credit.id, remaining: credit.remaining };
+    return { ok: false, reason: "pro_exhausted", resetAt };
   }
 
   // Standard (or comped) — needs a credit, spending the soonest-expiring first.
+  const credit = await findAvailableCredit(uid);
+  if (!credit) return { ok: false, reason: "need_credits" };
+  return { ok: true, via: "credit", creditId: credit.id, remaining: credit.remaining };
+}
+
+/** The soonest-expiring available credit for a user + how many remain, or null. */
+async function findAvailableCredit(uid: string): Promise<{ id: string; remaining: number } | null> {
   const now = new Date();
   const credit = await prisma.sessionCredit.findFirst({
     where: { userId: uid, status: "available", expiresAt: { gt: now } },
     orderBy: { expiresAt: "asc" },
     select: { id: true },
   });
-  if (!credit) return { ok: false, reason: "need_credits" };
+  if (!credit) return null;
   const remaining = await prisma.sessionCredit.count({
     where: { userId: uid, status: "available", expiresAt: { gt: now } },
   });
-  return { ok: true, via: "credit", creditId: credit.id, remaining };
+  return { id: credit.id, remaining };
 }

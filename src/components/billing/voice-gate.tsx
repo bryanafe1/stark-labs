@@ -31,13 +31,19 @@ export function VoiceGate({
     return (
       <Shell>
         <Card className="p-6 text-center">
-          <h2 className="text-xl font-bold tracking-tight">You&apos;ve used all your sessions this month</h2>
+          <h2 className="text-xl font-bold tracking-tight">You&apos;ve used all 5 sessions this month</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your 5 Pro voice sessions reset on <span className="text-foreground">{date}</span>. See you then.
+            They reset on <span className="text-foreground">{date}</span>. Need another now? Grab a single
+            session for $12 — it works the moment you buy it.
           </p>
-          <Button asChild variant="secondary" className="mt-5">
-            <Link href="/interview">Back to interviews</Link>
-          </Button>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <form action={buyVoiceSession}>
+              <Button type="submit">Buy a session — $12</Button>
+            </form>
+            <Button asChild variant="secondary">
+              <Link href="/interview">Back to interviews</Link>
+            </Button>
+          </div>
         </Card>
       </Shell>
     );

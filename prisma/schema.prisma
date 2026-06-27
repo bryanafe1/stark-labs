@@ -246,15 +246,18 @@ model CreatorEarning {
   creatorId       String
   userId          String?
   stripeEventId   String   @unique // idempotency: one earning per Stripe event
+  invoiceId       String? // links to the Stripe invoice (for refund reversal)
   grossCents      Int
   commissionCents Int
   currency        String   @default("usd")
   description     String?
+  reversed        Boolean  @default(false) // set when the underlying charge is refunded
   createdAt       DateTime @default(now())
 
   creator Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 
   @@index([creatorId, createdAt])
+  @@index([invoiceId])
 }
 
 /// Simple key/value app settings (e.g. the active Stripe price ids the

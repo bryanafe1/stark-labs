@@ -36,6 +36,15 @@ interface Msg {
 let counter = 0;
 const uid = () => `m${Date.now()}_${counter++}`;
 
+/** Index of the last completed-sentence terminator in a string, else -1. */
+function lastSentenceEnd(s: string): number {
+  let idx = -1;
+  const re = /[.!?…](\s|$)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(s)) !== null) idx = m.index;
+  return idx;
+}
+
 // Launch discipline is Mechanical; these mirror the Mechanical lesson topics.
 const FOCUS_OPTIONS = [
   "General fundamentals",
@@ -97,7 +106,9 @@ export function InterviewChat() {
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
+      const voice = mode === "voice" && speech.supported && !muted;
       let full = "";
+      let spokenIdx = 0;
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -106,10 +117,21 @@ export function InterviewChat() {
         setMessages((prev) =>
           prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + chunk } : m)),
         );
+        // Voice mode: speak each complete sentence the moment it's ready.
+        if (voice) {
+          const pending = full.slice(spokenIdx);
+          const end = lastSentenceEnd(pending);
+          if (end >= 0) {
+            const sentence = pending.slice(0, end + 1).trim();
+            if (sentence) speech.speak(sentence);
+            spokenIdx += end + 1;
+          }
+        }
       }
-      // Voice mode: the interviewer reads the reply aloud.
-      if (mode === "voice" && speech.supported && !muted && full.trim()) {
-        speech.speak(full);
+      // Speak any trailing text that didn't end with punctuation.
+      if (voice) {
+        const tail = full.slice(spokenIdx).trim();
+        if (tail) speech.speak(tail);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");

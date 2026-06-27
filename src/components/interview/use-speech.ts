@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 // ---------------------------------------------------------------------------
-//  Browser-native speech for the voice interview: SpeechSynthesis (the AI
-//  interviewer talks) + SpeechRecognition (you answer by voice). No API cost,
-//  no keys. Supported in Chrome, Edge, and Safari.
+//  Browser-native speech for the voice interview. The interviewer speaks via a
+//  STREAMING queue — each sentence of the reply is fetched (human-voice /api/tts)
+//  and played as soon as it's ready, so speech starts almost immediately instead
+//  of after the whole reply is generated. You answer via SpeechRecognition.
 // ---------------------------------------------------------------------------
 
 /** Strip markdown / LaTeX so the spoken voice reads naturally. */
@@ -14,7 +15,7 @@ export function speechClean(text: string): string {
     .replace(/```[\s\S]*?```/g, " (code) ")
     .replace(/\$\$([\s\S]*?)\$\$/g, " $1 ")
     .replace(/\$([^$\n]*)\$/g, " $1 ")
-    .replace(/\\[a-zA-Z]+\*?\{?|\}/g, " ") // latex commands / braces
+    .replace(/\\[a-zA-Z]+\*?\{?|\}/g, " ")
     .replace(/[`*_#>|~]/g, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -39,12 +40,13 @@ interface SpeechApi {
   supported: boolean;
   speaking: boolean;
   listening: boolean;
-  interim: string; // live transcript while you speak
-  error: string | null; // mic / recognition error to show the user
-  speak: (text: string, onEnd?: () => void) => void;
+  interim: string;
+  error: string | null;
+  /** Enqueue a chunk of the reply to be spoken (call per sentence as it streams). */
+  speak: (text: string) => void;
   listen: (onFinal: (text: string) => void) => void;
-  stopListening: () => void; // graceful: ends capture, fires the final result
-  cancel: () => void; // abort TTS + STT, no callback
+  stopListening: () => void;
+  cancel: () => void;
   clearError: () => void;
 }
 
@@ -57,6 +59,39 @@ function pickVoice(): SpeechSynthesisVoice | null {
   return preferred ?? en[0] ?? voices[0] ?? null;
 }
 
+/** Fetch human-voice audio for a text segment; returns an object URL or null. */
+function fetchTTS(text: string): Promise<string | null> {
+  return fetch("/api/tts", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text }),
+  })
+    .then(async (res) => {
+      if (!res.ok) return null;
+      const blob = await res.blob();
+      return URL.createObjectURL(blob);
+    })
+    .catch(() => null);
+}
+
+/** Robotic browser fallback for a segment when /api/tts isn't available. */
+function browserSpeakAwait(text: string): Promise<void> {
+  return new Promise((resolve) => {
+    if (!("speechSynthesis" in window) || !text) {
+      resolve();
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(text);
+    const v = pickVoice();
+    if (v) u.voice = v;
+    u.rate = 1.02;
+    u.pitch = 1;
+    u.onend = () => resolve();
+    u.onerror = () => resolve();
+    window.speechSynthesis.speak(u);
+  });
+}
+
 export function useSpeech(): SpeechApi {
   const [supported, setSupported] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -65,16 +100,17 @@ export function useSpeech(): SpeechApi {
   const [error, setError] = useState<string | null>(null);
   const recRef = useRef<unknown>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const segQueue = useRef<{ text: string; p: Promise<string | null> }[]>([]);
+  const processingRef = useRef(false);
+  const cancelledRef = useRef(false);
 
   useEffect(() => {
     const w = window as unknown as {
       SpeechRecognition?: unknown;
       webkitSpeechRecognition?: unknown;
-      speechSynthesis?: unknown;
     };
     const hasRec = !!(w.SpeechRecognition || w.webkitSpeechRecognition);
     setSupported(hasRec && "speechSynthesis" in window);
-    // Warm up the voice list (loads async in some browsers).
     if ("speechSynthesis" in window) window.speechSynthesis.getVoices();
     return () => {
       try {
@@ -87,199 +123,171 @@ export function useSpeech(): SpeechApi {
     };
   }, []);
 
-  // Browser SpeechSynthesis — the free, robotic fallback when no TTS key is set.
-  const browserSpeak = useCallback((text: string, onEnd?: () => void) => {
-    const clean = speechClean(text);
-    if (!clean || !("speechSynthesis" in window)) {
-      setSpeaking(false);
-      onEnd?.();
-      return;
-    }
-    const synth = window.speechSynthesis;
-    synth.cancel();
-    const u = new SpeechSynthesisUtterance(clean);
-    const v = pickVoice();
-    if (v) u.voice = v;
-    u.rate = 1.02;
-    u.pitch = 1;
-    u.onend = () => {
-      setSpeaking(false);
-      onEnd?.();
-    };
-    u.onerror = () => {
-      setSpeaking(false);
-      onEnd?.();
-    };
-    setSpeaking(true);
-    synth.speak(u);
-  }, []);
-
-  // Prefer the human-voice server TTS (/api/tts); fall back to the browser voice.
-  const speak = useCallback(
-    async (text: string, onEnd?: () => void) => {
-      const clean = speechClean(text);
-      if (!clean) {
-        onEnd?.();
-        return;
-      }
-      setSpeaking(true);
-      try {
-        const res = await fetch("/api/tts", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ text: clean }),
-        });
-        if (res.ok) {
-          const blob = await res.blob();
-          const url = URL.createObjectURL(blob);
-          const audio = new Audio(url);
-          audioRef.current = audio;
-          audio.onended = () => {
-            setSpeaking(false);
-            URL.revokeObjectURL(url);
-            audioRef.current = null;
-            onEnd?.();
-          };
-          audio.onerror = () => {
-            URL.revokeObjectURL(url);
-            audioRef.current = null;
-            browserSpeak(text, onEnd);
-          };
-          try {
-            await audio.play();
-            return; // human voice is playing
-          } catch {
-            URL.revokeObjectURL(url);
-            audioRef.current = null;
-            // autoplay blocked → fall through to browser voice
-          }
-        }
-      } catch {
-        /* network / route error → fall back */
-      }
-      browserSpeak(text, onEnd);
-    },
-    [browserSpeak],
-  );
-
-  const listen = useCallback((onFinal: (text: string) => void) => {
-    const w = window as unknown as {
-      SpeechRecognition?: new () => unknown;
-      webkitSpeechRecognition?: new () => unknown;
-    };
-    const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
-    if (!Ctor) {
-      setError("Speech recognition isn't supported here — use Chrome, Edge, or Safari.");
-      return;
-    }
-    // Stop our own audio so the mic doesn't capture the interviewer's voice.
-    window.speechSynthesis?.cancel();
+  const stopAllAudio = useCallback(() => {
+    cancelledRef.current = true;
+    segQueue.current = [];
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
     }
-    setSpeaking(false);
-    setError(null);
-    setInterim("");
-    // Clear any stale recognizer before starting a fresh one.
     try {
-      (recRef.current as { abort?: () => void } | null)?.abort?.();
+      window.speechSynthesis?.cancel();
     } catch {
       /* ignore */
     }
-    recRef.current = null;
-
-    const rec = new Ctor() as {
-      lang: string;
-      interimResults: boolean;
-      continuous: boolean;
-      maxAlternatives: number;
-      start: () => void;
-      onresult: (e: RecEvent) => void;
-      onerror: (e: RecError) => void;
-      onend: () => void;
-    };
-    rec.lang = "en-US";
-    rec.interimResults = true; // show words live (proof the mic is heard)
-    rec.continuous = true; // keep listening until the user taps "Finish"
-    rec.maxAlternatives = 1;
-
-    let finalText = "";
-    let sawError = false;
-
-    rec.onresult = (e: RecEvent) => {
-      let live = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const r = e.results[i];
-        const txt = r?.[0]?.transcript ?? "";
-        if (r?.isFinal) finalText += (finalText ? " " : "") + txt.trim();
-        else live += txt;
-      }
-      setInterim((finalText + " " + live).trim());
-    };
-
-    rec.onerror = (e: RecError) => {
-      const code = e?.error ?? "unknown";
-      if (code === "aborted") return; // we aborted intentionally
-      sawError = true;
-      if (code === "not-allowed" || code === "service-not-allowed") {
-        setError(
-          "Microphone access is blocked. Click the lock/camera icon in your address bar, allow the microphone, then try again.",
-        );
-      } else if (code === "no-speech") {
-        setError("I didn't catch anything — check your mic is on, then tap and speak up a little.");
-      } else if (code === "audio-capture") {
-        setError("No microphone found. Check your input device and try again.");
-      } else if (code === "network") {
-        setError("The speech service couldn't be reached (it needs internet). Try again.");
-      } else {
-        setError(`Microphone error (${code}). Try again.`);
-      }
-    };
-
-    rec.onend = () => {
-      setListening(false);
-      setInterim("");
-      recRef.current = null;
-      const text = finalText.trim();
-      if (text) {
-        setError(null);
-        onFinal(text);
-      } else if (!sawError) {
-        setError("I didn't hear anything. Tap to speak, then talk — your words appear here as you go.");
-      }
-    };
-
-    recRef.current = rec;
-    try {
-      rec.start();
-      setListening(true);
-    } catch {
-      setError("Couldn't start the microphone. Make sure nothing else is using it, then try again.");
-      setListening(false);
-    }
   }, []);
+
+  const playUrl = (url: string): Promise<void> =>
+    new Promise((resolve) => {
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      const done = () => {
+        if (audioRef.current === audio) audioRef.current = null;
+        resolve();
+      };
+      audio.onended = done;
+      audio.onerror = done;
+      audio.play().catch(done);
+    });
+
+  const processQueue = async () => {
+    if (processingRef.current) return;
+    processingRef.current = true;
+    while (segQueue.current.length && !cancelledRef.current) {
+      const seg = segQueue.current.shift()!;
+      const url = await seg.p; // prefetched in parallel when enqueued
+      if (cancelledRef.current) {
+        if (url) URL.revokeObjectURL(url);
+        break;
+      }
+      if (url) {
+        await playUrl(url);
+        URL.revokeObjectURL(url);
+      } else {
+        await browserSpeakAwait(seg.text);
+      }
+    }
+    processingRef.current = false;
+    if (segQueue.current.length === 0) setSpeaking(false);
+  };
+
+  const speak = (text: string) => {
+    const clean = speechClean(text);
+    if (!clean) return;
+    cancelledRef.current = false;
+    setSpeaking(true);
+    segQueue.current.push({ text: clean, p: fetchTTS(clean) }); // start fetching now
+    void processQueue();
+  };
+
+  const listen = useCallback(
+    (onFinal: (text: string) => void) => {
+      const w = window as unknown as {
+        SpeechRecognition?: new () => unknown;
+        webkitSpeechRecognition?: new () => unknown;
+      };
+      const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+      if (!Ctor) {
+        setError("Speech recognition isn't supported here — use Chrome, Edge, or Safari.");
+        return;
+      }
+      // Barge-in: stop the interviewer's audio so the mic doesn't capture it.
+      stopAllAudio();
+      setSpeaking(false);
+      setError(null);
+      setInterim("");
+      try {
+        (recRef.current as { abort?: () => void } | null)?.abort?.();
+      } catch {
+        /* ignore */
+      }
+      recRef.current = null;
+
+      const rec = new Ctor() as {
+        lang: string;
+        interimResults: boolean;
+        continuous: boolean;
+        maxAlternatives: number;
+        start: () => void;
+        onresult: (e: RecEvent) => void;
+        onerror: (e: RecError) => void;
+        onend: () => void;
+      };
+      rec.lang = "en-US";
+      rec.interimResults = true;
+      rec.continuous = true;
+      rec.maxAlternatives = 1;
+
+      let finalText = "";
+      let sawError = false;
+
+      rec.onresult = (e: RecEvent) => {
+        let live = "";
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const r = e.results[i];
+          const txt = r?.[0]?.transcript ?? "";
+          if (r?.isFinal) finalText += (finalText ? " " : "") + txt.trim();
+          else live += txt;
+        }
+        setInterim((finalText + " " + live).trim());
+      };
+
+      rec.onerror = (e: RecError) => {
+        const code = e?.error ?? "unknown";
+        if (code === "aborted") return;
+        sawError = true;
+        if (code === "not-allowed" || code === "service-not-allowed") {
+          setError(
+            "Microphone access is blocked. Click the lock/camera icon in your address bar, allow the microphone, then try again.",
+          );
+        } else if (code === "no-speech") {
+          setError("I didn't catch anything — check your mic is on, then tap and speak up a little.");
+        } else if (code === "audio-capture") {
+          setError("No microphone found. Check your input device and try again.");
+        } else if (code === "network") {
+          setError("The speech service couldn't be reached (it needs internet). Try again.");
+        } else {
+          setError(`Microphone error (${code}). Try again.`);
+        }
+      };
+
+      rec.onend = () => {
+        setListening(false);
+        setInterim("");
+        recRef.current = null;
+        const text = finalText.trim();
+        if (text) {
+          setError(null);
+          onFinal(text);
+        } else if (!sawError) {
+          setError("I didn't hear anything. Tap to speak, then talk — your words appear here as you go.");
+        }
+      };
+
+      recRef.current = rec;
+      try {
+        rec.start();
+        setListening(true);
+      } catch {
+        setError("Couldn't start the microphone. Make sure nothing else is using it, then try again.");
+        setListening(false);
+      }
+    },
+    [stopAllAudio],
+  );
 
   const stopListening = useCallback(() => {
     (recRef.current as { stop?: () => void } | null)?.stop?.();
   }, []);
 
   const cancel = useCallback(() => {
-    try {
-      window.speechSynthesis?.cancel();
-    } catch {
-      /* ignore */
-    }
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
+    stopAllAudio();
     setSpeaking(false);
     (recRef.current as { abort?: () => void } | null)?.abort?.();
     recRef.current = null;
     setListening(false);
     setInterim("");
-  }, []);
+  }, [stopAllAudio]);
 
   const clearError = useCallback(() => setError(null), []);
 

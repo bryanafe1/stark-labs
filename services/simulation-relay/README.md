@@ -30,7 +30,7 @@ npm run dev            # nodemon
 
 See `.env.example`. `RELAY_SECRET` MUST match the value set in the main app (Vercel).
 `OPENAI_REALTIME_MODEL` should be a realtime model id (e.g.
-`gpt-4o-mini-realtime-preview`); verify the exact id in the OpenAI docs/usage.
+`gpt-realtime-mini`); verify the exact id in the OpenAI docs/usage.
 
 ## Deploy to Railway
 

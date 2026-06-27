@@ -16,7 +16,9 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
-    "validate:problems": "tsx scripts/validate-problems.ts"
+    "validate:problems": "tsx scripts/validate-problems.ts",
+    "stripe:setup": "node scripts/stripe-setup.js",
+    "stripe:setup:test": "STRIPE_SECRET_KEY=$STRIPE_TEST_SECRET_KEY node scripts/stripe-setup.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

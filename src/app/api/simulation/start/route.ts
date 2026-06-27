@@ -1,19 +1,36 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { getCurrentUserId } from "@/lib/auth";
-import { hasProAccess } from "@/lib/entitlements";
+import { canStartVoiceSimulation } from "@/lib/access";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Browser calls this (signed in) to begin a voice simulation. Creates a pending
-// session + per-session relay token and returns the WebSocket URL for the relay.
+function reasonMessage(reason: "free" | "need_credits" | "pro_exhausted"): string {
+  if (reason === "free") return "Voice simulation is a paid feature. Upgrade to Standard or Pro to use it.";
+  if (reason === "need_credits")
+    return "You have no voice-session credits. Buy a single session ($12) or upgrade to Pro for 5/month.";
+  return "You've used all your voice sessions this month. They reset on the 1st.";
+}
+
+// Browser calls this (signed in) to begin a voice simulation. Verifies the
+// user's tier/credits, consumes a credit (Standard) or counts toward the Pro
+// monthly allotment, then returns the relay WebSocket URL.
 export async function POST(req: Request) {
   const userId = await getCurrentUserId();
   if (!userId) return NextResponse.json({ error: "Sign in to start a simulation." }, { status: 401 });
-  if (!(await hasProAccess())) {
-    return NextResponse.json({ error: "Voice simulation is a Pro feature." }, { status: 403 });
+
+  const check = await canStartVoiceSimulation(userId);
+  if (!check.ok) {
+    return NextResponse.json(
+      {
+        error: reasonMessage(check.reason),
+        reason: check.reason,
+        ...(check.reason === "pro_exhausted" ? { resetAt: check.resetAt } : {}),
+      },
+      { status: 403 },
+    );
   }
 
   const relayUrl = process.env.SIMULATION_RELAY_URL;
@@ -35,8 +52,32 @@ export async function POST(req: Request) {
   const relayToken = crypto.randomBytes(24).toString("hex");
 
   const session = await prisma.interviewSession.create({
-    data: { userId, discipline, topic, difficulty, relayToken, status: "pending" },
+    data: {
+      userId,
+      discipline,
+      topic,
+      difficulty,
+      relayToken,
+      status: "pending",
+      creditId: check.via === "credit" ? check.creditId : null,
+    },
   });
+
+  // Standard tier: deduct the credit at start. Guard against a concurrent race.
+  if (check.via === "credit") {
+    const consumed = await prisma.sessionCredit.updateMany({
+      where: { id: check.creditId, status: "available" },
+      data: { status: "used", usedAt: new Date(), usedSessionId: session.id },
+    });
+    if (consumed.count === 0) {
+      await prisma.interviewSession.delete({ where: { id: session.id } }).catch(() => {});
+      return NextResponse.json(
+        { error: "That credit was just used. Buy another or upgrade to Pro.", reason: "need_credits" },
+        { status: 403 },
+      );
+    }
+  }
+  // Pro tier: the session row itself counts toward the monthly allotment.
 
   const wsBase = relayUrl.replace(/^http/i, "ws").replace(/\/$/, "");
   return NextResponse.json({

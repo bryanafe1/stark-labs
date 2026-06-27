@@ -9,7 +9,8 @@ import { ProblemWorkspace } from "@/components/practice/problem-workspace";
 import { ConceptualWorkspace } from "@/components/practice/conceptual-workspace";
 import { HintButton } from "@/components/practice/hint-button";
 import { GiveUpButton } from "@/components/practice/give-up-button";
-import { isFreeContent, hasProAccess } from "@/lib/entitlements";
+import { isFreeContent } from "@/lib/entitlements";
+import { hasPaidAccess } from "@/lib/access";
 import { Paywall } from "@/components/billing/paywall";
 
 interface Params {
@@ -38,7 +39,7 @@ export default async function ProblemPage({ params }: Params) {
   const problem = await getProblemBySlug(params.slug);
   if (!problem) notFound();
 
-  if (!isFreeContent(problem.discipline, problem.difficulty) && !(await hasProAccess())) {
+  if (!isFreeContent(problem.discipline, problem.difficulty) && !(await hasPaidAccess())) {
     return <Paywall feature="this problem" backHref="/practice" backLabel="Back to Practice" />;
   }
 

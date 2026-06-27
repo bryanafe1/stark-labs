@@ -1,7 +1,7 @@
 "use server";
 
 import { getCurrentUserId } from "@/lib/auth";
-import { hasProAccess } from "@/lib/entitlements";
+import { hasPaidAccess } from "@/lib/access";
 import { getProblemBySlug } from "@/features/practice/problems";
 import { gradeConcept } from "@/lib/concept-grader";
 
@@ -12,7 +12,7 @@ export interface ConceptResult {
   error?: string;
 }
 
-const PRO_REQUIRED = "AI feedback is a Pro feature. Upgrade to get your answers graded.";
+const PRO_REQUIRED = "AI feedback is a paid feature. Upgrade to get your answers graded.";
 
 /** Grade one part of a conceptual practice question (free-form answer → AI feedback + score). */
 export async function gradeConceptualPractice(input: {
@@ -23,7 +23,7 @@ export async function gradeConceptualPractice(input: {
 }): Promise<ConceptResult> {
   const userId = await getCurrentUserId();
   if (!userId) return { ok: false, error: "Sign in to submit." };
-  if (!(await hasProAccess())) return { ok: false, error: PRO_REQUIRED };
+  if (!(await hasPaidAccess())) return { ok: false, error: PRO_REQUIRED };
 
   const answer = (input.answer ?? "").trim();
   if (answer.length < 2) return { ok: false, error: "Write your answer first." };
@@ -50,7 +50,7 @@ export async function gradeConceptualSprint(input: {
 }): Promise<ConceptResult> {
   const userId = await getCurrentUserId();
   if (!userId) return { ok: false, error: "Sign in to play." };
-  if (!(await hasProAccess())) return { ok: false, error: PRO_REQUIRED };
+  if (!(await hasPaidAccess())) return { ok: false, error: PRO_REQUIRED };
 
   const answer = (input.answer ?? "").trim();
   if (answer.length < 2) return { ok: false, error: "Write your answer first." };

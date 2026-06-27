@@ -1,4 +1,4 @@
-import { hasProAccess } from "@/lib/entitlements";
+import { hasPaidAccess } from "@/lib/access";
 
 // Human-voice TTS for the voice interview. Uses ElevenLabs if configured, else
 // OpenAI TTS. Returns MP3 audio. Pro-gated to protect API cost. If neither key
@@ -11,7 +11,7 @@ const ELEVEN_VOICE = process.env.ELEVENLABS_VOICE_ID ?? "pNInz6obpgDQGcFmaJgB"; 
 const OPENAI_VOICE = process.env.OPENAI_TTS_VOICE ?? "onyx";
 
 export async function POST(req: Request) {
-  if (!(await hasProAccess())) {
+  if (!(await hasPaidAccess())) {
     return new Response("Pro feature", { status: 403 });
   }
 

@@ -127,6 +127,11 @@ export async function canStartVoiceSimulation(userId?: string | null): Promise<V
   const access = await getAccess(uid);
   if (access.tier === "free") return { ok: false, reason: "free" };
 
+  // Admins get unlimited voice sessions for testing/ops.
+  if (access.status === "admin") {
+    return { ok: true, via: "pro", remaining: 999, resetAt: startOfNextMonth() };
+  }
+
   if (access.pro) {
     const used = await proSessionsUsedThisMonth(uid);
     const remaining = Math.max(0, PRO_MONTHLY_LIMIT - used);

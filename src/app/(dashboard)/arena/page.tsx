@@ -3,7 +3,7 @@ import { Matchmaker } from "@/components/ranked/Matchmaker";
 import type { ConceptualSprintProblem } from "@/components/ranked/types";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserId } from "@/lib/auth";
-import { hasProAccess } from "@/lib/entitlements";
+import { hasPaidAccess } from "@/lib/access";
 import { getProblems } from "@/features/practice/problems";
 
 export const metadata: Metadata = { title: "Arena" };
@@ -18,7 +18,7 @@ export default async function ArenaPage() {
     userId
       ? prisma.user.findUnique({ where: { id: userId }, select: { overallElo: true } })
       : Promise.resolve(null),
-    hasProAccess(),
+    hasPaidAccess(),
   ]);
 
   // Build the conceptual sprint pool (rubric stays server-side; only the

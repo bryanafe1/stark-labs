@@ -70,17 +70,34 @@ export async function POST(req: Request) {
           orderBy: { sequence: "asc" },
         });
         const transcript = messages.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n\n");
-        await prisma.interviewSession.update({
+        const duration = (body.duration_seconds as number | null) ?? 0;
+        // Early technical failure: <30s and no audio exchanged → don't charge it.
+        const earlyFail = duration < 30 && messages.length === 0;
+
+        const ended = await prisma.interviewSession.update({
           where: { id: sessionId },
           data: {
             status: "completed",
             completedAt: new Date(),
-            durationSeconds: (body.duration_seconds as number | null) ?? null,
+            durationSeconds: duration,
             questionCount: messages.filter((m) => m.role === "interviewer").length,
             transcript,
+            refunded: earlyFail,
           },
+          select: { creditId: true },
         });
-        // Best-effort debrief (don't block the relay's fire-and-forget call).
+
+        if (earlyFail) {
+          // Return the consumed credit (Standard); Pro is excluded via `refunded`.
+          if (ended.creditId) {
+            await prisma.sessionCredit.updateMany({
+              where: { id: ended.creditId, status: "used" },
+              data: { status: "available", usedAt: null, usedSessionId: null },
+            });
+          }
+          break; // nothing to debrief on an empty session
+        }
+
         void generateDebrief(sessionId).catch(() => {});
         break;
       }

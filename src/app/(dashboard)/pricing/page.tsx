@@ -26,7 +26,7 @@ const STANDARD = [
 ];
 const PRO = [
   "Everything in Standard",
-  "5 voice interview simulations every month",
+  "Up to 5 hours of voice interview simulations every month",
   "Full post-session debrief on every session",
   "Priority access to new disciplines",
 ];

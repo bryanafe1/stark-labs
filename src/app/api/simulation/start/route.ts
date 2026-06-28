@@ -11,7 +11,7 @@ function reasonMessage(reason: "free" | "need_credits" | "pro_exhausted"): strin
   if (reason === "free") return "Voice simulation is a paid feature. Upgrade to Standard or Pro to use it.";
   if (reason === "need_credits")
     return "You have no voice-session credits. Buy a single session ($12) or upgrade to Pro for 5/month.";
-  return "You've used all your voice sessions this month. They reset on the 1st.";
+  return "You've used your voice minutes for this month. They reset on the 1st — or buy a single session to keep going.";
 }
 
 // Browser calls this (signed in) to begin a voice simulation. Verifies the

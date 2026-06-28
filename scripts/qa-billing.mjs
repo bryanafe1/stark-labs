@@ -17,7 +17,7 @@ const PRICE = {
   pro_a: process.env.STRIPE_PRO_ANNUAL_PRICE_ID,
   voice: process.env.STRIPE_VOICE_SESSION_PRICE_ID,
 };
-const PRO_LIMIT = Number(process.env.PRO_MONTHLY_SESSION_LIMIT ?? 5);
+const PRO_MINUTE_CAP = Number(process.env.PRO_MONTHLY_MINUTE_CAP ?? 300);
 
 const results = [];
 function record(flow, ok, detail = "") {
@@ -114,11 +114,12 @@ async function getAccess(uid) {
 async function canStartVoice(uid) {
   const access = await getAccess(uid);
   if (access.tier === "free") return { ok: false, reason: "free" };
-  if (access.status === "admin") return { ok: true, via: "pro", remaining: 999 };
+  if (access.status === "admin") return { ok: true, via: "pro", remainingMinutes: 99999 };
   if (access.pro) {
-    const used = await prisma.interviewSession.count({ where: { userId: uid, createdAt: { gte: startOfMonth() }, refunded: false } });
-    const remaining = Math.max(0, PRO_LIMIT - used);
-    return remaining > 0 ? { ok: true, via: "pro", remaining } : { ok: false, reason: "pro_exhausted" };
+    const agg = await prisma.interviewSession.aggregate({ where: { userId: uid, createdAt: { gte: startOfMonth() }, refunded: false }, _sum: { durationSeconds: true } });
+    const usedMin = Math.round((agg._sum.durationSeconds ?? 0) / 60);
+    const remainingMinutes = Math.max(0, PRO_MINUTE_CAP - usedMin);
+    return remainingMinutes > 0 ? { ok: true, via: "pro", remainingMinutes } : { ok: false, reason: "pro_exhausted" };
   }
   const now = new Date();
   const credit = await prisma.sessionCredit.findFirst({ where: { userId: uid, status: "available", expiresAt: { gt: now } }, orderBy: { expiresAt: "asc" }, select: { id: true } });
@@ -274,11 +275,9 @@ async function run() {
     const cust = await mkCustomer(u.id, u.email);
     await prisma.user.update({ where: { id: u.id }, data: { stripeCustomerId: cust, subscriptionStatus: "active", planTier: "pro", billingInterval: "monthly", currentPeriodEnd: new Date(Date.now() + 20 * 86400000) } });
     const cBefore = await canStartVoice(u.id);
-    const okBefore = cBefore.ok && cBefore.via === "pro" && cBefore.remaining === PRO_LIMIT;
-    // create PRO_LIMIT sessions this month
-    for (let i = 0; i < PRO_LIMIT; i++) {
-      await prisma.interviewSession.create({ data: { userId: u.id, discipline: "MECHANICAL", topic: "t", relayToken: `rt_${rnd()}`, refunded: false } });
-    }
+    const okBefore = cBefore.ok && cBefore.via === "pro" && cBefore.remainingMinutes === PRO_MINUTE_CAP;
+    // consume the full monthly minute cap in one completed session
+    await prisma.interviewSession.create({ data: { userId: u.id, discipline: "MECHANICAL", topic: "t", relayToken: `rt_${rnd()}`, refunded: false, durationSeconds: PRO_MINUTE_CAP * 60 } });
     const cAfter = await canStartVoice(u.id);
     assert("Flow 10 pro limit",
       okBefore && !cAfter.ok && cAfter.reason === "pro_exhausted",
@@ -369,7 +368,7 @@ async function run() {
   {
     const u = await mkUser({ role: "ADMIN" });
     const c = await canStartVoice(u.id);
-    assert("Flow 15 admin unlimited", c.ok && c.via === "pro" && c.remaining === 999, JSON.stringify(c));
+    assert("Flow 15 admin unlimited", c.ok && c.via === "pro" && c.remainingMinutes >= 99999, JSON.stringify(c));
   }
 
   // Switch-plan / portal proof

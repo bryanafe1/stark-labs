@@ -9,7 +9,7 @@ import { getCurrentUserId } from "@/lib/auth";
 //  accounts are treated as Standard.
 // ---------------------------------------------------------------------------
 
-const PRO_MONTHLY_LIMIT = Number(process.env.PRO_MONTHLY_SESSION_LIMIT ?? 5);
+const PRO_MONTHLY_MINUTE_CAP = Number(process.env.PRO_MONTHLY_MINUTE_CAP ?? 300);
 const PAST_DUE_GRACE_MS = 3 * 86_400_000; // keep access ~3 days while Stripe retries
 
 export type Tier = "free" | "standard" | "pro";
@@ -100,15 +100,19 @@ function startOfNextMonth(): Date {
   return new Date(d.getFullYear(), d.getMonth() + 1, 1);
 }
 
-/** Voice sessions a Pro user has started this calendar month (refunds excluded). */
-export async function proSessionsUsedThisMonth(userId: string): Promise<number> {
-  return prisma.interviewSession.count({
+/** Voice MINUTES a Pro user has consumed this calendar month (refunds excluded).
+ *  Sums completed-session durations; an in-progress session isn't counted until
+ *  it ends, and the cap is only ever evaluated when STARTING a new session. */
+export async function proMinutesUsedThisMonth(userId: string): Promise<number> {
+  const agg = await prisma.interviewSession.aggregate({
     where: { userId, createdAt: { gte: startOfMonth() }, refunded: false },
+    _sum: { durationSeconds: true },
   });
+  return Math.round((agg._sum.durationSeconds ?? 0) / 60);
 }
 
 export type VoiceCheck =
-  | { ok: true; via: "pro"; remaining: number; resetAt: Date }
+  | { ok: true; via: "pro"; remainingMinutes: number; resetAt: Date }
   | { ok: true; via: "credit"; creditId: string; remaining: number }
   | { ok: false; reason: "free" }
   | { ok: false; reason: "pro_exhausted"; resetAt: Date }
@@ -129,15 +133,17 @@ export async function canStartVoiceSimulation(userId?: string | null): Promise<V
 
   // Admins get unlimited voice sessions for testing/ops.
   if (access.status === "admin") {
-    return { ok: true, via: "pro", remaining: 999, resetAt: startOfNextMonth() };
+    return { ok: true, via: "pro", remainingMinutes: 99999, resetAt: startOfNextMonth() };
   }
 
   if (access.pro) {
-    const used = await proSessionsUsedThisMonth(uid);
-    const remaining = Math.max(0, PRO_MONTHLY_LIMIT - used);
+    // Cost guard: cap monthly voice MINUTES, evaluated ONLY at start so any
+    // session already in progress always finishes (never cut off mid-interview).
+    const usedMinutes = await proMinutesUsedThisMonth(uid);
+    const remainingMinutes = Math.max(0, PRO_MONTHLY_MINUTE_CAP - usedMinutes);
     const resetAt = startOfNextMonth();
-    if (remaining > 0) return { ok: true, via: "pro", remaining, resetAt };
-    // Monthly allotment spent → fall through to any extra sessions they bought.
+    if (remainingMinutes > 0) return { ok: true, via: "pro", remainingMinutes, resetAt };
+    // Monthly minutes used up → fall through to any extra sessions they bought.
     const credit = await findAvailableCredit(uid);
     if (credit) return { ok: true, via: "credit", creditId: credit.id, remaining: credit.remaining };
     return { ok: false, reason: "pro_exhausted", resetAt };

@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { getAccess, proSessionsUsedThisMonth } from "@/lib/access";
+import { getAccess, proMinutesUsedThisMonth } from "@/lib/access";
 import { openPortal, buyVoiceSession, startSubscription } from "@/server/actions/payments";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-const PRO_LIMIT = Number(process.env.PRO_MONTHLY_SESSION_LIMIT ?? 5);
+const PRO_MINUTE_CAP = Number(process.env.PRO_MONTHLY_MINUTE_CAP ?? 300);
 const AMOUNT: Record<string, Record<string, number>> = {
   standard: { monthly: 20, annual: 190 },
   pro: { monthly: 40, annual: 349 },
@@ -87,15 +87,15 @@ export async function BillingCard({ userId }: { userId: string }) {
 
 async function VoiceStatus({ userId, pro }: { userId: string; pro: boolean }) {
   if (pro) {
-    const used = await proSessionsUsedThisMonth(userId);
-    const remaining = Math.max(0, PRO_LIMIT - used);
+    const usedMin = await proMinutesUsedThisMonth(userId);
+    const remaining = Math.max(0, PRO_MINUTE_CAP - usedMin);
     const reset = new Date();
     reset.setMonth(reset.getMonth() + 1, 1);
     return (
       <div>
-        <p className="font-medium">Voice sessions</p>
+        <p className="font-medium">Voice interviews</p>
         <p className="text-xs text-muted-foreground">
-          {remaining} of {PRO_LIMIT} left this month · resets {fmtDate(reset)}
+          {remaining} of {PRO_MINUTE_CAP} minutes left this month · resets {fmtDate(reset)}
         </p>
       </div>
     );

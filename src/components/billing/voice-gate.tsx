@@ -31,7 +31,7 @@ export function VoiceGate({
     return (
       <Shell>
         <Card className="p-6 text-center">
-          <h2 className="text-xl font-bold tracking-tight">You&apos;ve used all 5 sessions this month</h2>
+          <h2 className="text-xl font-bold tracking-tight">You&apos;ve used your voice minutes for this month</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             They reset on <span className="text-foreground">{date}</span>. Need another now? Grab a single
             session for $12 — it works the moment you buy it.
@@ -76,7 +76,7 @@ export function VoiceGate({
             <p className="mt-1 text-2xl font-bold">
               $40<span className="text-sm font-normal text-muted-foreground">/mo</span>
             </p>
-            <p className="mt-1 flex-1 text-xs text-muted-foreground">5 sessions every month. Resets monthly.</p>
+            <p className="mt-1 flex-1 text-xs text-muted-foreground">Up to 5 hours of voice interviews a month. Resets monthly.</p>
             <form action={startSubscription} className="mt-3">
               <input type="hidden" name="tier" value="pro" />
               <input type="hidden" name="interval" value="monthly" />

@@ -66,13 +66,13 @@ export function Landing() {
           </span>
 
           <h1 className="max-w-3xl text-balance text-4xl font-bold tracking-tight sm:text-6xl">
-            Land the $100K engineering job.
+            Land the six-figure engineering job.
           </h1>
 
           <p className="mt-6 max-w-xl text-balance text-base text-muted-foreground sm:text-lg">
-            Ace the technical interviews standing between you and a six-figure
-            offer. Deep lessons, auto-graded practice, and realistic AI mock
-            interviews get you hired.
+            Ace the technical interviews standing between you and the offer. Deep
+            lessons, auto-graded practice, and realistic AI mock interviews get
+            you hired.
           </p>
 
           <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row">

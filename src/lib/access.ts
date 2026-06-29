@@ -65,9 +65,9 @@ export async function getAccess(userId?: string | null): Promise<Access> {
 
   let tier: Tier = "free";
   if (active || pastDueOk) tier = u.planTier === "pro" ? "pro" : "standard";
-  else if (u.comped) tier = "standard";
+  else if (u.comped) tier = "pro"; // comp = full Pro access, no payment (e.g. creator partners)
 
-  const pro = (active || pastDueOk) && u.planTier === "pro";
+  const pro = ((active || pastDueOk) && u.planTier === "pro") || u.comped;
   const paid = active || pastDueOk || u.comped;
 
   return {

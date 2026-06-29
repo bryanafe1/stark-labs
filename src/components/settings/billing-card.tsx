@@ -32,7 +32,7 @@ export async function BillingCard({ userId }: { userId: string }) {
           {user?.role === "ADMIN"
             ? "Admin — full access, no billing."
             : user?.comped
-              ? "Free creator access (Standard). No billing."
+              ? "Free creator access (Pro). No billing."
               : access.tier === "free"
                 ? "You're on the Free plan."
                 : `${access.tier === "pro" ? "Pro" : "Standard"} plan.`}

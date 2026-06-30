@@ -8,7 +8,10 @@ import { gradeConcept } from "@/lib/concept-grader";
 export interface ConceptResult {
   ok: boolean;
   score?: number;
-  feedback?: string;
+  strengths?: string; // practice: what you did well
+  improvements?: string; // practice: what to improve on
+  concepts?: string[]; // arena: key concepts the question tests
+  modelAnswer?: string; // arena: the ideal answer (revealed post-submit)
   error?: string;
 }
 
@@ -39,7 +42,7 @@ export async function gradeConceptualPractice(input: {
     priorContext: input.prior,
     answer,
   });
-  return { ok: true, score: grade.score, feedback: grade.feedback };
+  return { ok: true, score: grade.score, strengths: grade.strengths, improvements: grade.improvements };
 }
 
 /** Grade a conceptual Arena answer. The client passes only the question slug;
@@ -65,5 +68,5 @@ export async function gradeConceptualSprint(input: {
     rubric: part.rubric,
     answer,
   });
-  return { ok: true, score: grade.score, feedback: grade.feedback };
+  return { ok: true, score: grade.score, concepts: grade.concepts, modelAnswer: part.rubric };
 }

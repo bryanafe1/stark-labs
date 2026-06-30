@@ -134,7 +134,10 @@ export function Matchmaker({
         conceptual: true,
         userScore,
         oppScore,
-        feedback: r.ok ? r.feedback : r.error,
+        question: plan.problem.question,
+        concepts: r.ok ? r.concepts : undefined,
+        modelAnswer: r.ok ? r.modelAnswer : undefined,
+        gradeError: r.ok ? undefined : r.error,
       });
       setPhase("result");
       void recordSprintResult({ opponentElo: plan.opponent.elo, outcome }).then((res) => {

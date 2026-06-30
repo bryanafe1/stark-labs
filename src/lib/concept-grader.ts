@@ -9,7 +9,9 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export interface ConceptGrade {
   score: number; // 0–100
-  feedback: string;
+  strengths: string; // what the candidate did well
+  improvements: string; // what to improve on
+  concepts: string[]; // key concepts the question tests
 }
 
 function extractJson(text: string): string {
@@ -26,7 +28,7 @@ export async function gradeConcept(opts: {
   answer: string;
 }): Promise<ConceptGrade> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return { score: 0, feedback: "AI grading isn't configured yet." };
+  if (!apiKey) return { score: 0, strengths: "", improvements: "AI grading isn't configured yet.", concepts: [] };
 
   const client = new Anthropic({ apiKey });
   const model = process.env.CONCEPT_MODEL ?? process.env.INTERVIEW_MODEL ?? "claude-sonnet-4-6";
@@ -35,7 +37,8 @@ export async function gradeConcept(opts: {
     "You are a senior engineering interviewer grading a candidate's open-ended conceptual answer.",
     "Grade ONLY on engineering correctness and quality of reasoning against the rubric — ignore grammar, spelling, and length.",
     "Be fair but rigorous, like a real technical interviewer. Give partial credit for partially-correct reasoning, and full marks only when the core insight is clearly demonstrated.",
-    'Respond with STRICT JSON and nothing else: {"score": <integer 0-100>, "feedback": "<2-4 sentences: what they got right, what was missing or wrong, and the key insight>"}.',
+    "Respond with STRICT JSON and nothing else, in this exact shape:",
+    '{"score": <integer 0-100>, "strengths": "<1-2 sentences on what the candidate did well; empty string if the answer was blank or entirely wrong>", "improvements": "<1-2 sentences on what was missing or wrong and the key insight needed to fix it>", "concepts": ["<2-4 short key concepts this question tests, e.g. \'thermal expansion\', \'stress concentration\'>"]}',
     "Address the candidate as 'you'. No markdown, no text outside the JSON.",
   ].join("\n");
 
@@ -51,7 +54,7 @@ export async function gradeConcept(opts: {
   try {
     const msg = await client.messages.create({
       model,
-      max_tokens: 500,
+      max_tokens: 700,
       system,
       messages: [{ role: "user", content: user }],
     });
@@ -59,12 +62,22 @@ export async function gradeConcept(opts: {
       .filter((b): b is Anthropic.TextBlock => b.type === "text")
       .map((b) => b.text)
       .join("");
-    const parsed = JSON.parse(extractJson(text)) as { score?: unknown; feedback?: unknown };
+    const parsed = JSON.parse(extractJson(text)) as {
+      score?: unknown;
+      strengths?: unknown;
+      improvements?: unknown;
+      concepts?: unknown;
+    };
     const score = Math.max(0, Math.min(100, Math.round(Number(parsed.score) || 0)));
-    const feedback = String(parsed.feedback ?? "").trim().slice(0, 2000) || "No feedback returned.";
-    return { score, feedback };
+    const strengths = String(parsed.strengths ?? "").trim().slice(0, 1200);
+    const improvements =
+      String(parsed.improvements ?? "").trim().slice(0, 1200) || "No feedback returned.";
+    const concepts = Array.isArray(parsed.concepts)
+      ? parsed.concepts.map((c) => String(c).trim()).filter(Boolean).slice(0, 6)
+      : [];
+    return { score, strengths, improvements, concepts };
   } catch (err) {
     console.error("[concept-grader] grading failed", err);
-    return { score: 0, feedback: "Grading failed — please try again." };
+    return { score: 0, strengths: "", improvements: "Grading failed — please try again.", concepts: [] };
   }
 }

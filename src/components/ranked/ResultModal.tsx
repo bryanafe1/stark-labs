@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Skull, TrendingUp, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Markdown } from "@/components/markdown";
 import { cn } from "@/lib/utils";
 import { rankForElo, nextRank, rankProgress } from "./ranks";
 import type { ResultState } from "./types";
@@ -51,7 +52,10 @@ export function ResultModal({
         initial={{ opacity: 0, scale: 0.94, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 240, damping: 22 }}
-        className="glass relative w-full max-w-sm overflow-hidden rounded-2xl border"
+        className={cn(
+          "glass relative w-full overflow-hidden rounded-2xl border",
+          result.conceptual ? "max-w-md" : "max-w-sm",
+        )}
       >
         {/* Banner */}
         <div
@@ -94,22 +98,60 @@ export function ResultModal({
             </p>
           </div>
 
-          {/* Conceptual match: accuracy %s + AI feedback */}
+          {/* Conceptual match: accuracy %s + the shared post-match review */}
           {result.conceptual && (
-            <div className="rounded-lg border border-border bg-background p-3">
-              <div className="flex items-center justify-center gap-4 font-mono text-sm">
-                <span className={cn("font-bold", win ? "text-terminal" : "text-foreground")}>
-                  You {result.userScore}%
-                </span>
-                <span className="text-muted-foreground">vs</span>
-                <span className="font-bold text-foreground">
-                  {result.opponent.username} {result.oppScore}%
-                </span>
+            <div className="space-y-3">
+              <div className="rounded-lg border border-border bg-background p-3">
+                <div className="flex items-center justify-center gap-4 font-mono text-sm">
+                  <span className={cn("font-bold", win ? "text-terminal" : "text-foreground")}>
+                    You {result.userScore}%
+                  </span>
+                  <span className="text-muted-foreground">vs</span>
+                  <span className="font-bold text-foreground">
+                    {result.opponent.username} {result.oppScore}%
+                  </span>
+                </div>
               </div>
-              {result.feedback && (
-                <p className="mt-2 text-left text-xs leading-relaxed text-foreground/80">
-                  {result.feedback}
-                </p>
+
+              {result.gradeError ? (
+                <p className="text-center text-xs text-muted-foreground">{result.gradeError}</p>
+              ) : (
+                <div className="max-h-72 space-y-3 overflow-y-auto rounded-lg border border-border bg-background p-3 text-left">
+                  <p className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
+                    {"// post-match review"}
+                  </p>
+                  {result.question && (
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Question</p>
+                      <p className="mt-0.5 whitespace-pre-wrap text-xs leading-relaxed text-foreground/80">
+                        {result.question}
+                      </p>
+                    </div>
+                  )}
+                  {result.concepts && result.concepts.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Concepts</p>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {result.concepts.map((c) => (
+                          <span
+                            key={c}
+                            className="rounded bg-secondary px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground"
+                          >
+                            {c}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {result.modelAnswer && (
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">Answer</p>
+                      <div className="mt-0.5 text-xs leading-relaxed text-foreground/80">
+                        <Markdown content={result.modelAnswer} />
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}

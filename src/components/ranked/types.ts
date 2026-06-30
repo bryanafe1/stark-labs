@@ -68,5 +68,10 @@ export interface ResultState {
   conceptual?: boolean;
   userScore?: number;
   oppScore?: number;
-  feedback?: string;
+  /** Shared review shown after the match: the question, key concepts, and ideal answer. */
+  question?: string;
+  concepts?: string[];
+  modelAnswer?: string;
+  /** Set instead of a review when grading failed. */
+  gradeError?: string;
 }

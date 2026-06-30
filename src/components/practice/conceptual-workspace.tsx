@@ -9,7 +9,7 @@ import { gradeConceptualPractice } from "@/server/actions/conceptual";
 
 interface PartState {
   answer: string;
-  result?: { score: number; feedback: string };
+  result?: { score: number; strengths: string; improvements: string };
   error?: string;
 }
 
@@ -56,7 +56,9 @@ export function ConceptualWorkspace({
           j === i
             ? {
                 ...x,
-                result: r.ok ? { score: r.score ?? 0, feedback: r.feedback ?? "" } : undefined,
+                result: r.ok
+                  ? { score: r.score ?? 0, strengths: r.strengths ?? "", improvements: r.improvements ?? "" }
+                  : undefined,
                 error: r.ok ? undefined : r.error,
               }
             : x,
@@ -99,7 +101,7 @@ export function ConceptualWorkspace({
             {ps.error && <p className="mt-3 text-sm font-medium text-destructive">{ps.error}</p>}
 
             {ps.result && (
-              <div className="mt-4 rounded-lg border border-border bg-background p-4">
+              <div className="mt-4 space-y-3 rounded-lg border border-border bg-background p-4">
                 <p className="flex items-center gap-2 text-sm font-semibold">
                   <CheckCircle2 className="size-4 text-muted-foreground" />
                   AI score
@@ -107,8 +109,25 @@ export function ConceptualWorkspace({
                     {ps.result.score}/100
                   </span>
                 </p>
-                <div className="mt-2 text-sm leading-relaxed text-foreground/85">
-                  <Markdown content={ps.result.feedback} />
+
+                {ps.result.strengths && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-success">
+                      What you did well
+                    </p>
+                    <div className="mt-1 text-sm leading-relaxed text-foreground/85">
+                      <Markdown content={ps.result.strengths} />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-500">
+                    What you can improve on
+                  </p>
+                  <div className="mt-1 text-sm leading-relaxed text-foreground/85">
+                    <Markdown content={ps.result.improvements} />
+                  </div>
                 </div>
               </div>
             )}

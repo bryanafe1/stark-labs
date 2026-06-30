@@ -54,15 +54,14 @@ export default function RootLayout({
         />
         {children}
 
-        {/* Google Ads (gtag.js) — single site-wide tag, injected into <head>
-            (beforeInteractive in the root layout = the App Router way to place a
-            tag immediately after <head> on every page). */}
+        {/* Google Ads (gtag.js) — a single site-wide tag loaded via next/script
+            (the App Router equivalent of pasting the tag on every page; Google's
+            own @next/third-parties library uses this same afterInteractive load). */}
         <Script
-          id="google-ads-loader"
           src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
         />
-        <Script id="google-ads-gtag" strategy="beforeInteractive">
+        <Script id="google-ads-gtag" strategy="afterInteractive">
           {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());

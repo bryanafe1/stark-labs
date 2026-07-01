@@ -1,8 +1,9 @@
 import Link from "next/link";
 import {
   Swords,
-  BookOpen,
-  CheckCircle2,
+  Mic,
+  MessageSquare,
+  Sparkles,
   Hexagon,
   ArrowRight,
   type LucideIcon,
@@ -12,7 +13,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { DISCIPLINE_LIST } from "@/lib/constants";
 import { LandingNav } from "@/components/marketing/landing-nav";
-import { HeroPreview } from "@/components/marketing/hero-preview";
+import { ModeShowcase } from "@/components/marketing/mode-showcase";
 import { SampleLesson } from "@/components/marketing/sample-lesson";
 import { Testimonials } from "@/components/marketing/testimonials";
 import { Faq } from "@/components/marketing/faq";
@@ -21,7 +22,7 @@ import { Faq } from "@/components/marketing/faq";
 //  Focused marketing page — one tight promise: learn, practice, rank.
 // ---------------------------------------------------------------------------
 
-const HERO_STATS = ["Interview-grade prep", "Instant auto-grading", "Mastery tracking"] as const;
+const HERO_STATS = ["Live voice interviews", "Ranked arena", "Start free"] as const;
 
 interface Feature {
   icon: LucideIcon;
@@ -29,25 +30,31 @@ interface Feature {
   description: string;
 }
 
-// The three core benefits — nothing else.
-const FEATURES: Feature[] = [
+// Why Overclocker over a pile of practice problems — the differentiators.
+const PILLARS: Feature[] = [
   {
-    icon: BookOpen,
-    title: "Learn",
+    icon: Mic,
+    title: "A real interviewer — not a question bank",
     description:
-      "Interactive lessons with live formula sandboxes — the concepts that actually show up in technical interviews.",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Practice",
-    description:
-      "Auto-graded problems with instant feedback, worked solutions, and the freedom to retry your mistakes.",
+      "Talk through problems with a live AI interviewer that asks follow-ups and tells you how you came across: your pace, filler words, and confidence. Not a recording you submit and forget.",
   },
   {
     icon: Swords,
-    title: "Rank",
+    title: "A ranked, competitive arena",
     description:
-      "Track your mastery and climb a ranked progression. Measure interview readiness, not screen time.",
+      "Timed, Elo-ranked sprints against the clock. Build the speed and composure real interviews test — the way no flashcard deck ever could.",
+  },
+  {
+    icon: MessageSquare,
+    title: "Feedback that coaches you",
+    description:
+      "Every answer comes back with what you did well and what to fix — plus a skill profile. Like a hiring manager, not a red X.",
+  },
+  {
+    icon: Sparkles,
+    title: "Start free. Go deep for less.",
+    description:
+      "A real free tier — not a trial — then plans priced below the alternatives. Cancel anytime.",
   },
 ];
 
@@ -70,9 +77,9 @@ export function Landing() {
           </h1>
 
           <p className="mt-6 max-w-xl text-balance text-base text-muted-foreground sm:text-lg">
-            Ace the technical interviews standing between you and the offer. Deep
-            lessons, auto-graded practice, and realistic AI mock interviews get
-            you hired.
+            The complete interview simulator for hardware engineers — learn the
+            concepts, drill them in a ranked arena, and rehearse the real thing
+            with a live AI interviewer until you walk in ready.
           </p>
 
           <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row">
@@ -96,7 +103,7 @@ export function Landing() {
             ))}
           </div>
 
-          <HeroPreview />
+          <ModeShowcase />
         </div>
       </section>
 
@@ -105,15 +112,16 @@ export function Landing() {
         <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              One simple path from concept to solve.
+              More than a bigger pile of problems.
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Built for engineers who want signal, not fluff.
+              Most tools hand you practice questions. Overclocker is the interview
+              itself — rehearsed, ranked, and coached.
             </p>
           </div>
 
-          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {FEATURES.map((f) => {
+          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {PILLARS.map((f) => {
               const Icon = f.icon;
               return (
                 <Card key={f.title} className="bg-card/50 p-6 transition-colors hover:bg-card">

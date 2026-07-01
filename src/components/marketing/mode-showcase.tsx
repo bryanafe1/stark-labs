@@ -1,0 +1,337 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ClipboardCheck,
+  Swords,
+  Mic,
+  GraduationCap,
+  CheckCircle2,
+  Timer,
+  Trophy,
+  TrendingUp,
+  Bot,
+  User,
+  type LucideIcon,
+} from "lucide-react";
+import { Latex } from "@/components/latex";
+import { cn } from "@/lib/utils";
+
+// ---------------------------------------------------------------------------
+//  Dynamic hero demo — an auto-cycling, animated preview of every mode. Shows
+//  (not tells) the "full interview simulator" story: Practice → Arena → Voice
+//  → Learn. This is the thing a static screenshot can't do.
+// ---------------------------------------------------------------------------
+
+interface Mode {
+  key: string;
+  label: string;
+  icon: LucideIcon;
+  tagline: string;
+  Preview: () => JSX.Element;
+}
+
+const CYCLE_MS = 5600;
+
+// Staggered entrance helper — each block fades/slides in on tab switch.
+const rise = (delay: number) => ({
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] as const },
+});
+
+/* ---------------------------------- Practice ---------------------------- */
+function PracticePreview() {
+  return (
+    <div className="flex h-full flex-col gap-3 p-5">
+      <motion.div {...rise(0)} className="flex items-center gap-2">
+        <span className="rounded bg-primary/15 px-2 py-0.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-primary">
+          Thermodynamics
+        </span>
+        <span className="rounded bg-emerald-500/15 px-2 py-0.5 font-mono text-[11px] font-semibold text-emerald-500">
+          Easy
+        </span>
+      </motion.div>
+      <motion.p {...rise(0.08)} className="text-sm font-medium text-foreground">
+        Why does your tire pressure drop on a cold morning but rise after a long drive?
+      </motion.p>
+      <motion.div
+        {...rise(0.16)}
+        className="rounded-lg border border-border bg-background p-3 text-xs italic leading-relaxed text-muted-foreground"
+      >
+        &ldquo;Pressure scales with absolute temperature at fixed volume (Gay-Lussac). Cold morning →
+        lower T → lower P; driving heats the tire → higher T → higher P…&rdquo;
+      </motion.div>
+      <motion.div {...rise(0.3)} className="mt-auto space-y-2 rounded-lg border border-border bg-card/70 p-3">
+        <p className="flex items-center gap-2 text-xs font-semibold">
+          <CheckCircle2 className="size-3.5 text-emerald-500" /> AI score
+          <span className="font-mono text-emerald-500">88/100</span>
+        </p>
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-500">
+            What you did well
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Tied pressure to <span className="text-foreground">absolute</span> temperature and named
+            Gay-Lussac&apos;s law.
+          </p>
+        </div>
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-500">
+            What you can improve on
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Note the volume isn&apos;t perfectly constant — the tire flexes slightly under load.
+          </p>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+/* ----------------------------------- Arena ------------------------------ */
+function ArenaPreview() {
+  return (
+    <div className="flex h-full flex-col p-5">
+      <motion.div {...rise(0)} className="flex items-center justify-between">
+        <Fighter name="You" elo={1240} you />
+        <div className="text-center">
+          <p className="flex items-center gap-1 font-mono text-lg font-bold tabular-nums">
+            <Timer className="size-4 text-primary" />
+            0:12
+          </p>
+          <p className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">Ranked sprint</p>
+        </div>
+        <Fighter name="kerbal_v" elo={1305} />
+      </motion.div>
+
+      <motion.div
+        {...rise(0.18)}
+        className="mt-5 flex items-center justify-center gap-4 rounded-lg border border-border bg-background py-3 font-mono text-sm"
+      >
+        <span className="font-bold text-primary">You 92%</span>
+        <span className="text-muted-foreground">vs</span>
+        <span className="font-bold text-foreground">74% kerbal_v</span>
+      </motion.div>
+
+      <motion.div
+        {...rise(0.42)}
+        className="mt-auto flex items-center justify-center gap-3 rounded-lg border border-primary/40 bg-primary/10 py-3 font-mono font-bold text-primary"
+      >
+        <Trophy className="size-5" />
+        VICTORY
+        <span className="flex items-center gap-1 text-sm">
+          <TrendingUp className="size-4" /> +18 Elo
+        </span>
+      </motion.div>
+    </div>
+  );
+}
+
+function Fighter({ name, elo, you }: { name: string; elo: number; you?: boolean }) {
+  return (
+    <div className={cn("flex flex-col items-center gap-1", you && "order-first")}>
+      <span
+        className={cn(
+          "flex size-9 items-center justify-center rounded-lg",
+          you ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground",
+        )}
+      >
+        <User className="size-4" />
+      </span>
+      <span className="font-mono text-xs font-medium">{name}</span>
+      <span className="font-mono text-[10px] text-muted-foreground">{elo} Elo</span>
+    </div>
+  );
+}
+
+/* -------------------------------- Voice Sim ----------------------------- */
+function VoicePreview() {
+  return (
+    <div className="flex h-full flex-col items-stretch gap-3 p-5">
+      <motion.div {...rise(0)} className="flex items-center justify-center py-1">
+        <span className="relative flex size-14 items-center justify-center">
+          <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/25" />
+          <motion.span
+            animate={{ scale: [1, 1.08, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="relative inline-flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-primary-foreground"
+          >
+            <Mic className="size-5" />
+          </motion.span>
+        </span>
+      </motion.div>
+
+      <motion.div {...rise(0.12)} className="flex items-start gap-2">
+        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
+          <Bot className="size-3" />
+        </span>
+        <p className="rounded-lg border border-border bg-secondary/40 px-3 py-2 text-xs text-foreground">
+          &ldquo;Walk me through sizing a heat exchanger for an industrial cooling loop.&rdquo;
+        </p>
+      </motion.div>
+      <motion.div {...rise(0.26)} className="flex items-start justify-end gap-2">
+        <p className="rounded-lg bg-primary/10 px-3 py-2 text-xs text-foreground">
+          &ldquo;Start from the thermal duty, Q = ṁ·c·ΔT, then pick an LMTD approach…&rdquo;
+        </p>
+      </motion.div>
+      <motion.div {...rise(0.4)} className="flex items-start gap-2">
+        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
+          <Bot className="size-3" />
+        </span>
+        <p className="rounded-lg border border-border bg-secondary/40 px-3 py-2 text-xs text-foreground">
+          &ldquo;Good. What if fouling doubles over the first year?&rdquo;
+        </p>
+      </motion.div>
+
+      <motion.div
+        {...rise(0.54)}
+        className="mt-auto flex items-center justify-center gap-3 rounded-lg border border-border bg-background py-2 font-mono text-[11px] text-muted-foreground"
+      >
+        <span>
+          <span className="text-foreground">142</span> WPM
+        </span>
+        <span className="text-border">·</span>
+        <span>
+          <span className="text-foreground">1</span> filler
+        </span>
+        <span className="text-border">·</span>
+        <span className="text-emerald-500">confident delivery</span>
+      </motion.div>
+    </div>
+  );
+}
+
+/* ----------------------------------- Learn ------------------------------ */
+function LearnPreview() {
+  return (
+    <div className="flex h-full flex-col gap-4 p-5">
+      <motion.span
+        {...rise(0)}
+        className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground"
+      >
+        {"// lesson · cantilever deflection"}
+      </motion.span>
+      <motion.p {...rise(0.1)} className="text-sm text-foreground/90">
+        The tip deflection of a cantilever under an end load — the equation interviewers love to probe:
+      </motion.p>
+      <motion.div
+        {...rise(0.22)}
+        className="flex items-center justify-center rounded-lg border border-border bg-background py-5 text-lg"
+      >
+        <Latex tex="\delta = \dfrac{F\,L^3}{3\,E\,I}" />
+      </motion.div>
+      <motion.div
+        {...rise(0.38)}
+        className="mt-auto flex items-center justify-between rounded-lg border border-border bg-card/70 px-3 py-3 font-mono text-xs"
+      >
+        <span className="text-muted-foreground">
+          L = <span className="text-foreground">2.0 m</span>
+        </span>
+        <span className="text-muted-foreground">→</span>
+        <span className="text-muted-foreground">
+          δ = <span className="text-primary">4.3 mm</span>
+        </span>
+        <span className="text-[10px] text-muted-foreground/70">drag L, watch δ move</span>
+      </motion.div>
+    </div>
+  );
+}
+
+const MODES: Mode[] = [
+  { key: "practice", label: "Practice", icon: ClipboardCheck, tagline: "Answer, get coached", Preview: PracticePreview },
+  { key: "arena", label: "Arena", icon: Swords, tagline: "Compete, ranked", Preview: ArenaPreview },
+  { key: "voice", label: "Voice Sim", icon: Mic, tagline: "Rehearse out loud", Preview: VoicePreview },
+  { key: "learn", label: "Learn", icon: GraduationCap, tagline: "Master the concept", Preview: LearnPreview },
+];
+
+export function ModeShowcase() {
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (paused) return;
+    const t = setInterval(() => setActive((a) => (a + 1) % MODES.length), CYCLE_MS);
+    return () => clearInterval(t);
+  }, [paused]);
+
+  const Active = MODES[active]!.Preview;
+
+  return (
+    <div
+      className="relative mt-16 w-full max-w-2xl"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      {/* Soft indigo glow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-x-12 -top-12 bottom-0 -z-10 bg-[radial-gradient(ellipse_at_center,hsl(239_84%_67%/0.22),transparent_70%)] blur-2xl"
+      />
+
+      {/* Tabs */}
+      <div className="mx-auto mb-3 flex max-w-md flex-wrap justify-center gap-1 rounded-full border border-border bg-card/60 p-1">
+        {MODES.map((m, i) => {
+          const Icon = m.icon;
+          return (
+            <button
+              key={m.key}
+              onClick={() => setActive(i)}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                i === active
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Icon className="size-3.5" />
+              {m.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Frame */}
+      <div className="elevated overflow-hidden rounded-xl border border-border bg-card text-left">
+        <div className="flex items-center gap-2 border-b border-border bg-secondary/40 px-4 py-2.5">
+          <span className="size-2.5 rounded-full bg-destructive/70" />
+          <span className="size-2.5 rounded-full bg-amber-400/70" />
+          <span className="size-2.5 rounded-full bg-success/70" />
+          <span className="ml-2 font-mono text-xs text-muted-foreground">
+            OVERCLOCK_ · {MODES[active]!.label} — {MODES[active]!.tagline}
+          </span>
+        </div>
+        <div className="relative h-[420px] sm:h-[380px]">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={active}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="absolute inset-0"
+            >
+              <Active />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Progress dots */}
+      <div className="mt-4 flex justify-center gap-2">
+        {MODES.map((m, i) => (
+          <button
+            key={m.key}
+            onClick={() => setActive(i)}
+            aria-label={m.label}
+            className={cn(
+              "h-1.5 rounded-full transition-all",
+              i === active ? "w-6 bg-primary" : "w-1.5 bg-border hover:bg-muted-foreground",
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}

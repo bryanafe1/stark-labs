@@ -10,6 +10,9 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { getDashboard } from "@/features/dashboard/get-dashboard";
+import { getCurrentUserId } from "@/lib/auth";
+import { getReadiness } from "@/lib/readiness";
+import { ReadinessCard } from "@/components/dashboard/readiness-card";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +35,8 @@ export default async function HomePage({
   searchParams: { upgraded?: string; voice?: string };
 }) {
   const data = await getDashboard();
+  const userId = await getCurrentUserId();
+  const readiness = userId ? await getReadiness(userId) : null;
   const first = (data.user.displayName || "there").split(" ")[0];
   const started = data.disciplines.some((d) => d.masteredNodes > 0);
   const topDisciplines = [...data.disciplines]
@@ -61,6 +66,8 @@ export default async function HomePage({
             : "Let's get you interview-ready. Start with a lesson or jump straight into practice."}
         </p>
       </div>
+
+      {readiness && <ReadinessCard readiness={readiness} />}
 
       {/* Primary call-to-action band */}
       <Card className="overflow-hidden border-primary/30 bg-gradient-to-br from-primary/10 to-transparent">

@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { DISCIPLINE_LIST } from "@/lib/constants";
 import { LandingNav } from "@/components/marketing/landing-nav";
 import { ModeShowcase } from "@/components/marketing/mode-showcase";
+import { Reveal } from "@/components/marketing/reveal";
 import { SampleLesson } from "@/components/marketing/sample-lesson";
 import { Testimonials } from "@/components/marketing/testimonials";
 import { Faq } from "@/components/marketing/faq";
@@ -121,16 +122,18 @@ export function Landing() {
           </div>
 
           <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {PILLARS.map((f) => {
+            {PILLARS.map((f, i) => {
               const Icon = f.icon;
               return (
-                <Card key={f.title} className="bg-card/50 p-6 transition-colors hover:bg-card">
-                  <span className="flex size-10 items-center justify-center rounded-md border border-border bg-background">
-                    <Icon className="size-5 text-foreground" />
-                  </span>
-                  <h3 className="mt-4 font-semibold leading-none tracking-tight">{f.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{f.description}</p>
-                </Card>
+                <Reveal key={f.title} delay={i * 0.08}>
+                  <Card className="group h-full bg-card/50 p-6 transition-colors hover:border-primary/30 hover:bg-card">
+                    <span className="flex size-10 items-center justify-center rounded-md border border-border bg-background text-foreground transition-colors group-hover:border-primary/40 group-hover:text-primary">
+                      <Icon className="size-5" />
+                    </span>
+                    <h3 className="mt-4 font-semibold leading-none tracking-tight">{f.title}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">{f.description}</p>
+                  </Card>
+                </Reveal>
               );
             })}
           </div>
@@ -151,18 +154,18 @@ export function Landing() {
           </div>
 
           <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {DISCIPLINE_LIST.map((d) => {
+            {DISCIPLINE_LIST.map((d, i) => {
               const Icon = d.icon;
               const token = `--d-${d.key.toLowerCase()}`;
               const live = d.status === "live";
               return (
-                <div
-                  key={d.key}
-                  className={cn(
-                    "relative flex flex-col items-center gap-2 rounded-lg border px-3 py-4 transition-colors sm:px-4 sm:py-5",
-                    live ? "border-primary/40 bg-card" : "border-border bg-card/30 opacity-60",
-                  )}
-                >
+                <Reveal key={d.key} delay={i * 0.04} className="h-full">
+                  <div
+                    className={cn(
+                      "relative flex h-full flex-col items-center gap-2 rounded-lg border px-3 py-4 transition-all hover:-translate-y-0.5 sm:px-4 sm:py-5",
+                      live ? "border-primary/40 bg-card" : "border-border bg-card/30 opacity-60",
+                    )}
+                  >
                   {!live && (
                     <span className="absolute right-2 top-2 rounded-full border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
                       Soon
@@ -186,7 +189,8 @@ export function Landing() {
                   >
                     {live ? "Live now" : d.short}
                   </span>
-                </div>
+                  </div>
+                </Reveal>
               );
             })}
           </div>

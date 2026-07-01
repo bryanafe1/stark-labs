@@ -261,36 +261,78 @@ function VoicePreview() {
 }
 
 /* ----------------------------------- Learn ------------------------------ */
+// Real, interactive formula sandbox: drag L, δ = FL³/3EI recomputes live and
+// the beam physically bends. Calibrated so L = 2.0 m → ~4.3 mm.
 function LearnPreview() {
+  const [L, setL] = useState(2);
+  const delta = 0.5375 * L ** 3; // mm
+  const drop = Math.min(38, delta * 2.4); // px of tip sag in the SVG
+  const stroke = { stroke: "hsl(var(--primary))" };
+  const border = { stroke: "hsl(var(--border))" };
+  const muted = { stroke: "hsl(var(--muted-foreground))" };
+
   return (
-    <div className="flex h-full flex-col gap-4 p-5">
+    <div className="flex h-full flex-col gap-3 p-5">
       <motion.span
         {...rise(0)}
         className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground"
       >
-        {"// lesson · cantilever deflection"}
+        {"// interactive · cantilever deflection"}
       </motion.span>
-      <motion.p {...rise(0.1)} className="text-sm text-foreground/90">
-        The tip deflection of a cantilever under an end load — the equation interviewers love to probe:
-      </motion.p>
+
       <motion.div
-        {...rise(0.22)}
-        className="flex items-center justify-center rounded-lg border border-border bg-background py-5 text-lg"
+        {...rise(0.1)}
+        className="flex items-center justify-center rounded-lg border border-border bg-background py-3 text-lg"
       >
         <Latex tex="\delta = \dfrac{F\,L^3}{3\,E\,I}" />
       </motion.div>
-      <motion.div
-        {...rise(0.38)}
-        className="mt-auto flex items-center justify-between rounded-lg border border-border bg-card/70 px-3 py-3 font-mono text-xs"
-      >
-        <span className="text-muted-foreground">
-          L = <span className="text-foreground">2.0 m</span>
-        </span>
-        <span className="text-muted-foreground">→</span>
-        <span className="text-muted-foreground">
-          δ = <span className="text-primary">4.3 mm</span>
-        </span>
-        <span className="text-[10px] text-muted-foreground/70">drag L, watch δ move</span>
+
+      {/* Bending beam — sags more as L (and therefore δ) grows */}
+      <motion.div {...rise(0.2)} className="rounded-lg border border-border bg-background px-3 py-2">
+        <svg viewBox="0 0 240 76" className="w-full">
+          <rect x="6" y="6" width="8" height="42" rx="1" style={{ fill: "hsl(var(--border))" }} />
+          <line x1="14" y1="24" x2="232" y2="24" style={border} strokeWidth="1" strokeDasharray="3 4" />
+          <path
+            d={`M14 24 C 90 24, 165 ${24 + drop * 0.45}, 232 ${24 + drop}`}
+            style={stroke}
+            strokeWidth="4"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <circle cx="232" cy={24 + drop} r="3.5" style={{ fill: "hsl(var(--primary))" }} />
+          <line x1="232" y1={24 + drop + 4} x2="232" y2={24 + drop + 15} style={muted} strokeWidth="1.5" />
+          <path
+            d={`M229 ${24 + drop + 11} L232 ${24 + drop + 16} L235 ${24 + drop + 11}`}
+            style={muted}
+            strokeWidth="1.5"
+            fill="none"
+          />
+        </svg>
+      </motion.div>
+
+      {/* Slider + live readout */}
+      <motion.div {...rise(0.3)} className="mt-auto space-y-2">
+        <div className="flex items-center justify-between font-mono text-xs">
+          <span className="text-muted-foreground">
+            L = <span className="text-foreground">{L.toFixed(2)} m</span>
+          </span>
+          <span className="text-muted-foreground">
+            δ = <span className="font-semibold text-primary">{delta.toFixed(1)} mm</span>
+          </span>
+        </div>
+        <input
+          type="range"
+          min={0.5}
+          max={3}
+          step={0.05}
+          value={L}
+          onChange={(e) => setL(Number(e.target.value))}
+          aria-label="Beam length"
+          className="w-full cursor-pointer accent-primary"
+        />
+        <p className="text-center text-[10px] text-muted-foreground/70">
+          Drag the length — watch the physics move.
+        </p>
       </motion.div>
     </div>
   );
@@ -306,13 +348,14 @@ const MODES: Mode[] = [
 export function ModeShowcase() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [locked, setLocked] = useState(false); // stop auto-advance once they engage
 
   useEffect(() => {
-    if (paused) return;
+    if (paused || locked) return;
     const dwell = MODES[active]!.dwellMs ?? CYCLE_MS;
     const t = setTimeout(() => setActive((a) => (a + 1) % MODES.length), dwell);
     return () => clearTimeout(t);
-  }, [paused, active]);
+  }, [paused, locked, active]);
 
   const Active = MODES[active]!.Preview;
 
@@ -335,7 +378,10 @@ export function ModeShowcase() {
           return (
             <button
               key={m.key}
-              onClick={() => setActive(i)}
+              onClick={() => {
+                setActive(i);
+                setLocked(true);
+              }}
               className={cn(
                 "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
                 i === active

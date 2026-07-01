@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Send,
   Loader2,
@@ -26,6 +26,8 @@ import {
   type InterviewConfig,
   type InterviewLevel,
 } from "@/lib/interview";
+import { DISCIPLINE_LIST, DISCIPLINES, SUBJECTS } from "@/lib/constants";
+import type { Discipline } from "@prisma/client";
 
 interface Msg {
   id: string;
@@ -46,16 +48,7 @@ function lastSentenceEnd(s: string): number {
   return idx;
 }
 
-// Launch discipline is Mechanical; these mirror the Mechanical lesson topics.
-const FOCUS_OPTIONS = [
-  "General fundamentals",
-  "Statics",
-  "Thermodynamics",
-  "Fluid Mechanics",
-  "Heat Transfer",
-  "Materials",
-  "Dynamics & Vibrations",
-];
+const GENERAL_FOCUS = "General fundamentals";
 const LEVELS: InterviewLevel[] = ["Intern", "New grad", "Experienced"];
 
 export function InterviewChat({ pro = false }: { pro?: boolean }) {
@@ -69,13 +62,24 @@ export function InterviewChat({ pro = false }: { pro?: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<"text" | "voice">("text");
   const [muted, setMuted] = useState(false);
+  const [disciplineKey, setDisciplineKey] = useState<Discipline>("MECHANICAL");
   const speech = useSpeech();
+
+  const disciplineLabel = DISCIPLINES[disciplineKey].label;
+  // Focus options adapt to the chosen discipline's subjects.
+  const focusOptions = useMemo(
+    () => [
+      GENERAL_FOCUS,
+      ...SUBJECTS.filter((s) => s.disciplines.includes(disciplineKey)).map((s) => s.label),
+    ],
+    [disciplineKey],
+  );
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<Msg[]>([]);
   const jd = jobDescription.trim();
   const config: InterviewConfig = {
-    disciplineLabel: "Mechanical",
+    disciplineLabel,
     focus,
     level,
     jobDescription: jd || undefined,
@@ -210,17 +214,29 @@ export function InterviewChat({ pro = false }: { pro?: boolean }) {
 
           <div className="mt-6 space-y-5">
             <Field label="Discipline">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                Mechanical
-              </span>
-              <span className="ml-2 font-mono text-xs text-muted-foreground">
-                more disciplines coming soon
-              </span>
+              <div className="flex flex-wrap gap-2">
+                {DISCIPLINE_LIST.map((d) => (
+                  <Pill
+                    key={d.key}
+                    active={disciplineKey === d.key}
+                    onClick={() => {
+                      setDisciplineKey(d.key);
+                      setFocus(GENERAL_FOCUS);
+                    }}
+                  >
+                    {d.label}
+                  </Pill>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                The AI interviewer works for every discipline. Deep lessons &amp; problem banks are
+                Mechanical-first, with more rolling out.
+              </p>
             </Field>
 
             <Field label="Focus">
               <div className="flex flex-wrap gap-2">
-                {FOCUS_OPTIONS.map((f) => (
+                {focusOptions.map((f) => (
                   <Pill key={f} active={focus === f} onClick={() => setFocus(f)}>
                     {f}
                   </Pill>
@@ -318,7 +334,7 @@ export function InterviewChat({ pro = false }: { pro?: boolean }) {
           <div>
             <h1 className="text-lg font-bold leading-none tracking-tight">Mock Interview</h1>
             <p className="mt-1 font-mono text-xs text-muted-foreground">
-              Mechanical · {jd ? "Tailored to your role" : focus} · {level}
+              {disciplineLabel} · {jd ? "Tailored to your role" : focus} · {level}
               {mode === "voice" ? " · Voice" : ""}
             </p>
           </div>

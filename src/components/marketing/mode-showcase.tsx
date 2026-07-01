@@ -30,6 +30,7 @@ interface Mode {
   icon: LucideIcon;
   tagline: string;
   Preview: () => JSX.Element;
+  dwellMs?: number; // how long this tab stays before auto-advancing
 }
 
 const CYCLE_MS = 5600;
@@ -40,6 +41,45 @@ const rise = (delay: number) => ({
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] as const },
 });
+
+// Typewriter — reveals a scripted conversation char-by-char, one message at a
+// time, for a live "it's happening now" feel. Restarts whenever it re-mounts
+// (i.e. each time the Voice tab becomes active).
+type VMsg = { role: "bot" | "you"; text: string };
+
+function useTypedConversation(script: VMsg[], charMs = 20, gapMs = 420) {
+  const [step, setStep] = useState(0);
+  const [count, setCount] = useState(0);
+  const done = step >= script.length;
+
+  useEffect(() => {
+    if (done) return;
+    const full = script[step]!.text;
+    if (count < full.length) {
+      const id = setTimeout(() => setCount((c) => c + 1), charMs);
+      return () => clearTimeout(id);
+    }
+    const id = setTimeout(() => {
+      setStep((s) => s + 1);
+      setCount(0);
+    }, gapMs);
+    return () => clearTimeout(id);
+  }, [step, count, done, script, charMs, gapMs]);
+
+  const shown = script
+    .map((m, i) => {
+      if (done || i < step) return { ...m, text: m.text, typing: false, show: true };
+      if (i === step) return { ...m, text: m.text.slice(0, count), typing: true, show: true };
+      return { ...m, text: "", typing: false, show: false };
+    })
+    .filter((m) => m.show);
+
+  return { shown, done };
+}
+
+function Caret() {
+  return <span className="ml-0.5 inline-block h-3.5 w-[2px] translate-y-[1px] animate-pulse bg-primary" />;
+}
 
 /* ---------------------------------- Practice ---------------------------- */
 function PracticePreview() {
@@ -147,10 +187,18 @@ function Fighter({ name, elo, you }: { name: string; elo: number; you?: boolean 
 }
 
 /* -------------------------------- Voice Sim ----------------------------- */
+const VOICE_SCRIPT: VMsg[] = [
+  { role: "bot", text: "“Walk me through sizing a heat exchanger for an industrial cooling loop.”" },
+  { role: "you", text: "“Start from the thermal duty, Q = ṁ·c·ΔT, then pick an LMTD approach…”" },
+  { role: "bot", text: "“Good. What if fouling doubles over the first year?”" },
+];
+
 function VoicePreview() {
+  const { shown, done } = useTypedConversation(VOICE_SCRIPT, 20, 420);
+
   return (
-    <div className="flex h-full flex-col items-stretch gap-3 p-5">
-      <motion.div {...rise(0)} className="flex items-center justify-center py-1">
+    <div className="flex h-full flex-col gap-3 p-5">
+      <div className="flex items-center justify-center py-1">
         <span className="relative flex size-14 items-center justify-center">
           <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/25" />
           <motion.span
@@ -161,44 +209,53 @@ function VoicePreview() {
             <Mic className="size-5" />
           </motion.span>
         </span>
-      </motion.div>
+      </div>
 
-      <motion.div {...rise(0.12)} className="flex items-start gap-2">
-        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
-          <Bot className="size-3" />
-        </span>
-        <p className="rounded-lg border border-border bg-secondary/40 px-3 py-2 text-xs text-foreground">
-          &ldquo;Walk me through sizing a heat exchanger for an industrial cooling loop.&rdquo;
-        </p>
-      </motion.div>
-      <motion.div {...rise(0.26)} className="flex items-start justify-end gap-2">
-        <p className="rounded-lg bg-primary/10 px-3 py-2 text-xs text-foreground">
-          &ldquo;Start from the thermal duty, Q = ṁ·c·ΔT, then pick an LMTD approach…&rdquo;
-        </p>
-      </motion.div>
-      <motion.div {...rise(0.4)} className="flex items-start gap-2">
-        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
-          <Bot className="size-3" />
-        </span>
-        <p className="rounded-lg border border-border bg-secondary/40 px-3 py-2 text-xs text-foreground">
-          &ldquo;Good. What if fouling doubles over the first year?&rdquo;
-        </p>
-      </motion.div>
+      {shown.map((m, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          className={cn("flex items-start gap-2", m.role === "you" && "justify-end")}
+        >
+          {m.role === "bot" && (
+            <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
+              <Bot className="size-3" />
+            </span>
+          )}
+          <p
+            className={cn(
+              "max-w-[85%] rounded-lg px-3 py-2 text-xs text-foreground",
+              m.role === "bot" ? "border border-border bg-secondary/40" : "bg-primary/10",
+            )}
+          >
+            {m.text}
+            {m.typing && <Caret />}
+          </p>
+        </motion.div>
+      ))}
 
-      <motion.div
-        {...rise(0.54)}
-        className="mt-auto flex items-center justify-center gap-3 rounded-lg border border-border bg-background py-2 font-mono text-[11px] text-muted-foreground"
-      >
-        <span>
-          <span className="text-foreground">142</span> WPM
-        </span>
-        <span className="text-border">·</span>
-        <span>
-          <span className="text-foreground">1</span> filler
-        </span>
-        <span className="text-border">·</span>
-        <span className="text-emerald-500">confident delivery</span>
-      </motion.div>
+      <AnimatePresence>
+        {done && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="mt-auto flex items-center justify-center gap-3 rounded-lg border border-border bg-background py-2 font-mono text-[11px] text-muted-foreground"
+          >
+            <span>
+              <span className="text-foreground">142</span> WPM
+            </span>
+            <span className="text-border">·</span>
+            <span>
+              <span className="text-foreground">1</span> filler
+            </span>
+            <span className="text-border">·</span>
+            <span className="text-emerald-500">confident delivery</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -242,7 +299,7 @@ function LearnPreview() {
 const MODES: Mode[] = [
   { key: "practice", label: "Practice", icon: ClipboardCheck, tagline: "Answer, get coached", Preview: PracticePreview },
   { key: "arena", label: "Arena", icon: Swords, tagline: "Compete, ranked", Preview: ArenaPreview },
-  { key: "voice", label: "Voice Sim", icon: Mic, tagline: "Rehearse out loud", Preview: VoicePreview },
+  { key: "voice", label: "Voice Sim", icon: Mic, tagline: "Rehearse out loud", Preview: VoicePreview, dwellMs: 7400 },
   { key: "learn", label: "Learn", icon: GraduationCap, tagline: "Master the concept", Preview: LearnPreview },
 ];
 
@@ -252,9 +309,10 @@ export function ModeShowcase() {
 
   useEffect(() => {
     if (paused) return;
-    const t = setInterval(() => setActive((a) => (a + 1) % MODES.length), CYCLE_MS);
-    return () => clearInterval(t);
-  }, [paused]);
+    const dwell = MODES[active]!.dwellMs ?? CYCLE_MS;
+    const t = setTimeout(() => setActive((a) => (a + 1) % MODES.length), dwell);
+    return () => clearTimeout(t);
+  }, [paused, active]);
 
   const Active = MODES[active]!.Preview;
 

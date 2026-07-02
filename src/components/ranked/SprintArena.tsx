@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, Timer, User as UserIcon, Loader2 } from "lucide-react";
+import { ChevronRight, Timer, User as UserIcon, Loader2, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { gradeAnswer } from "@/lib/grading";
@@ -199,8 +199,11 @@ function ConceptualSprintView({
     e.preventDefault();
     if (submitting || answer.trim().length < 2 || !onSubmit) return;
     setSubmitting(true);
-    await onSubmit(answer); // parent grades, then switches to the result phase
+    await onSubmit(answer); // parent grades (with paced reveal), then switches phase
   };
+
+  // The opponent submits on its own clock, like a real async match.
+  const botDone = elapsed >= plan.botFinishMs;
 
   return (
     <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[1fr_260px]">
@@ -238,10 +241,10 @@ function ConceptualSprintView({
             />
             <Button type="submit" disabled={submitting || answer.trim().length < 2}>
               {submitting && <Loader2 className="size-4 animate-spin" />}
-              {submitting ? "AI is grading both answers…" : "Submit answer"}
+              {submitting ? "Submitting…" : "Submit answer"}
             </Button>
             <p className="font-mono text-[11px] text-muted-foreground/70">
-              Highest accuracy % wins. Both answers are graded by AI.
+              Highest accuracy % wins. Answer fully — partial credit counts.
             </p>
           </form>
         </div>
@@ -264,15 +267,29 @@ function ConceptualSprintView({
               <p className="font-mono text-xs text-muted-foreground">{plan.opponent.elo} Elo</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
-            <span className="relative flex size-2.5 items-center justify-center">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terminal/60" />
-              <span className="relative inline-flex size-2 rounded-full bg-terminal" />
-            </span>
-            Answering…
-          </div>
+          {submitting ? (
+            <div className="flex items-center gap-2 font-mono text-xs text-primary">
+              <Loader2 className="size-3.5 animate-spin" />
+              {botDone ? "Grading both answers…" : `${plan.opponent.username} is finishing…`}
+            </div>
+          ) : botDone ? (
+            <div className="flex items-center gap-2 font-mono text-xs text-emerald-500">
+              <CheckCircle2 className="size-3.5" />
+              Submitted · {fmt(plan.botFinishMs)}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+              <span className="relative flex size-2.5 items-center justify-center">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terminal/60" />
+                <span className="relative inline-flex size-2 rounded-full bg-terminal" />
+              </span>
+              Answering…
+            </div>
+          )}
           <p className="border-t border-border pt-3 font-mono text-[11px] leading-relaxed text-muted-foreground/70">
-            Whoever&apos;s answer scores the higher % accuracy wins the match.
+            {botDone && !submitting
+              ? "They're in. Submit your answer to see who scored higher."
+              : "Whoever's answer scores the higher % accuracy wins the match."}
           </p>
         </div>
       </Card>

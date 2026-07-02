@@ -23,6 +23,8 @@ import type {
 
 const ELO_K = 32;
 
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
 /**
  * The ranked matchmaking state container. Drives the whole flow with local
  * state + timers: idle → queueing → matchFound → sprinting → result. Opponents
@@ -114,11 +116,20 @@ export function Matchmaker({
   );
 
   // Conceptual match: AI grades the answer 0–100, the (simulated) opponent gets
-  // a calibrated score, higher % wins, and both get feedback.
+  // a calibrated score, higher % wins, and both get feedback. The reveal is
+  // PACED so it never lands the instant you click (which would give away that
+  // the opponent is a bot): always a brief "grading" beat, and if the opponent
+  // hasn't "submitted" on its own clock yet, a short bounded "finishing" wait.
   const handleConceptualSubmit = useCallback(
     async (answerText: string) => {
       if (!plan || plan.problem.kind !== "conceptual") return;
-      const r = await gradeConceptualSprint({ id: plan.problem.id, answer: answerText });
+      const botAlreadyDone = Date.now() - plan.startedAt >= plan.botFinishMs;
+      const MIN_GRADE_MS = 1600;
+      const botWrapMs = botAlreadyDone ? 0 : 2200 + Math.floor(Math.random() * 1400);
+      const [r] = await Promise.all([
+        gradeConceptualSprint({ id: plan.problem.id, answer: answerText }),
+        sleep(Math.max(MIN_GRADE_MS, botWrapMs)),
+      ]);
       const userScore = r.ok ? (r.score ?? 0) : 0;
       const oppScore = simulateBotConceptualScore(plan.opponent.elo, plan.perfectBot);
       const outcome: Outcome = userScore >= oppScore ? "WIN" : "LOSS";

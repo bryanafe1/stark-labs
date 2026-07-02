@@ -26,6 +26,7 @@ import {
   INTERVIEW_KICKOFF,
   type InterviewConfig,
   type InterviewLevel,
+  type InterviewMode,
 } from "@/lib/interview";
 import { DISCIPLINE_LIST, DISCIPLINES, SUBJECTS } from "@/lib/constants";
 import type { Discipline } from "@prisma/client";
@@ -64,6 +65,8 @@ export function InterviewChat({
   const [focus, setFocus] = useState("General fundamentals");
   const [level, setLevel] = useState<InterviewLevel>("New grad");
   const [jobDescription, setJobDescription] = useState("");
+  const [interviewMode, setInterviewMode] = useState<InterviewMode>("technical");
+  const [projectContext, setProjectContext] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -91,6 +94,8 @@ export function InterviewChat({
     focus,
     level,
     jobDescription: jd || undefined,
+    interviewMode,
+    projectContext: interviewMode !== "technical" ? projectContext.trim() || undefined : undefined,
   };
 
   useEffect(() => {
@@ -244,6 +249,42 @@ export function InterviewChat({
                 ))}
               </div>
             </Field>
+
+            {/* Interview type — the real differentiator */}
+            <Field label="Interview type">
+              <div className="grid gap-2 sm:grid-cols-3">
+                <ModeCard
+                  active={interviewMode === "technical"}
+                  onClick={() => setInterviewMode("technical")}
+                  title="Technical"
+                  desc="Fundamentals & problems under pressure."
+                />
+                <ModeCard
+                  active={interviewMode === "project"}
+                  onClick={() => setInterviewMode("project")}
+                  title="Project deep-dive"
+                  desc="Defend your own design decisions."
+                />
+                <ModeCard
+                  active={interviewMode === "full"}
+                  onClick={() => setInterviewMode("full")}
+                  title="Full simulation"
+                  desc="Intro → project → technical → close."
+                />
+              </div>
+            </Field>
+
+            {(interviewMode === "project" || interviewMode === "full") && (
+              <Field label="Your project (2–3 sentences)">
+                <textarea
+                  value={projectContext}
+                  onChange={(e) => setProjectContext(e.target.value)}
+                  rows={4}
+                  placeholder="A capstone, work project, or personal build — what it was, what you designed, the key decisions. The interviewer will grill your reasoning: “why that bearing and not a bushing?”"
+                  className="w-full rounded-lg border border-input bg-background p-3 text-sm leading-relaxed outline-none ring-ring transition focus-visible:ring-2 placeholder:text-muted-foreground/50"
+                />
+              </Field>
+            )}
 
             {/* Focus (dropdown) + Level, side by side */}
             <div className="grid gap-5 sm:grid-cols-2">

@@ -14,6 +14,7 @@ import {
   Volume2,
   VolumeX,
   Lock,
+  ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -226,8 +227,9 @@ export function InterviewChat({
           </Link>
 
           <div className="mt-6 space-y-5">
+            {/* Discipline — compact chips */}
             <Field label="Discipline">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {DISCIPLINE_LIST.map((d) => (
                   <Pill
                     key={d.key}
@@ -241,89 +243,100 @@ export function InterviewChat({
                   </Pill>
                 ))}
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                The AI interviewer works for every discipline. Deep lessons &amp; problem banks are
-                Mechanical-first, with more rolling out.
-              </p>
             </Field>
 
-            <Field label="Focus">
-              <div className="flex flex-wrap gap-2">
-                {focusOptions.map((f) => (
-                  <Pill key={f} active={focus === f} onClick={() => setFocus(f)}>
-                    {f}
-                  </Pill>
-                ))}
-              </div>
-            </Field>
+            {/* Focus (dropdown) + Level, side by side */}
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Focus">
+                <div className="relative">
+                  <select
+                    value={focus}
+                    onChange={(e) => setFocus(e.target.value)}
+                    className="w-full appearance-none rounded-lg border border-input bg-background px-3 py-2 pr-9 text-sm outline-none ring-ring transition focus-visible:ring-2"
+                  >
+                    {focusOptions.map((f) => (
+                      <option key={f} value={f}>
+                        {f}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                </div>
+              </Field>
 
-            <Field label="Level">
-              <div className="flex flex-wrap gap-2">
-                {LEVELS.map((l) => (
-                  <Pill key={l} active={level === l} onClick={() => setLevel(l)}>
-                    {l}
-                  </Pill>
-                ))}
-              </div>
-            </Field>
+              <Field label="Level">
+                <div className="flex flex-wrap gap-2">
+                  {LEVELS.map((l) => (
+                    <Pill key={l} active={level === l} onClick={() => setLevel(l)}>
+                      {l}
+                    </Pill>
+                  ))}
+                </div>
+              </Field>
+            </div>
 
-            <Field label="Mode">
-              <div className="flex flex-wrap gap-2">
-                <Pill active={mode === "text"} onClick={() => setMode("text")}>
-                  Type your answers
-                </Pill>
+            {/* Format — two named modes as cards */}
+            <Field label="Format">
+              <div className="grid gap-2 sm:grid-cols-2">
+                <ModeCard
+                  active={mode === "text"}
+                  onClick={() => setMode("text")}
+                  title="Library Mode"
+                  desc="Type your answers at your own pace."
+                />
                 {pro ? (
-                  <Pill
+                  <ModeCard
                     active={mode === "voice"}
                     onClick={() => {
                       if (speech.supported) setMode("voice");
                     }}
-                  >
-                    Voice — talk to the interviewer
-                  </Pill>
+                    title="Hot Seat"
+                    desc="Talk out loud, like the real room."
+                  />
                 ) : (
                   <Link
                     href="/pricing"
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                    className="flex items-center justify-between rounded-xl border border-border px-4 py-3 transition-colors hover:border-primary/40"
                   >
-                    <Lock className="size-3.5" /> Voice — Pro
+                    <span>
+                      <span className="block text-sm font-semibold text-foreground">Hot Seat</span>
+                      <span className="block text-xs text-muted-foreground">Talk out loud — Pro</span>
+                    </span>
+                    <Lock className="size-4 shrink-0 text-muted-foreground" />
                   </Link>
                 )}
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                {pro ? (
-                  <>
-                    Voice mode reads the questions aloud and lets you answer out loud. Answering by
-                    voice needs <span className="text-foreground">Chrome, Edge, or Safari</span> —
-                    Opera and Brave don&apos;t support speech input. (For a seamless real-time
-                    conversation, try the full voice simulation above.)
-                  </>
-                ) : (
-                  <>
-                    Answering out loud is a{" "}
-                    <Link href="/pricing" className="text-primary underline-offset-2 hover:underline">
-                      Pro feature
-                    </Link>
-                    . Standard includes the full text mock interview.
-                  </>
-                )}
-              </p>
+              {pro && mode === "voice" && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Speaking needs <span className="text-foreground">Chrome, Edge, or Safari</span>. For a
+                  seamless real-time conversation, try the{" "}
+                  <Link href="/simulation" className="text-primary underline-offset-2 hover:underline">
+                    voice simulation
+                  </Link>
+                  .
+                </p>
+              )}
             </Field>
 
-            <Field label="Job description (optional)">
+            {/* Job description — optional, collapsed */}
+            <details className="group rounded-lg border border-border bg-background/40 px-4 py-3">
+              <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                Tailor to a specific job posting
+                <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+              </summary>
               <textarea
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
                 rows={5}
-                placeholder="Paste a job posting here, and the interviewer will tailor its questions to the engineering fundamentals this role needs."
-                className="w-full rounded-lg border border-input bg-background p-3 text-sm leading-relaxed outline-none ring-ring transition focus-visible:ring-2 placeholder:text-muted-foreground/50"
+                placeholder="Paste a job posting and the interviewer tailors its questions to the fundamentals this role needs."
+                className="mt-3 w-full rounded-lg border border-input bg-background p-3 text-sm leading-relaxed outline-none ring-ring transition focus-visible:ring-2 placeholder:text-muted-foreground/50"
               />
               {jd && (
                 <p className="mt-1.5 text-xs text-primary">
-                  This interview will be tailored to the pasted role (the focus selection is ignored).
+                  This interview will be tailored to the pasted role (Focus is ignored).
                 </p>
               )}
-            </Field>
+            </details>
           </div>
 
           {freeTrial && (
@@ -356,7 +369,7 @@ export function InterviewChat({
             <h1 className="text-lg font-bold leading-none tracking-tight">Mock Interview</h1>
             <p className="mt-1 font-mono text-xs text-muted-foreground">
               {disciplineLabel} · {jd ? "Tailored to your role" : focus} · {level}
-              {mode === "voice" ? " · Voice" : ""}
+              {mode === "voice" ? " · Hot Seat" : " · Library"}
               {freeTrial ? " · Free preview" : ""}
             </p>
           </div>
@@ -576,8 +589,36 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <p className="mb-2 font-mono text-xs uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
-      <div className="flex flex-wrap items-center">{children}</div>
+      {children}
     </div>
+  );
+}
+
+function ModeCard({
+  active,
+  onClick,
+  title,
+  desc,
+}: {
+  active: boolean;
+  onClick: () => void;
+  title: string;
+  desc: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "rounded-xl border px-4 py-3 text-left transition-colors",
+        active ? "border-primary/60 bg-primary/10" : "border-border hover:border-primary/40",
+      )}
+    >
+      <p className={cn("text-sm font-semibold", active ? "text-primary" : "text-foreground")}>
+        {title}
+      </p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
+    </button>
   );
 }
 

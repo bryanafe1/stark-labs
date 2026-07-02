@@ -51,8 +51,15 @@ function lastSentenceEnd(s: string): number {
 const GENERAL_FOCUS = "General fundamentals";
 const LEVELS: InterviewLevel[] = ["Intern", "New grad", "Experienced"];
 
-export function InterviewChat({ pro = false }: { pro?: boolean }) {
+export function InterviewChat({
+  pro = false,
+  freeTrial = false,
+}: {
+  pro?: boolean;
+  freeTrial?: boolean;
+}) {
   const [phase, setPhase] = useState<"setup" | "live">("setup");
+  const [limitReached, setLimitReached] = useState(false);
   const [focus, setFocus] = useState("General fundamentals");
   const [level, setLevel] = useState<InterviewLevel>("New grad");
   const [jobDescription, setJobDescription] = useState("");
@@ -105,6 +112,12 @@ export function InterviewChat({ pro = false }: { pro?: boolean }) {
           config,
         }),
       });
+      if (res.status === 402) {
+        // Free mock interview used up → show the upgrade wall, not an error.
+        setLimitReached(true);
+        setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+        return;
+      }
       if (!res.ok || !res.body) {
         const detail = await res.text().catch(() => "");
         throw new Error(detail || `Request failed (${res.status}).`);
@@ -313,6 +326,14 @@ export function InterviewChat({ pro = false }: { pro?: boolean }) {
             </Field>
           </div>
 
+          {freeTrial && (
+            <p className="mt-5 flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="rounded-full bg-primary/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-primary">
+                FREE
+              </span>
+              Your free mock interview — no card needed. Upgrade anytime for unlimited.
+            </p>
+          )}
           <Button className="mt-6 w-full sm:w-auto" onClick={start}>
             Start interview
             <Send className="size-4" />
@@ -336,6 +357,7 @@ export function InterviewChat({ pro = false }: { pro?: boolean }) {
             <p className="mt-1 font-mono text-xs text-muted-foreground">
               {disciplineLabel} · {jd ? "Tailored to your role" : focus} · {level}
               {mode === "voice" ? " · Voice" : ""}
+              {freeTrial ? " · Free preview" : ""}
             </p>
           </div>
         </div>
@@ -398,9 +420,28 @@ export function InterviewChat({ pro = false }: { pro?: boolean }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Composer */}
+      {/* Composer — or the upgrade wall once a free interview is used up */}
       <div className="border-t border-border pt-3">
-        {mode === "voice" ? (
+        {limitReached ? (
+          <div className="rounded-xl border border-primary/40 bg-primary/5 p-4 text-center">
+            <p className="text-sm font-semibold text-foreground">
+              You&apos;re in the flow — that was your free interview.
+            </p>
+            <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+              Upgrade to keep going, run unlimited mock interviews, and unlock your full skill debrief.
+            </p>
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              <Button asChild>
+                <Link href="/pricing">
+                  See plans <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="secondary">
+                <Link href="/pricing">Start Standard · $20/mo</Link>
+              </Button>
+            </div>
+          </div>
+        ) : mode === "voice" ? (
           <VoiceComposer
             streaming={streaming}
             speaking={speech.speaking}

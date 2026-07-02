@@ -155,6 +155,7 @@ model User {
   subscriptionTier     String? // legacy: monthly | annual | pass
   planTier             String? // standard | pro  (new two-tier model)
   billingInterval      String? // monthly | annual
+  freeInterviewTurns   Int       @default(0) // AI mock-interview turns a free user has spent (free-trial cap)
   stripeCustomerId     String?   @unique
   stripeSubscriptionId String?   @unique
   currentPeriodEnd     DateTime? // access valid through this time

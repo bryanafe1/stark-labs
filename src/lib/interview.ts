@@ -8,6 +8,9 @@
 
 export type InterviewLevel = "Intern" | "New grad" | "Experienced";
 
+// Free users get one mock interview's worth of AI turns (lifetime) as a taste.
+export const FREE_INTERVIEW_TURNS = Number(process.env.FREE_INTERVIEW_TURNS ?? 8);
+
 export interface InterviewConfig {
   /** Human label, e.g. "Mechanical". */
   disciplineLabel: string;

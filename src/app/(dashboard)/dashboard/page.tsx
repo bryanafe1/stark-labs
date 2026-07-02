@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import { getDashboard } from "@/features/dashboard/get-dashboard";
 import { getCurrentUserId } from "@/lib/auth";
+import { getAccess } from "@/lib/access";
+import { prisma } from "@/lib/prisma";
+import { FREE_INTERVIEW_TURNS } from "@/lib/interview";
 import { getReadiness } from "@/lib/readiness";
 import { ReadinessCard } from "@/components/dashboard/readiness-card";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -37,6 +40,18 @@ export default async function HomePage({
   const data = await getDashboard();
   const userId = await getCurrentUserId();
   const readiness = userId ? await getReadiness(userId) : null;
+
+  // Announce the free mock interview to free users who haven't used it yet.
+  const access = userId ? await getAccess(userId) : null;
+  let showFreeMock = false;
+  if (userId && access && !access.paid) {
+    const u = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { freeInterviewTurns: true },
+    });
+    showFreeMock = (u?.freeInterviewTurns ?? 0) < FREE_INTERVIEW_TURNS;
+  }
+
   const first = (data.user.displayName || "there").split(" ")[0];
   const started = data.disciplines.some((d) => d.masteredNodes > 0);
   const topDisciplines = [...data.disciplines]
@@ -46,6 +61,25 @@ export default async function HomePage({
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
+      {showFreeMock && (
+        <Link
+          href="/interview"
+          className="group flex items-center gap-3 rounded-xl border border-primary/40 bg-gradient-to-r from-primary/10 to-transparent px-4 py-3 transition-colors hover:from-primary/20"
+        >
+          <span className="rounded-full bg-primary/20 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wide text-primary">
+            New
+          </span>
+          <span className="flex-1 text-sm">
+            <span className="font-semibold text-foreground">1 free AI mock interview</span>
+            <span className="text-muted-foreground">
+              {" "}
+              — talk to an AI interviewer and get scored feedback. No card needed.
+            </span>
+          </span>
+          <ArrowRight className="size-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5" />
+        </Link>
+      )}
+
       {(searchParams.upgraded || searchParams.voice) && (
         <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="size-4 shrink-0" />

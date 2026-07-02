@@ -1,6 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { buildInterviewSystemPrompt, type InterviewConfig } from "@/lib/interview";
-import { hasPaidAccess } from "@/lib/access";
+import { buildInterviewSystemPrompt, FREE_INTERVIEW_TURNS, type InterviewConfig } from "@/lib/interview";
+import { getAccess } from "@/lib/access";
+import { getCurrentUserId } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 // Anthropic SDK needs the Node runtime; streamed responses must not be cached.
 export const runtime = "nodejs";
@@ -29,11 +31,26 @@ export async function POST(req: Request) {
     );
   }
 
-  // Premium feature — must be an active subscriber. Protects the API directly
-  // (the page paywall alone is bypassable) and guards Anthropic cost.
-  if (!(await hasPaidAccess())) {
-    return new Response("Mock interviews are a paid feature. Upgrade to continue.", {
-      status: 403,
+  // Paid → unlimited. Free → one mock interview's worth of turns (lifetime),
+  // then 402 so the client shows the upgrade wall. Enforced here so the cap
+  // can't be bypassed, and to bound Anthropic cost.
+  const userId = await getCurrentUserId();
+  if (!userId) return new Response("Sign in to start a mock interview.", { status: 401 });
+
+  const access = await getAccess(userId);
+  if (!access.paid) {
+    const u = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { freeInterviewTurns: true },
+    });
+    if ((u?.freeInterviewTurns ?? 0) >= FREE_INTERVIEW_TURNS) {
+      return new Response("Your free mock interview is used up. Upgrade for unlimited.", {
+        status: 402,
+      });
+    }
+    await prisma.user.update({
+      where: { id: userId },
+      data: { freeInterviewTurns: { increment: 1 } },
     });
   }
 

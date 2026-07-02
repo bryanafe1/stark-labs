@@ -16,7 +16,6 @@ import { LandingNav } from "@/components/marketing/landing-nav";
 import { ModeShowcase } from "@/components/marketing/mode-showcase";
 import { Reveal } from "@/components/marketing/reveal";
 import { SampleLesson } from "@/components/marketing/sample-lesson";
-import { Testimonials } from "@/components/marketing/testimonials";
 import { Faq } from "@/components/marketing/faq";
 
 // ---------------------------------------------------------------------------
@@ -199,7 +198,6 @@ export function Landing() {
 
       {/* Sample lesson, testimonials, FAQ ------------------------------- */}
       <SampleLesson />
-      <Testimonials />
       <Faq />
 
       {/* About / contact ------------------------------------------------- */}

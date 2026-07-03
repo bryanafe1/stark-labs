@@ -74,8 +74,11 @@ export function PracticeBrowser({
   };
 
   const q = query.trim().toLowerCase();
+  // The Conceptual/Numeric format toggle does NOT count as "drilling in" — it's
+  // a lens over the discipline overview, not a reason to hide it. Only picking a
+  // discipline / subject / difficulty / search leaves the overview.
   const filtersActive =
-    format !== "ALL" || discipline !== "ALL" || skill !== "ALL" || difficulty !== "ALL" || q !== "";
+    discipline !== "ALL" || skill !== "ALL" || difficulty !== "ALL" || q !== "";
 
   // Apply every active filter.
   const filtered = useMemo(
@@ -107,14 +110,14 @@ export function PracticeBrowser({
   // Per-discipline counts for the overview cards.
   const overview = useMemo(() => {
     return DISCIPLINE_LIST.map((d) => {
-      const items = problems.filter((p) => p.discipline === d.key);
+      const items = filtered.filter((p) => p.discipline === d.key);
       const byDiff = DIFFICULTY_ORDER.map((diff) => ({
         diff,
         n: items.filter((p) => p.difficulty === diff).length,
       })).filter((x) => x.n > 0);
       return { meta: d, total: items.length, byDiff };
     }).filter((g) => g.total > 0);
-  }, [problems]);
+  }, [filtered]);
 
   const showOverview = !filtersActive;
 
@@ -202,7 +205,7 @@ export function PracticeBrowser({
       {showOverview ? (
         <div>
           <p className="mb-3 font-mono text-sm text-muted-foreground">
-            {problems.length} problems · {overview.length} disciplines — pick one to dive in
+            {filtered.length} problems · {overview.length} disciplines — pick one to dive in
           </p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {overview.map(({ meta, total, byDiff }) => {

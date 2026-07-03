@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { DISCIPLINE_LIST } from "@/lib/constants";
 import { LandingNav } from "@/components/marketing/landing-nav";
 import { ModeShowcase } from "@/components/marketing/mode-showcase";
+import { TrainFor } from "@/components/marketing/train-for";
 import { Reveal } from "@/components/marketing/reveal";
 import { SampleLesson } from "@/components/marketing/sample-lesson";
 import { Faq } from "@/components/marketing/faq";
@@ -106,6 +107,9 @@ export function Landing() {
           <ModeShowcase />
         </div>
       </section>
+
+      {/* Train for interviews at [companies] ----------------------------- */}
+      <TrainFor />
 
       {/* Core benefits --------------------------------------------------- */}
       <section id="features" className="border-b border-border/60">

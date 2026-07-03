@@ -272,7 +272,7 @@ function LearnPreview() {
   const muted = { stroke: "hsl(var(--muted-foreground))" };
 
   return (
-    <div className="flex h-full flex-col gap-3 p-5">
+    <div className="flex h-full flex-col gap-2.5 p-5">
       <motion.span
         {...rise(0)}
         className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground"
@@ -282,13 +282,17 @@ function LearnPreview() {
 
       <motion.div
         {...rise(0.1)}
-        className="flex items-center justify-center rounded-lg border border-border bg-background py-3 text-lg"
+        className="flex items-center justify-center rounded-lg border border-border bg-background py-2 text-lg"
       >
         <Latex tex="\delta = \dfrac{F\,L^3}{3\,E\,I}" />
       </motion.div>
 
-      {/* Bending beam — sags more as L (and therefore δ) grows */}
-      <motion.div {...rise(0.2)} className="rounded-lg border border-border bg-background px-3 py-2">
+      {/* Bending beam — sags more as L (and therefore δ) grows. Width-capped so
+          it stays short and never pushes the slider out of the frame. */}
+      <motion.div
+        {...rise(0.2)}
+        className="mx-auto w-full max-w-[340px] rounded-lg border border-border bg-background px-3 py-2"
+      >
         <svg viewBox="0 0 240 76" className="w-full">
           <rect x="6" y="6" width="8" height="42" rx="1" style={{ fill: "hsl(var(--border))" }} />
           <line x1="14" y1="24" x2="232" y2="24" style={border} strokeWidth="1" strokeDasharray="3 4" />

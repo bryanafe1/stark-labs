@@ -31,11 +31,6 @@ export function TrainFor() {
             </span>
           ))}
         </div>
-
-        <p className="mx-auto mt-6 max-w-xl text-center text-[11px] leading-relaxed text-muted-foreground/60">
-          Overclocker is independent and not affiliated with or endorsed by these companies. Names are
-          shown to describe the kinds of interviews we help you prepare for.
-        </p>
       </div>
     </section>
   );

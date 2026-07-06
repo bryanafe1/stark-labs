@@ -42,6 +42,7 @@ export function InterviewChat({
   const jd = config.jobDescription;
 
   const bottomRef = useRef<HTMLDivElement>(null);
+  const seedRef = useRef(0); // per-session variation seed (fixed across turns)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,7 +60,7 @@ export function InterviewChat({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: history.map(({ role, content }) => ({ role, content })),
-          config,
+          config: { ...config, variantSeed: seedRef.current },
         }),
       });
       if (res.status === 402) {
@@ -91,6 +92,7 @@ export function InterviewChat({
   }
 
   function start() {
+    seedRef.current = Math.floor(Math.random() * 1e9); // fresh angle each session
     setPhase("live");
     streamTurn([{ id: uid(), role: "user", content: INTERVIEW_KICKOFF, hidden: true }]);
   }

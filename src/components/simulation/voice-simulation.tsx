@@ -170,7 +170,9 @@ export function VoiceSimulation() {
       const res = await fetch("/api/simulation/start", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ config: toInterviewConfig(setup) }),
+        body: JSON.stringify({
+          config: { ...toInterviewConfig(setup), variantSeed: Math.floor(Math.random() * 1e9) },
+        }),
       });
       if (!res.ok) {
         throw new Error((await res.text()) || "Could not start the simulation.");

@@ -28,6 +28,63 @@ export interface InterviewConfig {
   interviewMode?: InterviewMode;
   /** 2–3 sentences describing the candidate's project (for project/full modes). */
   projectContext?: string;
+  /**
+   * Per-session variation seed. Fixed for a whole session (so the interview
+   * stays coherent) but fresh each new session, so repeat practice on the SAME
+   * settings attacks from a different angle/persona/opener each time. Omit to
+   * disable variation.
+   */
+  variantSeed?: number;
+}
+
+// Deliberate per-session variety so identical settings don't yield the same
+// interview every time. The seed picks one of each independently.
+const PERSONAS = [
+  "a warm, curious engineer who builds on the candidate's answers and gives them room to think",
+  "a skeptical senior engineer who challenges assumptions and asks \"are you sure?\" whenever a claim is shaky",
+  "a fast-paced screener who moves briskly and covers breadth, keeping the candidate on their toes",
+  "a methodical staff engineer who picks one thread and drills relentlessly deep before moving on",
+];
+
+const ANGLES = [
+  "order-of-magnitude estimation and back-of-the-envelope reasoning",
+  "failure modes, safety factors, and what breaks first under load",
+  "real-world trade-offs — for every choice, push on why not the obvious alternative",
+  "first-principles derivations — make them derive results, not recite them",
+  "practical manufacturing / DFM, tolerances, and how they'd actually test or measure it",
+  "edge cases, boundary conditions, and assumptions that quietly fail",
+];
+
+const OPENERS = [
+  "a concrete real-world scenario to reason through",
+  "a quick estimation / napkin-math problem",
+  "a conceptual question that probes a core definition or intuition",
+  "asking them to walk through how something works, then probing the weakest point",
+];
+
+/** Session-specific variation directives, chosen deterministically from the seed. */
+function variationLines(config: InterviewConfig): string[] {
+  const seed = config.variantSeed;
+  if (seed == null || !Number.isFinite(seed)) return [];
+  const s = Math.abs(Math.trunc(seed));
+  const persona = PERSONAS[s % PERSONAS.length];
+  const angle = ANGLES[Math.floor(s / PERSONAS.length) % ANGLES.length];
+  const mode: InterviewMode = config.interviewMode ?? "technical";
+
+  const lines = [
+    "",
+    "THIS SESSION — vary your interview so repeat practice covers new ground (do NOT fall back on the most common textbook opener):",
+    `- Interviewer style: play ${persona}.`,
+    `- Angle of attack: bias this session toward ${angle}.`,
+  ];
+  if (mode === "technical") {
+    const opener = OPENERS[Math.floor(s / (PERSONAS.length * ANGLES.length)) % OPENERS.length];
+    lines.push(`- Open with ${opener}.`);
+  }
+  lines.push(
+    "- Choose specific questions you would NOT ask every candidate; take a genuinely different path than a default interview would.",
+  );
+  return lines;
 }
 
 /** Hidden first turn that kicks off the interview (not shown to the user). */
@@ -63,6 +120,7 @@ function buildInterviewCore(config: InterviewConfig): string[] {
   const lines: string[] = [
     `You are a senior ${d} engineer conducting a realistic engineering interview for a ${d} role.`,
     LEVEL_GUIDANCE[config.level],
+    ...variationLines(config),
   ];
 
   // The candidate's own project — the material for project/full deep-dives.

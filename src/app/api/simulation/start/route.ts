@@ -72,6 +72,10 @@ export async function POST(req: Request) {
     interviewMode,
     jobDescription: raw.jobDescription ? String(raw.jobDescription).slice(0, 6000) : undefined,
     projectContext: raw.projectContext ? String(raw.projectContext).slice(0, 2000) : undefined,
+    variantSeed:
+      typeof raw.variantSeed === "number" && Number.isFinite(raw.variantSeed)
+        ? raw.variantSeed
+        : undefined,
   };
 
   const difficulty = levelToDifficulty(level);

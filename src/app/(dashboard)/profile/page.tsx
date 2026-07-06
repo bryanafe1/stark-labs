@@ -50,12 +50,12 @@ export default async function ProfilePage() {
               @{user.username} · joined {timeAgo(user.joinedAt)}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex w-full flex-wrap items-center justify-between gap-4 sm:w-auto sm:justify-start">
             <div className="text-right">
               <p className="text-2xl font-black tabular-nums">{user.overallElo}</p>
               <p className={cn("text-xs font-semibold", tier.textClass)}>{tier.label}</p>
             </div>
-            <Button asChild variant="secondary" size="sm">
+            <Button asChild variant="secondary" size="sm" className="shrink-0">
               <Link href="/settings"><Settings className="size-4" /> Edit</Link>
             </Button>
           </div>
@@ -63,8 +63,8 @@ export default async function ProfilePage() {
         <CardContent className="pt-0">
           <p className="text-sm text-foreground/90">{user.bio}</p>
           <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1"><Flame className="size-4 text-orange-400" /> {user.streakDays}-day streak</span>
-            <span className="flex items-center gap-1"><Sparkles className="size-4 text-emerald-400" /> {formatCompact(user.xp)} XP</span>
+            <span className="flex items-center gap-1"><Flame className="size-4 text-muted-foreground" /> {user.streakDays}-day streak</span>
+            <span className="flex items-center gap-1"><Sparkles className="size-4 text-primary" /> {formatCompact(user.xp)} XP</span>
           </div>
         </CardContent>
       </Card>
@@ -72,7 +72,7 @@ export default async function ProfilePage() {
       {/* Stat tiles */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {tiles.map((t) => (
-          <Card key={t.label} className="p-4">
+          <Card key={t.label} className="p-4 transition-colors hover:border-primary/40 hover:bg-card/70">
             <p className="text-2xl font-bold tracking-tight">{t.value}</p>
             <p className="text-xs text-muted-foreground">{t.label}</p>
           </Card>
@@ -90,7 +90,7 @@ export default async function ProfilePage() {
           {/* Achievements */}
           <Card>
             <CardHeader><CardTitle>Achievements</CardTitle></CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {achievements.map((a) => {
                 const Icon = ACHIEVEMENT_ICONS[a.icon];
                 return (

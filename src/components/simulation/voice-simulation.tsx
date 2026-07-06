@@ -258,7 +258,7 @@ export function VoiceSimulation() {
   if (phase === "setup") {
     return (
       <Shell>
-        <Card className="elevated rounded-2xl p-6">
+        <Card className="elevated p-6">
           <p className="text-sm text-muted-foreground">
             A fully spoken mock interview. A senior engineer talks to you in real time — you answer
             out loud, they probe your reasoning, and you get a debrief on both your answers and how
@@ -281,7 +281,7 @@ export function VoiceSimulation() {
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="e.g. thermal systems, structural design, HVAC…"
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none ring-ring transition focus-visible:ring-2 placeholder:text-muted-foreground/50"
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none ring-ring transition focus-visible:ring-2 placeholder:text-muted-foreground/75"
               />
             </div>
             <div>
@@ -295,7 +295,7 @@ export function VoiceSimulation() {
                     type="button"
                     onClick={() => setDifficulty(d.key)}
                     className={cn(
-                      "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                      "rounded-full border px-3 py-2 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
                       difficulty === d.key
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-input text-muted-foreground hover:border-foreground/30 hover:text-foreground",
@@ -364,14 +364,14 @@ export function VoiceSimulation() {
           <span className="font-mono text-sm tabular-nums text-muted-foreground">
             {String(Math.floor(elapsed / 60)).padStart(2, "0")}:{String(elapsed % 60).padStart(2, "0")}
           </span>
-          <Button variant="secondary" size="sm" onClick={end} disabled={phase === "ending"}>
+          <Button variant="secondary" onClick={end} disabled={phase === "ending"}>
             <PhoneOff className="size-4" /> End
           </Button>
         </div>
       </div>
 
       {notice && (
-        <p className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-500">
+        <p className="mt-3 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
           {notice}
         </p>
       )}
@@ -389,21 +389,21 @@ export function VoiceSimulation() {
             className={cn("flex gap-3", t.role === "candidate" ? "justify-end" : "justify-start")}
           >
             {t.role === "interviewer" && (
-              <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-terminal/10 text-terminal">
-                <Bot className="size-4" />
+              <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-lg bg-terminal/10 text-terminal">
+                <Bot className="size-5" />
               </span>
             )}
             <div
               className={cn(
-                "min-w-0 max-w-[80%] rounded-2xl px-4 py-2.5 text-sm",
+                "min-w-0 max-w-[90%] rounded-lg px-4 py-2.5 text-sm sm:max-w-[80%]",
                 t.role === "candidate" ? "bg-primary/10" : "border border-border bg-card",
               )}
             >
               {t.text}
             </div>
             {t.role === "candidate" && (
-              <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
-                <User className="size-4" />
+              <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
+                <User className="size-5" />
               </span>
             )}
           </div>
@@ -467,8 +467,8 @@ function DebriefView({ debrief, onRestart }: { debrief: Debrief | null; onRestar
         </Card>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <DebriefList title="Strengths" items={debrief.strengths} tone="text-emerald-500" />
+      <div className="grid gap-4 md:grid-cols-2">
+        <DebriefList title="Strengths" items={debrief.strengths} tone="text-success" />
         <DebriefList title="Gaps" items={debrief.gaps} tone="text-destructive" />
       </div>
       <DebriefList title="Review next" items={debrief.focus} tone="text-foreground" />
@@ -480,10 +480,10 @@ function DebriefView({ debrief, onRestart }: { debrief: Debrief | null; onRestar
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border p-3">
+    <Card className="p-3">
       <p className="text-xl font-bold tabular-nums">{value}</p>
       <p className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
-    </div>
+    </Card>
   );
 }
 

@@ -6,7 +6,10 @@ import type { Quiz } from "@/features/quizzes/quizzes-data";
 
 export function QuizCard({ quiz }: { quiz: Quiz }) {
   return (
-    <Link href={`/quizzes/${quiz.slug}`} className="group block">
+    <Link
+      href={`/quizzes/${quiz.slug}`}
+      className="group block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+    >
       <Card className="p-4 transition-colors hover:border-primary/40 hover:bg-accent/40">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

@@ -72,7 +72,7 @@ export default async function BillingSuccessPage({
   return (
     <div className="mx-auto max-w-md py-10">
       <Card className="p-8 text-center">
-        <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-500">
+        <span className="mx-auto flex size-14 items-center justify-center rounded-xl bg-success/10 text-success">
           <CheckCircle2 className="size-7" />
         </span>
         <h1 className="mt-4 text-2xl font-bold tracking-tight">

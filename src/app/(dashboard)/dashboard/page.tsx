@@ -79,7 +79,7 @@ export default async function HomePage({
       {showFreeMock && (
         <Link
           href="/interview"
-          className="group flex items-center gap-3 rounded-xl border border-primary/40 bg-gradient-to-r from-primary/10 to-transparent px-4 py-3 transition-colors hover:from-primary/20"
+          className="group flex flex-col gap-2 rounded-xl border border-primary/40 bg-gradient-to-r from-primary/10 to-transparent px-4 py-3 transition-colors hover:from-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background sm:flex-row sm:items-center sm:gap-3"
         >
           <span className="rounded-full bg-primary/20 px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wide text-primary">
             New
@@ -96,7 +96,7 @@ export default async function HomePage({
       )}
 
       {(searchParams.upgraded || searchParams.voice) && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+        <div className="flex items-center gap-2 rounded-xl border border-success/40 bg-success/10 px-4 py-3 text-sm font-medium text-success">
           <CheckCircle2 className="size-4 shrink-0" />
           {searchParams.voice
             ? "Voice session added — you're ready to go."
@@ -129,13 +129,13 @@ export default async function HomePage({
               Launching with Mechanical Engineering: deep lessons, auto-graded practice, and a mock interview.
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button asChild>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <Button asChild className="w-full sm:w-auto">
               <Link href="/learn">
                 Start learning <ArrowRight className="size-4" />
               </Link>
             </Button>
-            <Button asChild variant="secondary">
+            <Button asChild variant="secondary" className="w-full sm:w-auto">
               <Link href="/practice">Practice problems</Link>
             </Button>
           </div>
@@ -143,7 +143,7 @@ export default async function HomePage({
       </Card>
 
       {/* Stats */}
-      <MotionStagger className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <MotionStagger className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {data.stats.map((s) => (
           <MotionItem key={s.label}>
             <StatCard stat={s} />
@@ -197,7 +197,7 @@ export default async function HomePage({
                   >
                     <Icon className="size-4" />
                   </span>
-                  <span className="w-28 shrink-0 truncate text-sm font-medium sm:w-36">{meta.label}</span>
+                  <span title={meta.label} className="w-28 shrink-0 truncate text-sm font-medium sm:w-36">{meta.label}</span>
                   <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
                     <div className="h-full rounded-full bg-primary" style={{ width: `${d.masteryPct}%` }} />
                   </div>

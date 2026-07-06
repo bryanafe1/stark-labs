@@ -212,7 +212,7 @@ export function InterviewChat({
           <h1 className="text-2xl font-bold tracking-tight">Mock Interview</h1>
         </div>
 
-        <div className="elevated rounded-2xl border border-border bg-card p-6">
+        <div className="elevated rounded-xl border border-border bg-card p-6">
           <p className="text-sm text-muted-foreground">
             Sit a realistic technical screen with an AI interviewer. It asks one
             question at a time, probes your reasoning, and ends with structured
@@ -252,7 +252,7 @@ export function InterviewChat({
 
             {/* Interview type — the real differentiator */}
             <Field label="Interview type">
-              <div className="grid gap-2 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <ModeCard
                   active={interviewMode === "technical"}
                   onClick={() => setInterviewMode("technical")}
@@ -337,7 +337,7 @@ export function InterviewChat({
                 ) : (
                   <Link
                     href="/pricing"
-                    className="flex items-center justify-between rounded-xl border border-border px-4 py-3 transition-colors hover:border-primary/40"
+                    className="flex items-center justify-between rounded-xl border border-border px-4 py-3 opacity-80 outline-none transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
                   >
                     <span>
                       <span className="block text-sm font-semibold text-foreground">Hot Seat</span>
@@ -416,7 +416,13 @@ export function InterviewChat({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Button variant="secondary" size="sm" onClick={endInterview} disabled={streaming}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={endInterview}
+            disabled={streaming}
+            aria-label="End interview and get feedback"
+          >
             <Flag className="size-4" />
             <span className="hidden sm:inline">End &amp; get feedback</span>
             <span className="sm:hidden">End</span>
@@ -441,9 +447,9 @@ export function InterviewChat({
             )}
             <div
               className={cn(
-                "min-w-0 max-w-[80%] rounded-2xl px-4 py-2.5 text-sm",
+                "min-w-0 max-w-[90%] rounded-lg px-4 py-2.5 text-sm sm:max-w-[80%]",
                 m.role === "user"
-                  ? "bg-primary/10 text-foreground"
+                  ? "bg-primary/15 text-foreground"
                   : "border border-border bg-card",
               )}
             >
@@ -452,7 +458,7 @@ export function InterviewChat({
                   <Markdown content={m.content} className="space-y-3" />
                 ) : (
                   <span className="flex items-center gap-1.5 text-muted-foreground">
-                    <Loader2 className="size-3.5 animate-spin" /> thinking…
+                    <Loader2 className="size-4 animate-spin" /> thinking…
                   </span>
                 )
               ) : (
@@ -651,7 +657,7 @@ function ModeCard({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-xl border px-4 py-3 text-left transition-colors",
+        "rounded-xl border px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
         active ? "border-primary/60 bg-primary/10" : "border-border hover:border-primary/40",
       )}
     >
@@ -677,7 +683,7 @@ function Pill({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+        "rounded-full border px-3 py-2 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
         active
           ? "border-primary bg-primary/10 text-primary"
           : "border-input text-muted-foreground hover:border-foreground/30 hover:text-foreground",

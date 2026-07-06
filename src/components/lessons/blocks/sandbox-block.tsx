@@ -81,7 +81,7 @@ export function SandboxBlock({ block }: { block: SandboxBlockData }) {
                 step={v.step}
                 value={values[v.key] ?? v.default}
                 onChange={(e) => setVar(v.key, Number(e.target.value))}
-                className="h-2 w-full cursor-pointer appearance-none rounded-full bg-secondary accent-[hsl(var(--terminal))]"
+                className="h-2 w-full cursor-pointer appearance-none rounded-full bg-secondary accent-primary"
               />
             </div>
           ))}

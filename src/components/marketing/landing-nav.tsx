@@ -9,12 +9,12 @@ const NAV_LINKS = [
 
 export function LandingNav() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/70 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <nav className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2">
           <Hexagon className="size-6 text-foreground" strokeWidth={1.75} />
           <span className="font-mono text-lg font-semibold tracking-tight">
-            OC // LABS
+            OVERCLOCK_
           </span>
         </Link>
 
@@ -27,10 +27,10 @@ export function LandingNav() {
             ))}
           </div>
           <ThemeToggle />
-          <Button asChild variant="ghost" size="sm">
+          <Button asChild variant="ghost">
             <Link href="/sign-in">Sign in</Link>
           </Button>
-          <Button asChild size="sm">
+          <Button asChild>
             <Link href="/sign-up">Get started</Link>
           </Button>
         </div>

@@ -53,7 +53,7 @@ export function ResultModal({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 240, damping: 22 }}
         className={cn(
-          "glass relative w-full overflow-hidden rounded-2xl border",
+          "glass relative w-full overflow-hidden rounded-xl border",
           result.conceptual ? "max-w-md" : "max-w-sm",
         )}
       >

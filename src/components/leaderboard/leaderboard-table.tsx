@@ -79,16 +79,16 @@ function Row({ row, isCurrent }: { row: LeaderRow; isCurrent: boolean }) {
         <p className="flex items-center gap-2 truncate text-sm font-medium">
           {row.displayName}
           {isCurrent && (
-            <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+            <span className="rounded-lg bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold text-primary">
               YOU
             </span>
           )}
         </p>
         <p className="truncate text-xs text-muted-foreground">@{row.username}</p>
       </div>
-      <div className="hidden text-right sm:block">
-        <p className={cn("text-xs font-semibold", tier.textClass)}>{tier.label}</p>
-        <p className="text-xs text-muted-foreground">{wr}% WR</p>
+      <div className="shrink-0 text-right">
+        <p className={cn("text-[10px] font-semibold sm:text-xs", tier.textClass)}>{tier.label}</p>
+        <p className="text-[10px] text-muted-foreground sm:text-xs">{wr}% WR</p>
       </div>
       <div className="w-16 shrink-0 text-right font-mono font-bold tabular-nums">{row.elo}</div>
     </motion.div>
@@ -96,9 +96,9 @@ function Row({ row, isCurrent }: { row: LeaderRow; isCurrent: boolean }) {
 }
 
 function RankBadge({ rank }: { rank: number }) {
-  if (rank === 1) return <Crown className="mx-auto size-5 text-yellow-400" />;
-  if (rank === 2) return <Medal className="mx-auto size-5 text-slate-300" />;
-  if (rank === 3) return <Medal className="mx-auto size-5 text-amber-600" />;
+  if (rank === 1) return <Crown className="mx-auto size-5 text-primary" />;
+  if (rank === 2) return <Medal className="mx-auto size-5 text-foreground" />;
+  if (rank === 3) return <Medal className="mx-auto size-5 text-muted-foreground" />;
   return <span className="text-sm font-semibold text-muted-foreground">{rank}</span>;
 }
 

@@ -38,9 +38,9 @@ export function GiveUpButton({ solution }: { solution?: string }) {
           <Flag className="size-4" /> Give up &amp; see the solution
         </Button>
       ) : (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/[0.06] p-3">
+        <div className="rounded-lg border border-border bg-muted/40 p-3">
           <p className="flex items-center gap-2 text-sm font-medium">
-            <TriangleAlert className="size-4 text-amber-400" />
+            <TriangleAlert className="size-4 text-muted-foreground" />
             Are you sure? You&apos;ll see the full step-by-step solution.
           </p>
           <p className="mt-1 text-xs text-muted-foreground">

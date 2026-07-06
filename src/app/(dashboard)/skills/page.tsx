@@ -22,10 +22,10 @@ export default async function SkillsPage() {
             straight into its practice problems.
           </p>
         </div>
-        <span className="rounded-lg border border-border bg-card px-3 py-1.5 font-mono text-sm tabular-nums">
+        <span className="rounded-lg border border-border bg-card px-3 py-1.5 font-mono text-xs tabular-nums sm:text-sm">
           <span className="font-bold text-foreground">{data.totalMastered}</span>
           <span className="text-muted-foreground"> / {data.totalNodes} skills mastered</span>
-          <span className="ml-2 text-terminal">{pct}%</span>
+          <span className="ml-2 whitespace-nowrap text-terminal">{pct}%</span>
         </span>
       </div>
 

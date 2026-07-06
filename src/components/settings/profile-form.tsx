@@ -42,7 +42,7 @@ export function ProfileForm({
       <div className="flex items-center gap-3">
         <SaveButton />
         {state.ok && (
-          <span className="flex items-center gap-1 text-sm text-emerald-500">
+          <span className="flex items-center gap-1 text-sm text-success">
             <Check className="size-4" /> Saved
           </span>
         )}

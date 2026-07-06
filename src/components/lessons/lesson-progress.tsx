@@ -79,7 +79,7 @@ function ProgressHud({ doneCount, total }: { doneCount: number; total: number })
       initial={{ y: 80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 26 }}
-      className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-4"
+      className="pointer-events-none fixed inset-x-0 bottom-6 z-40 flex justify-center px-4 sm:bottom-8"
     >
       <div
         className={cn(

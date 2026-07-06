@@ -38,9 +38,9 @@ function NotificationRow({ item }: { item: Notification }) {
   return (
     <Link
       href={item.href}
-      className="flex items-start gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:bg-accent"
+      className="flex items-start gap-3 rounded-lg border border-border bg-card px-3 py-2.5 transition-colors hover:bg-accent sm:px-4 sm:py-3"
     >
-      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground [&_svg]:size-4">
+      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground [&_svg]:size-4">
         <Icon />
       </span>
       <div className="min-w-0 flex-1">

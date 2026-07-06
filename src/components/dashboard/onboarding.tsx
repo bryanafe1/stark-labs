@@ -32,12 +32,12 @@ export function Onboarding({ show, name }: { show: boolean; name: string }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-background/85 backdrop-blur-sm" onClick={dismiss} />
-      <div className="glass relative w-full max-w-lg overflow-hidden rounded-2xl border p-7 text-center">
+      <div className="glass relative w-full max-w-lg overflow-hidden rounded-xl border p-5 text-center sm:p-7">
         <button
           type="button"
           onClick={dismiss}
           aria-label="Close"
-          className="absolute right-3 top-3 rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="absolute right-3 top-3 rounded-lg p-1 text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
         >
           <X className="size-4" />
         </button>

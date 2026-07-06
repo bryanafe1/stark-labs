@@ -18,7 +18,7 @@ export default function Error({
 
   return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-20 text-center">
-      <AlertTriangle className="size-10 text-amber-400" />
+      <AlertTriangle className="size-10 text-destructive" />
       <div>
         <h1 className="text-lg font-semibold">Something went wrong</h1>
         <p className="mt-1 text-sm text-muted-foreground">

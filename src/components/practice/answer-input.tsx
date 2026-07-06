@@ -50,7 +50,7 @@ export function AnswerInput({ problem }: { problem: AnswerInputProblem }) {
           {(problem.choices ?? []).map((c) => (
             <label
               key={c.id}
-              className="flex cursor-pointer items-start gap-3 rounded-md border border-input bg-background p-3 text-sm transition-colors hover:border-foreground/30 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+              className="flex cursor-pointer items-start gap-3 rounded-lg border border-input bg-background p-3 text-sm transition-colors hover:border-foreground/30 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
             >
               <input
                 type="radio"
@@ -72,7 +72,7 @@ export function AnswerInput({ problem }: { problem: AnswerInputProblem }) {
           <label className="mb-1.5 block font-mono text-xs uppercase tracking-wide text-muted-foreground">
             answer
           </label>
-          <div className="input-terminal flex h-11 max-w-md items-center gap-2 px-3">
+          <div className="input-terminal flex h-11 items-center gap-2 px-3">
             <ChevronRight className="size-4 shrink-0 text-terminal" />
             <input
               name="textAnswer"

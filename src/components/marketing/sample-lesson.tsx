@@ -22,7 +22,7 @@ export function SampleLesson() {
           </p>
         </div>
 
-        <Card className="elevated mx-auto mt-10 max-w-3xl space-y-5 rounded-2xl border-border bg-background p-6 sm:p-8">
+        <Card className="elevated mx-auto mt-10 max-w-3xl space-y-5 border-border bg-background p-6 sm:p-8">
           <p className="font-mono text-xs uppercase tracking-wide text-primary">
             Beam Bending &amp; Deflection
           </p>

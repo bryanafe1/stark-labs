@@ -387,7 +387,7 @@ export function ModeShowcase() {
                 setLocked(true);
               }}
               className={cn(
-                "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                "flex items-center gap-1.5 text-balance rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
                 i === active
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground",
@@ -410,7 +410,7 @@ export function ModeShowcase() {
             OVERCLOCK_ · {MODES[active]!.label} — {MODES[active]!.tagline}
           </span>
         </div>
-        <div className="relative h-[420px] sm:h-[380px]">
+        <div className="relative h-[min(420px,70vh)] sm:h-[380px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={active}

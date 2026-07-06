@@ -115,7 +115,7 @@ export function MatchmakingPanel({ disciplines }: { disciplines: DisciplineElo[]
             </motion.div>
           )}
           {!state.ok && state.error && (
-            <p className="text-sm text-amber-400">{state.error}</p>
+            <p className="text-sm text-destructive">{state.error}</p>
           )}
         </AnimatePresence>
       </CardContent>
@@ -142,7 +142,7 @@ function MatchPreviewCard({ state }: { state: Extract<FindMatchState, { ok: true
   return (
     <div className="rounded-xl border border-primary/30 bg-primary/[0.04] p-4">
       <div className="flex items-center justify-between">
-        <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-400">
+        <span className="rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
           Match found
         </span>
         <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -159,10 +159,10 @@ function MatchPreviewCard({ state }: { state: Extract<FindMatchState, { ok: true
           </p>
         </div>
         <div className="text-right text-xs">
-          <p className="flex items-center justify-end gap-1 text-emerald-400">
+          <p className="flex items-center justify-end gap-1 text-primary">
             <TrendingUp className="size-3.5" /> +{state.winDelta} on win
           </p>
-          <p className="flex items-center justify-end gap-1 text-rose-400">
+          <p className="flex items-center justify-end gap-1 text-destructive">
             <TrendingDown className="size-3.5" /> {state.lossDelta} on loss
           </p>
         </div>

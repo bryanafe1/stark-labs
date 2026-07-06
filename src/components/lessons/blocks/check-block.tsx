@@ -42,7 +42,8 @@ export function CheckBlock({ block }: { block: CheckBlockData }) {
                 disabled={answered}
                 onClick={() => pick(c.id)}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
+                  "flex w-full items-center gap-3 rounded-lg border px-3 py-3 text-left text-sm transition-colors",
+                  "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
                   !answered && "border-input hover:border-primary/40 hover:bg-accent/40",
                   answered && isAnswer && "border-success/40 bg-success/10",
                   answered && isPicked && !isAnswer && "border-destructive/40 bg-destructive/10",
@@ -72,8 +73,8 @@ export function CheckBlock({ block }: { block: CheckBlockData }) {
                 className={cn(
                   "rounded-lg border p-3",
                   correct
-                    ? "border-success/30 bg-success/5"
-                    : "border-amber-500/30 bg-amber-500/5",
+                    ? "border-success/40 bg-success/10"
+                    : "border-destructive/40 bg-destructive/10",
                 )}
               >
                 <p className="mb-1 text-sm font-semibold">

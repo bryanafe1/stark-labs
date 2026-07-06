@@ -112,7 +112,7 @@ function ResultPanel({ state }: { state: PracticeFormState }) {
             <span className="ml-2 font-mono font-normal opacity-80">{state.score}/100</span>
           )}
         </p>
-        {state.feedback && <p className="mt-0.5 text-sm text-foreground/80">{state.feedback}</p>}
+        {state.feedback && <p className="mt-0.5 break-words text-sm text-foreground/80">{state.feedback}</p>}
       </div>
     </motion.div>
   );

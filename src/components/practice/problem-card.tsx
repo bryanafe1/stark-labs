@@ -24,11 +24,11 @@ export function ProblemCard({ problem }: { problem: PracticeProblem }) {
             <h3 className="mt-2 truncate font-semibold group-hover:text-primary">
               {problem.title}
             </h3>
-            <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+            <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">
               {problem.prompt}
             </p>
           </div>
-          <ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+          <ChevronRight className="size-5 shrink-0 self-center text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
         </div>
         <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
           <span className="rounded bg-secondary px-1.5 py-0.5">

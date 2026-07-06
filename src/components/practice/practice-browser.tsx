@@ -137,7 +137,7 @@ export function PracticeBrowser({
             type="button"
             onClick={() => setQuery("")}
             aria-label="Clear search"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
           >
             <X className="size-4" />
           </button>
@@ -215,7 +215,7 @@ export function PracticeBrowser({
                   key={meta.key}
                   type="button"
                   onClick={() => selectDiscipline(meta.key)}
-                  className="group elevated rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40"
+                  className="group elevated rounded-xl border border-border bg-card p-4 text-left outline-none transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
                 >
                   <div className="flex items-center gap-3">
                     <span
@@ -313,7 +313,7 @@ function Results({
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1 rounded-lg text-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
         >
           <ChevronLeft className="size-4" /> All disciplines
         </button>
@@ -395,7 +395,7 @@ function SubjectAccordion({
               onClick={() => setOpen(isOpen ? null : g.key)}
               aria-expanded={isOpen}
               className={cn(
-                "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/40",
+                "flex w-full items-center gap-3 px-4 py-3 text-left outline-none transition-colors hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                 isOpen && "bg-accent/30",
               )}
             >
@@ -405,7 +405,7 @@ function SubjectAccordion({
                   {g.items.length} problem{g.items.length === 1 ? "" : "s"}
                 </span>
               </span>
-              <div className="hidden h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-secondary sm:flex">
+              <div className="flex h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-secondary sm:w-24">
                 {byDiff.map(({ diff, n }) => (
                   <div
                     key={diff}
@@ -482,7 +482,7 @@ function FilterPill({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+        "inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
         active
           ? "border-primary bg-primary/10 text-primary"
           : "border-input text-muted-foreground hover:border-foreground/30 hover:text-foreground",

@@ -50,25 +50,25 @@ export function CommentNode({ comment, depth = 0 }: { comment: Comment; depth?: 
             type="button"
             onClick={() => setCollapsed((c) => !c)}
             aria-label={collapsed ? "Expand replies" : "Collapse replies"}
-            className="text-zinc-500 transition-colors hover:text-zinc-200"
+            className="rounded text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
           >
             {collapsed ? <ChevronRight className="size-4" /> : <ChevronDown className="size-4" />}
           </button>
         ) : (
-          <CornerDownRight className="size-4 text-zinc-700" />
+          <CornerDownRight className="size-4 text-muted-foreground" />
         )}
-        <span className="font-medium text-zinc-200">{comment.author}</span>
-        <span className="text-zinc-600">·</span>
-        <span className="text-zinc-500">{comment.timestamp}</span>
+        <span className="font-medium text-foreground">{comment.author}</span>
+        <span className="text-muted-foreground">·</span>
+        <span className="text-muted-foreground">{comment.timestamp}</span>
         {collapsed && hasReplies && (
-          <span className="text-zinc-600">
+          <span className="text-muted-foreground">
             · [{replies.length} {replies.length === 1 ? "reply" : "replies"} hidden]
           </span>
         )}
       </div>
 
       {/* Body (Inter) */}
-      <p className="mt-1.5 whitespace-pre-wrap break-words text-sm leading-relaxed text-zinc-300">
+      <p className="mt-1.5 whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground/90">
         {comment.content}
       </p>
 
@@ -78,8 +78,8 @@ export function CommentNode({ comment, depth = 0 }: { comment: Comment; depth?: 
           type="button"
           onClick={toggleVote}
           className={cn(
-            "inline-flex items-center gap-1 rounded font-mono text-xs transition-colors",
-            voted ? "text-terminal" : "text-zinc-400 hover:text-zinc-100",
+            "inline-flex items-center gap-1 rounded font-mono text-xs transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+            voted ? "text-terminal" : "text-muted-foreground hover:text-foreground",
           )}
         >
           <ArrowBigUp className={cn("size-4", voted && "fill-terminal")} />
@@ -88,7 +88,7 @@ export function CommentNode({ comment, depth = 0 }: { comment: Comment; depth?: 
         <button
           type="button"
           onClick={() => setReplyOpen((o) => !o)}
-          className="inline-flex items-center gap-1 font-mono text-xs text-zinc-400 transition-colors hover:text-zinc-100"
+          className="inline-flex items-center gap-1 rounded font-mono text-xs text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
         >
           <Reply className="size-3.5" />
           reply
@@ -111,7 +111,7 @@ export function CommentNode({ comment, depth = 0 }: { comment: Comment; depth?: 
               type="button"
               onClick={submitReply}
               disabled={!draft.trim()}
-              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
+              className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-colors outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:opacity-40"
             >
               Comment
             </button>
@@ -121,7 +121,7 @@ export function CommentNode({ comment, depth = 0 }: { comment: Comment; depth?: 
                 setReplyOpen(false);
                 setDraft("");
               }}
-              className="px-2 py-1.5 font-mono text-xs text-zinc-500 transition-colors hover:text-zinc-200"
+              className="rounded px-2 py-1.5 font-mono text-xs text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
             >
               cancel
             </button>
@@ -133,7 +133,7 @@ export function CommentNode({ comment, depth = 0 }: { comment: Comment; depth?: 
       {hasReplies && !collapsed && (
         <div
           className={cn(
-            "mt-3 min-w-0 space-y-4 border-l border-zinc-800",
+            "mt-3 min-w-0 space-y-4 border-l border-border",
             depth >= 4 ? "pl-2" : "pl-4",
           )}
         >

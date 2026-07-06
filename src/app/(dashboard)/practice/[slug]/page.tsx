@@ -88,7 +88,7 @@ export default async function ProblemPage({ params }: Params) {
       </Link>
 
       {/* Split-screen bento: left = the brief, right = the sandbox. */}
-      <div className="grid items-start gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 md:grid-cols-2 lg:gap-5">
         {/* LEFT — THE BRIEF */}
         <Card className="overflow-hidden">
           <PanelHeader label="// brief" />

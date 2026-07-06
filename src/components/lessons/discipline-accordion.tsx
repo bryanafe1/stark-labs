@@ -46,7 +46,7 @@ export function DisciplineAccordion({
               onClick={() => setOpen(isOpen ? null : group.key)}
               aria-expanded={isOpen}
               className={cn(
-                "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors",
+                "flex min-h-[44px] w-full items-center gap-3 px-4 py-3 text-left transition-colors sm:py-4",
                 "hover:bg-accent/40",
                 isOpen && "bg-accent/30",
               )}

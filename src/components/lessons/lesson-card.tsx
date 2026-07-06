@@ -35,7 +35,7 @@ export function LessonCard({
         {(inProgress || completed) && (
           <div className="mt-3 h-1 w-full overflow-hidden rounded-full bg-secondary">
             <div
-              className={cn("h-full rounded-full", completed ? "bg-emerald-500" : "bg-primary")}
+              className={cn("h-full rounded-full", completed ? "bg-success" : "bg-primary")}
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -47,7 +47,7 @@ export function LessonCard({
             {lesson.estMinutes} min
           </span>
           {completed ? (
-            <span className="flex items-center gap-1 font-medium text-emerald-500">
+            <span className="flex items-center gap-1 font-medium text-success">
               Completed <CheckCircle2 className="size-3.5" />
             </span>
           ) : inProgress ? (

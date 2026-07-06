@@ -137,7 +137,7 @@ export function QuizRunner({ quiz }: { quiz: Quiz }) {
               return (
                 <div
                   key={q.id}
-                  className="flex items-start gap-3 rounded-md border border-border bg-background p-3"
+                  className="flex items-start gap-3 rounded-lg border border-border bg-card p-3"
                 >
                   <span
                     className={cn(
@@ -242,7 +242,7 @@ function QuestionInput({
         {(question.choices ?? []).map((c) => (
           <label
             key={c.id}
-            className="flex cursor-pointer items-start gap-3 rounded-md border border-input bg-background p-3 text-sm transition-colors hover:border-foreground/30 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+            className="flex cursor-pointer items-start gap-3 rounded-lg border border-input bg-background p-3 text-sm transition-colors hover:border-foreground/30 has-[:checked]:border-primary has-[:checked]:bg-primary/5"
           >
             <input
               type="radio"

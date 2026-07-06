@@ -108,7 +108,7 @@ export function NotificationsMenu() {
                   className="items-start gap-2.5 px-2.5 py-2.5"
                 >
                   <Link href={item.href}>
-                    <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground [&_svg]:size-4">
+                    <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground [&_svg]:size-4">
                       <Icon />
                     </span>
                     <span className="min-w-0 flex-1">

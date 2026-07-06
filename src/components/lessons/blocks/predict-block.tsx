@@ -49,7 +49,8 @@ export function PredictBlock({ block }: { block: PredictBlockData }) {
                 disabled={committed}
                 onClick={() => choose(o.id)}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors",
+                  "flex items-center gap-3 rounded-lg border px-3 py-3 text-left text-sm transition-colors",
+                  "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
                   !committed && "border-input hover:border-terminal/50 hover:bg-terminal/[0.04]",
                   committed && isAnswer && "border-success/50 bg-success/10",
                   committed && isPicked && !isAnswer && "border-destructive/50 bg-destructive/10",
@@ -71,7 +72,7 @@ export function PredictBlock({ block }: { block: PredictBlockData }) {
               animate={{ opacity: 1, height: "auto" }}
               className="overflow-hidden"
             >
-              <div className="rounded-lg border border-border bg-card/40 p-3">
+              <div className="rounded-lg border border-border bg-card/60 p-3">
                 <p className={cn("mb-1 text-sm font-semibold", correct ? "text-success" : "text-foreground")}>
                   {correct ? "Nailed it ✦" : "Good guess — here's the truth"}
                 </p>

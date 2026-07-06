@@ -137,7 +137,7 @@ export function SprintRunner({
           <div
             className={cn(
               "flex items-center gap-2 rounded-lg border px-3 py-1.5 font-mono text-lg font-bold tabular-nums",
-              low ? "border-rose-500/40 text-rose-400" : "border-border",
+              low ? "border-destructive/40 text-destructive" : "border-border",
             )}
           >
             <Timer className="size-4" />
@@ -159,8 +159,8 @@ export function SprintRunner({
       {/* Live progress: you vs opponent */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-lg border border-border bg-card/40 p-3">
-          <p className="mb-1.5 text-xs font-medium text-emerald-400">You · {solved} solved</p>
-          <Progress value={(solved / problems.length) * 100} indicatorClassName="bg-emerald-400" />
+          <p className="mb-1.5 text-xs font-medium text-primary">You · {solved} solved</p>
+          <Progress value={(solved / problems.length) * 100} indicatorClassName="bg-primary" />
         </div>
         <div className="rounded-lg border border-border bg-card/40 p-3">
           <p className="mb-1.5 flex items-center gap-1 text-xs font-medium text-muted-foreground">
@@ -263,7 +263,7 @@ function SprintSummary({ res }: { res: SprintResolution }) {
               <p
                 className={cn(
                   "text-sm font-semibold",
-                  res.delta > 0 ? "text-emerald-400" : res.delta < 0 ? "text-rose-400" : "text-muted-foreground",
+                  res.delta > 0 ? "text-primary" : res.delta < 0 ? "text-destructive" : "text-muted-foreground",
                 )}
               >
                 {res.delta > 0 ? "+" : ""}

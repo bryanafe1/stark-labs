@@ -196,12 +196,12 @@ export function Matchmaker({
               initial={{ scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 300, damping: 18 }}
-              className="text-center"
+              className="px-4 text-center"
             >
               <p className="font-mono text-sm uppercase tracking-[0.3em] text-terminal">
                 Match Found
               </p>
-              <div className="mt-4 flex items-center justify-center gap-4 font-mono">
+              <div className="mt-4 flex items-center justify-center gap-2 font-mono sm:gap-4">
                 <span className="text-lg font-bold">you</span>
                 <span className="text-2xl font-black text-terminal">VS</span>
                 <span className="max-w-[40vw] truncate text-lg font-bold">{opponent.username}</span>

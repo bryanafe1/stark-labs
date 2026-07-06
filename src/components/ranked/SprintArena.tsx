@@ -269,12 +269,12 @@ function ConceptualSprintView({
           </div>
           {submitting ? (
             <div className="flex items-center gap-2 font-mono text-xs text-primary">
-              <Loader2 className="size-3.5 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
               {botDone ? "Grading both answers…" : `${plan.opponent.username} is finishing…`}
             </div>
           ) : botDone ? (
-            <div className="flex items-center gap-2 font-mono text-xs text-emerald-500">
-              <CheckCircle2 className="size-3.5" />
+            <div className="flex items-center gap-2 font-mono text-xs text-primary">
+              <CheckCircle2 className="size-4" />
               Submitted · {fmt(plan.botFinishMs)}
             </div>
           ) : (

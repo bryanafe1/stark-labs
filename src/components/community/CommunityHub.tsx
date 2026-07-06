@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ArrowBigUp, MessageSquare, Hash } from "lucide-react";
 import { cn, formatCompact } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 import { MOCK_THREADS } from "./mockCommunityData";
 import { CommentNode } from "./CommentNode";
 import type { Comment, Thread } from "./types";
@@ -12,14 +13,30 @@ function countComments(comments: Comment[]): number {
 }
 
 export function CommunityHub() {
-  const [selectedId, setSelectedId] = useState<string>(MOCK_THREADS[0]!.id);
-  const selected = MOCK_THREADS.find((t) => t.id === selectedId)!;
+  const first = MOCK_THREADS[0];
+  const [selectedId, setSelectedId] = useState<string>(first?.id ?? "");
+  const selected = MOCK_THREADS.find((t) => t.id === selectedId) ?? first;
+
+  if (!selected) {
+    return (
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold tracking-tight">Community Hub</h1>
+        </div>
+        <EmptyState
+          icon={MessageSquare}
+          title="No threads yet"
+          description="Start a discussion — everything here is local-first with no backend."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-6xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Community Hub</h1>
-        <p className="font-mono text-sm text-zinc-400">
+        <p className="font-mono text-sm text-muted-foreground">
           {MOCK_THREADS.length} threads · local-first · no backend
         </p>
       </div>
@@ -62,17 +79,17 @@ function ThreadListItem({
         "w-full rounded-lg border p-3 text-left transition-colors",
         active
           ? "border-terminal/40 bg-terminal/[0.04]"
-          : "border-zinc-800 bg-card/40 hover:border-zinc-700",
+          : "border-border bg-card/40 hover:bg-accent",
       )}
     >
-      <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wide text-zinc-500">
-        <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-300">{thread.flair}</span>
-        <span className="text-zinc-600">{thread.timestamp}</span>
+      <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
+        <span className="rounded bg-muted px-1.5 py-0.5 text-foreground">{thread.flair}</span>
+        <span className="text-muted-foreground">{thread.timestamp}</span>
       </div>
-      <h3 className="mt-1.5 line-clamp-2 text-sm font-medium leading-snug text-zinc-100">
+      <h3 className="mt-1.5 line-clamp-2 text-sm font-medium leading-snug text-foreground">
         {thread.title}
       </h3>
-      <div className="mt-2 flex items-center gap-3 font-mono text-xs text-zinc-500">
+      <div className="mt-2 flex items-center gap-3 font-mono text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
           <ArrowBigUp className="size-3.5" />
           {formatCompact(thread.upvotes)}
@@ -105,22 +122,22 @@ function ThreadDetail({ thread }: { thread: Thread }) {
   };
 
   return (
-    <div className="min-w-0 rounded-xl border border-zinc-800 bg-card/40">
+    <div className="min-w-0 rounded-xl border border-border bg-card/40">
       {/* Original post */}
-      <article className="border-b border-zinc-800 p-5">
+      <article className="border-b border-border p-5">
         <div className="flex items-center gap-2 font-mono text-xs">
-          <span className="rounded bg-zinc-800 px-1.5 py-0.5 uppercase tracking-wide text-zinc-300">
+          <span className="rounded bg-muted px-1.5 py-0.5 uppercase tracking-wide text-foreground">
             {thread.flair}
           </span>
-          <span className="text-zinc-200">{thread.author}</span>
-          <span className="text-zinc-600">·</span>
-          <span className="text-zinc-500">{thread.timestamp}</span>
+          <span className="text-foreground">{thread.author}</span>
+          <span className="text-muted-foreground">·</span>
+          <span className="text-muted-foreground">{thread.timestamp}</span>
         </div>
 
-        <h2 className="mt-3 text-xl font-semibold tracking-tight text-zinc-50">
+        <h2 className="mt-3 text-xl font-semibold tracking-tight text-foreground">
           {thread.title}
         </h2>
-        <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-zinc-300">
+        <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-foreground/90">
           {thread.content}
         </p>
 
@@ -128,7 +145,7 @@ function ThreadDetail({ thread }: { thread: Thread }) {
           {thread.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center gap-0.5 rounded bg-zinc-900 px-1.5 py-0.5 font-mono text-xs text-zinc-500"
+              className="inline-flex items-center gap-0.5 rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground"
             >
               <Hash className="size-3" />
               {tag}
@@ -144,16 +161,16 @@ function ThreadDetail({ thread }: { thread: Thread }) {
               setVoted((v) => !v);
             }}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-mono text-sm transition-colors",
+              "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 font-mono text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
               voted
                 ? "border-terminal/40 text-terminal"
-                : "border-zinc-800 text-zinc-400 hover:text-zinc-100",
+                : "border-border text-muted-foreground hover:text-foreground",
             )}
           >
             <ArrowBigUp className={cn("size-4", voted && "fill-terminal")} />
             {formatCompact(score)}
           </button>
-          <span className="flex items-center gap-1.5 font-mono text-sm text-zinc-500">
+          <span className="flex items-center gap-1.5 font-mono text-sm text-muted-foreground">
             <MessageSquare className="size-4" />
             {total}
           </span>
@@ -161,7 +178,7 @@ function ThreadDetail({ thread }: { thread: Thread }) {
       </article>
 
       {/* Root composer */}
-      <div className="border-b border-zinc-800 p-5">
+      <div className="border-b border-border p-5">
         <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -174,7 +191,7 @@ function ThreadDetail({ thread }: { thread: Thread }) {
             type="button"
             onClick={addRootComment}
             disabled={!draft.trim()}
-            className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
+            className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-colors outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:opacity-40"
           >
             Comment
           </button>

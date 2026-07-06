@@ -46,7 +46,7 @@ export function Paywall({
           <ul className="space-y-2">
             {PERKS.map((p) => (
               <li key={p} className="flex items-start gap-2 text-sm">
-                <Check className="mt-0.5 size-4 shrink-0 text-emerald-500" />
+                <Check className="mt-0.5 size-4 shrink-0 text-success" />
                 {p}
               </li>
             ))}

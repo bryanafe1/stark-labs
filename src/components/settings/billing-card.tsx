@@ -54,22 +54,22 @@ export async function BillingCard({ userId }: { userId: string }) {
               </p>
             </div>
             <form action={openPortal}>
-              <Button type="submit" variant="secondary" size="sm">
+              <Button type="submit" variant="secondary">
                 Manage
               </Button>
             </form>
           </div>
         ) : access.status === "past_due" ? (
           <div className="flex items-center justify-between gap-2">
-            <p className="text-amber-500">Payment failed — we&apos;re retrying. Update your card to keep access.</p>
+            <p className="text-destructive">Payment failed — we&apos;re retrying. Update your card to keep access.</p>
             <form action={openPortal}>
-              <Button type="submit" variant="secondary" size="sm">
+              <Button type="submit" variant="secondary">
                 Update card
               </Button>
             </form>
           </div>
         ) : (
-          <Button asChild size="sm">
+          <Button asChild>
             <Link href="/pricing">Upgrade</Link>
           </Button>
         )}
@@ -121,14 +121,14 @@ async function VoiceStatus({ userId, pro }: { userId: string; pro: boolean }) {
       {credits.length === 0 && (
         <div className="flex gap-2">
           <form action={buyVoiceSession}>
-            <Button type="submit" variant="secondary" size="sm">
+            <Button type="submit" variant="secondary">
               Buy $12
             </Button>
           </form>
           <form action={startSubscription}>
             <input type="hidden" name="tier" value="pro" />
             <input type="hidden" name="interval" value="monthly" />
-            <Button type="submit" size="sm">
+            <Button type="submit">
               Go Pro
             </Button>
           </form>

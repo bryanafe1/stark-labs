@@ -36,8 +36,8 @@ export function ReadinessCard({ readiness }: { readiness: Readiness }) {
     <Card className="overflow-hidden border-primary/30 bg-gradient-to-br from-primary/[0.06] to-transparent p-5 sm:p-6">
       <div className="flex flex-col items-center gap-6 sm:flex-row">
         {/* Gauge */}
-        <div className="relative flex size-32 shrink-0 items-center justify-center">
-          <svg viewBox="0 0 120 120" className="size-32 -rotate-90">
+        <div className="relative flex size-24 shrink-0 items-center justify-center sm:size-32">
+          <svg viewBox="0 0 120 120" className="size-24 -rotate-90 sm:size-32">
             <circle cx="60" cy="60" r={R} fill="none" strokeWidth="9" style={{ stroke: "hsl(var(--secondary))" }} />
             <circle
               cx="60"
@@ -50,7 +50,7 @@ export function ReadinessCard({ readiness }: { readiness: Readiness }) {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={cn("font-mono text-3xl font-black tabular-nums", ready && "text-success")}>
+            <span className={cn("font-mono text-2xl font-black tabular-nums sm:text-3xl", ready && "text-success")}>
               {shown}
             </span>
             <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground">/ 100</span>
@@ -91,7 +91,7 @@ export function ReadinessCard({ readiness }: { readiness: Readiness }) {
             </div>
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
               <div
-                className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
+                className="h-full rounded-full bg-primary motion-safe:transition-[width] motion-safe:duration-700 motion-safe:ease-out"
                 style={{ width: `${mounted ? c.value : 0}%` }}
               />
             </div>

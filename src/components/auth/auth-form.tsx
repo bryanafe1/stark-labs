@@ -32,7 +32,7 @@ export function Field({ label, id, error, className, ...props }: FieldProps) {
         id={id}
         aria-invalid={error ? true : undefined}
         className={cn(
-          "h-10 w-full rounded-md border border-input bg-card/60 px-3 text-sm outline-none ring-ring focus:ring-2",
+          "elevated h-10 w-full rounded-lg border border-input bg-card/60 px-3 text-sm outline-none ring-ring focus:ring-2",
           error && "border-destructive ring-destructive",
           className,
         )}

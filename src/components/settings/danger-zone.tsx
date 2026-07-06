@@ -22,7 +22,7 @@ export function DeleteAccount() {
       <p className="text-sm text-foreground">
         This permanently deletes your account and all your progress. This cannot be undone.
       </p>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <form action={deleteAccount}>
           <ConfirmDeleteButton />
         </form>
@@ -37,7 +37,7 @@ export function DeleteAccount() {
 function ConfirmDeleteButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant="destructive" disabled={pending} className="gap-2">
+    <Button type="submit" variant="destructive" disabled={pending} aria-busy={pending} className="gap-2">
       {pending && <Loader2 className="size-4 animate-spin" />}
       {pending ? "Deleting…" : "Yes, delete everything"}
     </Button>

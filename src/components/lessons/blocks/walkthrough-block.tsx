@@ -49,7 +49,6 @@ export function WalkthroughBlock({ block }: { block: WalkthroughBlockData }) {
             <motion.div exit={{ opacity: 0 }}>
               <Button
                 variant="secondary"
-                size="sm"
                 className="w-full"
                 onClick={() => setRevealed((r) => r + 1)}
               >

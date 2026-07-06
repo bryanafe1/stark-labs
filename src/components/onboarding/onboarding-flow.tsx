@@ -92,7 +92,7 @@ function SelectCard({
       aria-pressed={selected}
       className={cn(
         "group relative flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         selected
           ? "border-terminal bg-terminal/[0.05]"
           : "border-border hover:border-input hover:bg-accent/40",
@@ -145,14 +145,14 @@ function DisciplineStep({
               aria-pressed={isOn}
               className={cn(
                 "relative flex flex-col items-center gap-2 rounded-lg border p-3 transition-colors sm:p-4",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 isOn
                   ? "border-terminal bg-terminal/[0.05]"
                   : "border-border hover:border-input hover:bg-accent/40",
               )}
             >
               {isOn ? (
-                <span className="absolute right-2 top-2 flex size-4 items-center justify-center rounded-full bg-terminal text-background">
+                <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-terminal text-background">
                   <Check className="size-3" strokeWidth={3} />
                 </span>
               ) : null}

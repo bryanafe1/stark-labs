@@ -10,16 +10,16 @@ const VARIANT: Record<
   tip: {
     icon: Lightbulb,
     label: "Tip",
-    border: "border-emerald-500/30",
-    bg: "bg-emerald-500/[0.06]",
-    text: "text-emerald-400",
+    border: "border-success/40",
+    bg: "bg-success/10",
+    text: "text-success",
   },
   warning: {
     icon: AlertTriangle,
     label: "Common pitfall",
-    border: "border-amber-500/30",
-    bg: "bg-amber-500/[0.06]",
-    text: "text-amber-400",
+    border: "border-border",
+    bg: "bg-muted",
+    text: "text-muted-foreground",
   },
   insight: {
     icon: Sparkles,
@@ -41,9 +41,13 @@ export function CalloutBlock({ block }: { block: CalloutBlockData }) {
   const v = VARIANT[block.variant];
   const Icon = v.icon;
   return (
-    <div className={cn("rounded-xl border p-4", v.border, v.bg)}>
+    <div
+      role="note"
+      aria-label={block.title ?? v.label}
+      className={cn("rounded-xl border p-4", v.border, v.bg)}
+    >
       <div className={cn("mb-2 flex items-center gap-2 text-sm font-semibold", v.text)}>
-        <Icon className="size-4" />
+        <Icon className="size-4" aria-hidden="true" />
         {block.title ?? v.label}
       </div>
       <Markdown content={block.markdown} className="text-sm" />

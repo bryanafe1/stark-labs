@@ -4,9 +4,9 @@ import { cn, timeAgo } from "@/lib/utils";
 import type { MatchHistoryItem } from "@/features/arena/get-arena";
 
 const RESULT_STYLE = {
-  WIN: { label: "W", cls: "bg-emerald-500/15 text-emerald-400" },
-  LOSS: { label: "L", cls: "bg-rose-500/15 text-rose-400" },
-  DRAW: { label: "D", cls: "bg-slate-500/15 text-slate-300" },
+  WIN: { label: "W", cls: "bg-primary/15 text-primary" },
+  LOSS: { label: "L", cls: "bg-destructive/15 text-destructive" },
+  DRAW: { label: "D", cls: "bg-muted text-muted-foreground" },
 } as const;
 
 export function MatchHistory({ items }: { items: MatchHistoryItem[] }) {
@@ -44,7 +44,7 @@ export function MatchHistory({ items }: { items: MatchHistoryItem[] }) {
               <span
                 className={cn(
                   "shrink-0 text-sm font-semibold tabular-nums",
-                  up ? "text-emerald-400" : m.eloDelta < 0 ? "text-rose-400" : "text-muted-foreground",
+                  up ? "text-primary" : m.eloDelta < 0 ? "text-destructive" : "text-muted-foreground",
                 )}
               >
                 {up ? "+" : ""}

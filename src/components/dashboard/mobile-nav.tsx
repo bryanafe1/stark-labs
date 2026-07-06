@@ -88,7 +88,7 @@ export function MobileNav() {
                           key={item.href}
                           href={item.href}
                           className={cn(
-                            "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
+                            "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                             active
                               ? "bg-primary/10 text-primary"
                               : "text-muted-foreground hover:bg-accent hover:text-foreground",
@@ -96,6 +96,7 @@ export function MobileNav() {
                         >
                           <item.icon className="size-5" />
                           {item.label}
+                          {active && <span className="ml-auto h-5 w-1 rounded-full bg-primary" />}
                         </Link>
                       );
                     })}

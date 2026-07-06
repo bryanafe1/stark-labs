@@ -49,7 +49,7 @@ export function ReferenceSheet({ equations }: { equations: string[] }) {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close reference sheet"
-                className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+                className="rounded-lg p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
               >
                 <X className="size-4" />
               </button>
@@ -64,7 +64,7 @@ export function ReferenceSheet({ equations }: { equations: string[] }) {
                 {equations.map((eq, i) => (
                   <li
                     key={i}
-                    className="rounded-lg border border-border bg-background/60 px-3 py-2.5 font-mono text-sm leading-relaxed text-foreground/90"
+                    className="rounded-lg border border-border bg-background/60 px-3 py-2.5 font-mono text-sm leading-relaxed text-foreground/90 break-words"
                   >
                     {eq}
                   </li>

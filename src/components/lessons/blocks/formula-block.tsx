@@ -13,7 +13,7 @@ export function FormulaBlock({ block }: { block: FormulaBlockData }) {
       </div>
       <div className="p-5">
         {/* Proper math typesetting via KaTeX; plain-text fallback if no LaTeX. */}
-        <div className="overflow-x-auto rounded-md border border-border bg-background px-4 py-3 text-center">
+        <div className="overflow-x-auto rounded-lg border border-border bg-background px-4 py-3 text-center">
           {block.latex ? (
             <Latex tex={block.latex} display className="my-0 text-lg" />
           ) : (

@@ -25,7 +25,7 @@ export function StatCard({ stat }: { stat: DashboardStat }) {
           <span
             className={cn(
               "flex items-center gap-0.5 text-xs font-medium",
-              positive ? "text-emerald-400" : "text-rose-400",
+              positive ? "text-primary" : "text-muted-foreground",
             )}
           >
             {positive ? (

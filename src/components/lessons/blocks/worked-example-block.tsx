@@ -38,7 +38,6 @@ export function WorkedExampleBlock({ block }: { block: WorkedExampleBlockData })
 
         <Button
           variant={shown ? "ghost" : "secondary"}
-          size="sm"
           onClick={toggle}
         >
           {shown ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -57,7 +56,10 @@ export function WorkedExampleBlock({ block }: { block: WorkedExampleBlockData })
               <div className="space-y-3">
                 {block.steps.map((step, i) => (
                   <div key={i} className="flex gap-3">
-                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold">
+                    <span
+                      aria-label={`Step ${i + 1}`}
+                      className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold"
+                    >
                       {i + 1}
                     </span>
                     <div className="min-w-0 flex-1 space-y-1">
@@ -66,8 +68,8 @@ export function WorkedExampleBlock({ block }: { block: WorkedExampleBlockData })
                     </div>
                   </div>
                 ))}
-                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] p-3">
-                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-400">
+                <div className="rounded-lg border border-success/40 bg-success/10 p-3">
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-success">
                     Answer
                   </p>
                   <Markdown content={block.answer} className="text-sm" />

@@ -70,14 +70,14 @@ export function RankCard({ overallElo, xp, streakDays }: RankCardProps) {
 
         <div className="mt-6 grid grid-cols-2 gap-3">
           <div className="flex items-center gap-3 rounded-lg border border-border bg-background/50 p-3">
-            <Flame className="size-5 text-orange-400" />
+            <Flame className="size-5 text-muted-foreground" />
             <div>
               <p className="text-lg font-bold leading-none">{streakDays}</p>
               <p className="text-xs text-muted-foreground">day streak</p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-lg border border-border bg-background/50 p-3">
-            <TrendingUp className="size-5 text-emerald-400" />
+            <TrendingUp className="size-5 text-primary" />
             <div>
               <p className="text-lg font-bold leading-none">{formatCompact(xp)}</p>
               <p className="text-xs text-muted-foreground">total XP</p>

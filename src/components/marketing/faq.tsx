@@ -45,7 +45,7 @@ export function Faq() {
               key={f.q}
               className="group rounded-xl border border-border bg-card/50 px-5 py-4 transition-colors hover:bg-card"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold transition-colors hover:text-primary [&::-webkit-details-marker]:hidden">
                 {f.q}
                 <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
               </summary>

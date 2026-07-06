@@ -44,7 +44,7 @@ export function AuthCard({ title, subtitle, children, footer }: AuthCardProps) {
           {footer.prompt}{" "}
           <Link
             href={footer.href}
-            className="font-medium text-foreground underline-offset-4 hover:underline"
+            className="font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             {footer.linkLabel}
           </Link>

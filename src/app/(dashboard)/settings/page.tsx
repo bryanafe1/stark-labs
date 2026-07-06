@@ -67,8 +67,8 @@ export default async function SettingsPage() {
             <span
               className={
                 planPrimary
-                  ? "rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary"
-                  : "rounded-full bg-secondary px-2 py-0.5 text-xs font-semibold text-muted-foreground"
+                  ? "shrink-0 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary"
+                  : "shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-foreground"
               }
             >
               {planLabel}
@@ -151,7 +151,7 @@ function Row({
         <Icon className="size-4" />
         {label}
       </span>
-      {children}
+      <span className="flex min-w-0 items-center justify-end text-right">{children}</span>
     </div>
   );
 }

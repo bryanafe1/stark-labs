@@ -58,7 +58,7 @@ export function QueuePanel({
             <p className="font-mono text-sm text-terminal">Finding an opponent…</p>
             <p className="mt-1 font-mono text-2xl font-bold tabular-nums">{fmtTime(elapsedMs)}</p>
           </div>
-          <Button variant="ghost" size="sm" onClick={onCancel}>
+          <Button variant="ghost" onClick={onCancel}>
             <X className="size-4" />
             Cancel
           </Button>

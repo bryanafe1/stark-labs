@@ -86,9 +86,8 @@ export function ConceptualWorkspace({
               value={ps.answer}
               onChange={(e) => setAnswer(i, e.target.value)}
               disabled={graded || busy}
-              rows={5}
               placeholder="Explain your reasoning — like you would out loud in an interview."
-              className="mt-3 w-full rounded-lg border border-input bg-background p-3 text-sm leading-relaxed outline-none ring-ring transition focus-visible:ring-2 disabled:opacity-70 placeholder:text-muted-foreground/50"
+              className="mt-3 min-h-[9rem] w-full rounded-lg border border-input bg-background p-3 text-sm leading-relaxed outline-none ring-ring transition focus-visible:ring-2 disabled:opacity-70 placeholder:text-muted-foreground/50 sm:min-h-[10rem]"
             />
 
             {!graded && (
@@ -122,7 +121,7 @@ export function ConceptualWorkspace({
                 )}
 
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-500">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     What you can improve on
                   </p>
                   <div className="mt-1 text-sm leading-relaxed text-foreground/85">

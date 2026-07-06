@@ -52,7 +52,7 @@ export default async function LessonPage({ params }: Params) {
   const showCompleted = total > 0 && doneCount === total;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4 pb-24">
+    <div className="mx-auto max-w-3xl space-y-6 pb-24">
       <Link
         href="/learn"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -62,7 +62,7 @@ export default async function LessonPage({ params }: Params) {
       </Link>
 
       {/* Calm reading sheet — keeps the blueprint grid off the prose. */}
-      <div className="elevated space-y-6 rounded-2xl border border-border bg-background p-5 sm:p-8">
+      <div className="elevated space-y-6 rounded-xl border border-border bg-background p-5 sm:p-8">
       {/* Lesson header */}
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -73,7 +73,7 @@ export default async function LessonPage({ params }: Params) {
             {lesson.estMinutes} min
           </span>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight">{lesson.title}</h1>
+        <h1 className="text-balance text-2xl font-bold tracking-tight">{lesson.title}</h1>
         <p className="text-muted-foreground">{lesson.summary}</p>
         {lesson.prerequisites && lesson.prerequisites.length > 0 && (
           <p className="text-xs text-muted-foreground">
@@ -94,7 +94,7 @@ export default async function LessonPage({ params }: Params) {
             <p className="mt-1 text-sm text-muted-foreground">
               You&apos;re {pct}% through — {doneCount} of {total} steps done.
             </p>
-            <div className="mt-2 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary sm:max-w-xs">
               <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
             </div>
           </div>
@@ -103,7 +103,7 @@ export default async function LessonPage({ params }: Params) {
       )}
 
       {showCompleted && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/[0.06] p-3 text-sm font-medium text-emerald-500">
+        <div className="flex items-center gap-2 rounded-xl border border-success/40 bg-success/10 p-3 text-sm font-medium text-success">
           <CheckCircle2 className="size-4" />
           You&apos;ve completed this lesson — revisit any section below.
         </div>

@@ -16,6 +16,8 @@ import { prisma } from "@/lib/prisma";
 import { FREE_INTERVIEW_TURNS } from "@/lib/interview";
 import { getReadiness } from "@/lib/readiness";
 import { ReadinessCard } from "@/components/dashboard/readiness-card";
+import { Onboarding } from "@/components/dashboard/onboarding";
+import { SignupConversion } from "@/components/dashboard/signup-conversion";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,12 +46,22 @@ export default async function HomePage({
   // Announce the free mock interview to free users who haven't used it yet.
   const access = userId ? await getAccess(userId) : null;
   let showFreeMock = false;
-  if (userId && access && !access.paid) {
-    const u = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { freeInterviewTurns: true },
-    });
-    showFreeMock = (u?.freeInterviewTurns ?? 0) < FREE_INTERVIEW_TURNS;
+  let showOnboarding = false;
+  let fireSignupConversion = false;
+  if (userId) {
+    const [u, subCount, lessonCount] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { freeInterviewTurns: true, signupTracked: true },
+      }),
+      prisma.submission.count({ where: { userId } }),
+      prisma.lessonProgress.count({ where: { userId } }),
+    ]);
+    const turns = u?.freeInterviewTurns ?? 0;
+    showFreeMock = !!access && !access.paid && turns < FREE_INTERVIEW_TURNS;
+    // Brand-new user with zero activity → funnel them into their first action.
+    showOnboarding = subCount === 0 && lessonCount === 0 && turns === 0;
+    fireSignupConversion = !(u?.signupTracked ?? false);
   }
 
   const first = (data.user.displayName || "there").split(" ")[0];
@@ -61,6 +73,9 @@ export default async function HomePage({
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
+      <SignupConversion fire={fireSignupConversion} />
+      <Onboarding show={showOnboarding} name={first ?? "there"} />
+
       {showFreeMock && (
         <Link
           href="/interview"

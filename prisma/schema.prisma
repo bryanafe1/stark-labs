@@ -156,6 +156,7 @@ model User {
   planTier             String? // standard | pro  (new two-tier model)
   billingInterval      String? // monthly | annual
   freeInterviewTurns   Int       @default(0) // AI mock-interview turns a free user has spent (free-trial cap)
+  signupTracked        Boolean   @default(false) // signup conversion event fired once
   stripeCustomerId     String?   @unique
   stripeSubscriptionId String?   @unique
   currentPeriodEnd     DateTime? // access valid through this time

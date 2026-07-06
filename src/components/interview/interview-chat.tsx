@@ -9,7 +9,6 @@ import {
   Flag,
   Bot,
   User,
-  Mic,
   ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
@@ -158,29 +157,11 @@ export function InterviewChat({
       <div className="mx-auto max-w-2xl">
         <div className="mb-6 flex items-center gap-2">
           <MessageSquare className="size-5 text-terminal" />
-          <h1 className="text-2xl font-bold tracking-tight">Mock Interview</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Typed Interview</h1>
         </div>
 
         <div className="elevated rounded-xl border border-border bg-card p-6">
-          <p className="text-sm text-muted-foreground">
-            Sit a realistic technical screen with an AI interviewer. It asks one
-            question at a time, probes your reasoning, and ends with structured
-            feedback on your interview readiness.
-          </p>
-
-          <Link
-            href="/simulation"
-            className="mt-4 flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm outline-none transition-colors hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
-          >
-            <Mic className="size-4 shrink-0 text-primary" />
-            <span className="flex-1">
-              <span className="font-medium text-foreground">Prefer to speak? Try the Voice Interview</span>
-              <span className="text-muted-foreground"> — a real-time spoken interview you answer out loud, like the real room.</span>
-            </span>
-            <ArrowRight className="size-4 shrink-0 text-primary" />
-          </Link>
-
-          <div className="mt-6 space-y-5">
+          <div className="space-y-5">
             {/* Discipline — compact chips */}
             <Field label="Discipline">
               <div className="flex flex-wrap gap-1.5">
@@ -313,7 +294,7 @@ export function InterviewChat({
         <div className="flex items-center gap-2">
           <MessageSquare className="size-5 text-terminal" />
           <div>
-            <h1 className="text-lg font-bold leading-none tracking-tight">Mock Interview</h1>
+            <h1 className="text-lg font-bold leading-none tracking-tight">Typed Interview</h1>
             <p className="mt-1 font-mono text-xs text-muted-foreground">
               {disciplineLabel} · {jd ? "Tailored to your role" : focus} · {level}
               {freeTrial ? " · Free preview" : ""}

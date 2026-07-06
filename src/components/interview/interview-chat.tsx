@@ -10,10 +10,6 @@ import {
   Bot,
   User,
   Mic,
-  Square,
-  Volume2,
-  VolumeX,
-  Lock,
   ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
@@ -21,7 +17,6 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/markdown";
 import { cn } from "@/lib/utils";
-import { useSpeech } from "@/components/interview/use-speech";
 import {
   INTERVIEW_KICKOFF,
   type InterviewConfig,
@@ -41,23 +36,12 @@ interface Msg {
 let counter = 0;
 const uid = () => `m${Date.now()}_${counter++}`;
 
-/** Index of the last completed-sentence terminator in a string, else -1. */
-function lastSentenceEnd(s: string): number {
-  let idx = -1;
-  const re = /[.!?…](\s|$)/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(s)) !== null) idx = m.index;
-  return idx;
-}
-
 const GENERAL_FOCUS = "General fundamentals";
 const LEVELS: InterviewLevel[] = ["Intern", "New grad", "Experienced"];
 
 export function InterviewChat({
-  pro = false,
   freeTrial = false,
 }: {
-  pro?: boolean;
   freeTrial?: boolean;
 }) {
   const [phase, setPhase] = useState<"setup" | "live">("setup");
@@ -71,10 +55,7 @@ export function InterviewChat({
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<"text" | "voice">("text");
-  const [muted, setMuted] = useState(false);
   const [disciplineKey, setDisciplineKey] = useState<Discipline>("MECHANICAL");
-  const speech = useSpeech();
 
   const disciplineLabel = DISCIPLINES[disciplineKey].label;
   // Focus options adapt to the chosen discipline's subjects.
@@ -87,7 +68,6 @@ export function InterviewChat({
   );
 
   const bottomRef = useRef<HTMLDivElement>(null);
-  const messagesRef = useRef<Msg[]>([]);
   const jd = jobDescription.trim();
   const config: InterviewConfig = {
     disciplineLabel,
@@ -99,7 +79,6 @@ export function InterviewChat({
   };
 
   useEffect(() => {
-    messagesRef.current = messages;
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
@@ -130,32 +109,13 @@ export function InterviewChat({
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      const voice = mode === "voice" && speech.supported && !muted;
-      let full = "";
-      let spokenIdx = 0;
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
-        full += chunk;
         setMessages((prev) =>
           prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + chunk } : m)),
         );
-        // Voice mode: speak each complete sentence the moment it's ready.
-        if (voice) {
-          const pending = full.slice(spokenIdx);
-          const end = lastSentenceEnd(pending);
-          if (end >= 0) {
-            const sentence = pending.slice(0, end + 1).trim();
-            if (sentence) speech.speak(sentence);
-            spokenIdx += end + 1;
-          }
-        }
-      }
-      // Speak any trailing text that didn't end with punctuation.
-      if (voice) {
-        const tail = full.slice(spokenIdx).trim();
-        if (tail) speech.speak(tail);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -177,16 +137,6 @@ export function InterviewChat({
     streamTurn([...messages, { id: uid(), role: "user", content: text }]);
   }
 
-  // Voice mode: capture the spoken answer, then send it as the user's message.
-  function listenAndSend() {
-    if (streaming) return;
-    speech.listen((transcript) => {
-      const text = transcript.trim();
-      if (!text) return;
-      streamTurn([...messagesRef.current, { id: uid(), role: "user", content: text }]);
-    });
-  }
-
   function endInterview() {
     if (streaming) return;
     streamTurn([
@@ -196,7 +146,6 @@ export function InterviewChat({
   }
 
   function reset() {
-    speech.cancel();
     setMessages([]);
     setInput("");
     setError(null);
@@ -221,12 +170,12 @@ export function InterviewChat({
 
           <Link
             href="/simulation"
-            className="mt-4 flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm transition-colors hover:bg-primary/10"
+            className="mt-4 flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm outline-none transition-colors hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
           >
             <Mic className="size-4 shrink-0 text-primary" />
             <span className="flex-1">
-              <span className="font-medium text-foreground">New: full voice simulation</span>
-              <span className="text-muted-foreground"> — a real-time spoken interview you talk to out loud.</span>
+              <span className="font-medium text-foreground">Prefer to speak? Try the Voice Interview</span>
+              <span className="text-muted-foreground"> — a real-time spoken interview you answer out loud, like the real room.</span>
             </span>
             <ArrowRight className="size-4 shrink-0 text-primary" />
           </Link>
@@ -316,49 +265,6 @@ export function InterviewChat({
               </Field>
             </div>
 
-            {/* Format — two named modes as cards */}
-            <Field label="Format">
-              <div className="grid gap-2 sm:grid-cols-2">
-                <ModeCard
-                  active={mode === "text"}
-                  onClick={() => setMode("text")}
-                  title="Library Mode"
-                  desc="Type your answers at your own pace."
-                />
-                {pro ? (
-                  <ModeCard
-                    active={mode === "voice"}
-                    onClick={() => {
-                      if (speech.supported) setMode("voice");
-                    }}
-                    title="Hot Seat"
-                    desc="Talk out loud, like the real room."
-                  />
-                ) : (
-                  <Link
-                    href="/pricing"
-                    className="flex items-center justify-between rounded-xl border border-border px-4 py-3 opacity-80 outline-none transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background"
-                  >
-                    <span>
-                      <span className="block text-sm font-semibold text-foreground">Hot Seat</span>
-                      <span className="block text-xs text-muted-foreground">Talk out loud — Pro</span>
-                    </span>
-                    <Lock className="size-4 shrink-0 text-muted-foreground" />
-                  </Link>
-                )}
-              </div>
-              {pro && mode === "voice" && (
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Speaking needs <span className="text-foreground">Chrome, Edge, or Safari</span>. For a
-                  seamless real-time conversation, try the{" "}
-                  <Link href="/simulation" className="text-primary underline-offset-2 hover:underline">
-                    voice simulation
-                  </Link>
-                  .
-                </p>
-              )}
-            </Field>
-
             {/* Job description — optional, collapsed */}
             <details className="group rounded-lg border border-border bg-background/40 px-4 py-3">
               <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
@@ -410,7 +316,6 @@ export function InterviewChat({
             <h1 className="text-lg font-bold leading-none tracking-tight">Mock Interview</h1>
             <p className="mt-1 font-mono text-xs text-muted-foreground">
               {disciplineLabel} · {jd ? "Tailored to your role" : focus} · {level}
-              {mode === "voice" ? " · Hot Seat" : " · Library"}
               {freeTrial ? " · Free preview" : ""}
             </p>
           </div>
@@ -501,24 +406,6 @@ export function InterviewChat({
               </Button>
             </div>
           </div>
-        ) : mode === "voice" ? (
-          <VoiceComposer
-            streaming={streaming}
-            speaking={speech.speaking}
-            listening={speech.listening}
-            interim={speech.interim}
-            error={speech.error}
-            muted={muted}
-            onTalk={() => {
-              speech.clearError();
-              listenAndSend();
-            }}
-            onFinish={() => speech.stopListening()}
-            onToggleMute={() => {
-              setMuted((m) => !m);
-              speech.cancel();
-            }}
-          />
         ) : (
           <div className="flex items-end gap-2">
             <textarea
@@ -540,92 +427,6 @@ export function InterviewChat({
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function VoiceComposer({
-  streaming,
-  speaking,
-  listening,
-  interim,
-  error,
-  muted,
-  onTalk,
-  onFinish,
-  onToggleMute,
-}: {
-  streaming: boolean;
-  speaking: boolean;
-  listening: boolean;
-  interim: string;
-  error: string | null;
-  muted: boolean;
-  onTalk: () => void;
-  onFinish: () => void;
-  onToggleMute: () => void;
-}) {
-  const status = streaming
-    ? "Interviewer is thinking…"
-    : listening
-      ? interim
-        ? "Listening…"
-        : "Listening — start talking"
-      : speaking
-        ? "Interviewer is speaking…"
-        : "Tap the mic to answer";
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span
-            className={cn(
-              "relative flex size-2.5 items-center justify-center",
-              listening ? "text-terminal" : "text-muted-foreground/50",
-            )}
-          >
-            {listening && (
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-terminal/60" />
-            )}
-            <span className="relative inline-flex size-2 rounded-full bg-current" />
-          </span>
-          {status}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleMute}
-            title={muted ? "Unmute the interviewer" : "Mute the interviewer"}
-          >
-            {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
-          </Button>
-          {listening ? (
-            <Button onClick={onFinish} className="h-11 gap-2">
-              <Square className="size-4" /> Finish answer
-            </Button>
-          ) : (
-            <Button onClick={onTalk} disabled={streaming} className="h-11 gap-2">
-              <Mic className="size-4" />
-              {speaking ? "Answer now" : "Tap to speak"}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {listening && (
-        <p className="min-h-[2.5rem] rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground/90">
-          {interim || <span className="text-muted-foreground/60">Listening — your words will appear here…</span>}
-        </p>
-      )}
-
-      {error && (
-        <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-          {error}
-        </p>
-      )}
     </div>
   );
 }

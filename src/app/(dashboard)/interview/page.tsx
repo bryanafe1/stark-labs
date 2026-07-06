@@ -14,7 +14,7 @@ export default async function InterviewPage() {
   const access = await getAccess(userId);
 
   // Paid users: full access. Free users: one mock interview as a taste — until
-  // that's used up, then the paywall. (Voice mode inside is still Pro-only.)
+  // that's used up, then the paywall. Spoken practice lives in the Voice Interview.
   if (!access.paid) {
     const user = userId
       ? await prisma.user.findUnique({ where: { id: userId }, select: { freeInterviewTurns: true } })
@@ -25,8 +25,8 @@ export default async function InterviewPage() {
         <Paywall feature="unlimited AI mock interviews" backHref="/dashboard" backLabel="Back to Home" />
       );
     }
-    return <InterviewChat pro={false} freeTrial />;
+    return <InterviewChat freeTrial />;
   }
 
-  return <InterviewChat pro={access.pro} />;
+  return <InterviewChat />;
 }

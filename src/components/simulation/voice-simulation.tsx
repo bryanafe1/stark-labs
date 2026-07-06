@@ -248,7 +248,7 @@ export function VoiceSimulation() {
     return (
       <Shell>
         <Card className="p-6 text-sm text-muted-foreground">
-          Voice simulation needs a browser with microphone + Web Audio support (Chrome, Edge, or
+          The Voice Interview needs a browser with microphone + Web Audio support (Chrome, Edge, or
           Safari).
         </Card>
       </Shell>
@@ -308,7 +308,7 @@ export function VoiceSimulation() {
             </div>
           </div>
           <Button className="mt-6 w-full sm:w-auto" onClick={connect}>
-            <Mic className="size-4" /> Start voice simulation
+            <Mic className="size-4" /> Start voice interview
           </Button>
           <p className="mt-3 text-xs text-muted-foreground">
             Your browser will ask for microphone access. Use headphones for the best experience. Up
@@ -419,7 +419,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="mx-auto flex h-[calc(100dvh-8rem)] max-w-3xl flex-col">
       <div className="mb-4 flex items-center gap-2">
         <Mic className="size-5 text-terminal" />
-        <h1 className="text-2xl font-bold tracking-tight">Voice Simulation</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Voice Interview</h1>
       </div>
       {children}
     </div>

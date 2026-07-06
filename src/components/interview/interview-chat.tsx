@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/markdown";
 import { cn } from "@/lib/utils";
 import { INTERVIEW_KICKOFF } from "@/lib/interview";
+import { finalizeTypedInterview } from "@/server/actions/interview";
 import {
   InterviewSetupFields,
   DEFAULT_INTERVIEW_SETUP,
@@ -43,6 +44,8 @@ export function InterviewChat({
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const seedRef = useRef(0); // per-session variation seed (fixed across turns)
+  const finalizedRef = useRef(false); // grade + record the interview once
+  const [finalScore, setFinalScore] = useState<number | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -93,6 +96,8 @@ export function InterviewChat({
 
   function start() {
     seedRef.current = Math.floor(Math.random() * 1e9); // fresh angle each session
+    finalizedRef.current = false;
+    setFinalScore(null);
     setPhase("live");
     streamTurn([{ id: uid(), role: "user", content: INTERVIEW_KICKOFF, hidden: true }]);
   }
@@ -106,6 +111,18 @@ export function InterviewChat({
 
   function endInterview() {
     if (streaming) return;
+    // Grade + record this interview once, so it counts as a quality-weighted rep.
+    if (!finalizedRef.current) {
+      finalizedRef.current = true;
+      finalizeTypedInterview({
+        messages: messages.filter((m) => !m.hidden).map(({ role, content }) => ({ role, content })),
+        config,
+      })
+        .then((r) => {
+          if (r.ok && typeof r.score === "number") setFinalScore(r.score);
+        })
+        .catch(() => {});
+    }
     streamTurn([
       ...messages,
       { id: uid(), role: "user", content: "Let's wrap up. Please give me my feedback now." },
@@ -113,6 +130,8 @@ export function InterviewChat({
   }
 
   function reset() {
+    finalizedRef.current = false;
+    setFinalScore(null);
     setMessages([]);
     setInput("");
     setError(null);
@@ -226,6 +245,12 @@ export function InterviewChat({
           <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 font-mono text-xs text-destructive">
             {error}
           </p>
+        )}
+        {finalScore != null && (
+          <div className="mx-auto flex max-w-md items-center justify-center gap-2 rounded-lg border border-primary/40 bg-primary/5 px-4 py-2.5 text-center text-sm">
+            <span className="font-semibold text-primary">Interview scored {finalScore}/100</span>
+            <span className="text-muted-foreground">· added to your readiness</span>
+          </div>
         )}
         <div ref={bottomRef} />
       </div>

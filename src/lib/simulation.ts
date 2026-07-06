@@ -1,7 +1,7 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { scoreInterview } from "@/lib/interview-grader";
 
 /** True if the request carries the shared relay secret (relay-only endpoints). */
 export function relaySecretOk(req: Request): boolean {
@@ -33,53 +33,31 @@ export async function generateDebrief(sessionId: string): Promise<void> {
     answeredTurns: sd.length,
   };
 
-  let debrief: Record<string, unknown> | null = null;
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (apiKey && transcript.trim()) {
-    try {
-      const client = new Anthropic({ apiKey });
-      const model = process.env.INTERVIEW_MODEL ?? "claude-sonnet-4-6";
-      const system = [
-        "You are an interview coach writing a concise debrief after a mock technical interview.",
-        'Return STRICT JSON only: {"verdict":"<one-line readiness verdict>","strengths":["..."],"gaps":["..."],"communication":"<2-3 sentences on speaking style, referencing the metrics>","focus":["<2-3 topics to review next>"]}.',
-        "No markdown, no text outside the JSON. Address the candidate as 'you'.",
-      ].join("\n");
-      const user = [
-        `DISCIPLINE: ${session.discipline}`,
-        `TOPIC: ${session.topic}`,
-        `LEVEL: ${session.difficulty}`,
-        `SPEECH: ~${speech.avgWordsPerMinute ?? "?"} wpm, ${speech.totalFillerWords} filler words across ${speech.answeredTurns} answers.`,
-        "",
-        "TRANSCRIPT:",
-        transcript.slice(0, 12000),
-        "",
-        "Write the debrief JSON now.",
-      ].join("\n");
-      const msg = await client.messages.create({
-        model,
-        max_tokens: 800,
-        system,
-        messages: [{ role: "user", content: user }],
-      });
-      const text = msg.content
-        .filter((b): b is Anthropic.TextBlock => b.type === "text")
-        .map((b) => b.text)
-        .join("");
-      const a = text.indexOf("{");
-      const b = text.lastIndexOf("}");
-      debrief = JSON.parse(a >= 0 && b > a ? text.slice(a, b + 1) : text);
-    } catch {
-      debrief = null;
-    }
-  }
+  const graded = await scoreInterview({
+    discipline: session.discipline,
+    topic: session.topic,
+    level: session.difficulty,
+    transcript,
+    speechLine: `~${speech.avgWordsPerMinute ?? "?"} wpm, ${speech.totalFillerWords} filler words across ${speech.answeredTurns} answers.`,
+  });
 
-  if (!debrief) {
-    debrief = { verdict: "Debrief unavailable for this session.", strengths: [], gaps: [], communication: "", focus: [] };
-  }
-  debrief.speech = speech;
+  const debrief: Record<string, unknown> = {
+    ...(graded ?? {
+      score: null,
+      verdict: "Debrief unavailable for this session.",
+      strengths: [],
+      gaps: [],
+      communication: "",
+      focus: [],
+    }),
+    speech,
+  };
 
   await prisma.interviewSession.update({
     where: { id: sessionId },
-    data: { debrief: debrief as Prisma.InputJsonValue },
+    data: {
+      debrief: debrief as Prisma.InputJsonValue,
+      performanceScore: graded?.score ?? null,
+    },
   });
 }

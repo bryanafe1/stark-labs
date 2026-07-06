@@ -42,18 +42,28 @@ function levelFor(score: number): { label: string; blurb: string } {
 }
 
 export async function getReadiness(userId: string): Promise<Readiness> {
-  const [prog, voiceReps, gradedReps] = await Promise.all([
+  const [prog, sessions] = await Promise.all([
     getUserProgress(userId),
-    prisma.interviewSession.count({ where: { userId, refunded: false } }),
-    prisma.submission.count({ where: { userId, llmModel: { not: null } } }),
+    prisma.interviewSession.findMany({
+      where: { userId, refunded: false },
+      select: { performanceScore: true },
+    }),
   ]);
 
-  const reps = voiceReps + gradedReps;
+  // Interview reps = actual mock/voice interviews (typed + voice), scored by how
+  // well they went. avgPerf is null until at least one interview has been graded.
+  const interviewCount = sessions.length;
+  const scores = sessions.map((s) => s.performanceScore).filter((x): x is number => x != null);
+  const avgPerf = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
+
   const depth = clamp01(prog.totalSolved / TARGET_SOLVED) * 100;
   // Accuracy only counts once there's enough volume to be meaningful.
   const accuracy =
     prog.totalAttempts >= 10 ? prog.accuracyPct : Math.round(prog.accuracyPct * (prog.totalAttempts / 10));
-  const repsScore = clamp01(reps / TARGET_REPS) * 100;
+  // Reps reward volume × quality: enough interviews AND how well they went. Once
+  // any interview is graded, weak performances no longer earn full marks.
+  const volume = clamp01(interviewCount / TARGET_REPS);
+  const repsScore = avgPerf != null ? volume * avgPerf : volume * 100;
   const consistency = clamp01(prog.streakDays / TARGET_STREAK) * 100;
 
   const components: ReadinessComponent[] = [
@@ -61,8 +71,12 @@ export async function getReadiness(userId: string): Promise<Readiness> {
       key: "reps",
       label: "Interview reps",
       value: Math.round(repsScore),
-      summary: reps ? `${reps} mock & voice session${reps === 1 ? "" : "s"}` : "No interviews yet",
-      hint: "Rehearse with the AI interviewer and voice sim — the closest thing to the real panel.",
+      summary: interviewCount
+        ? `${interviewCount} interview${interviewCount === 1 ? "" : "s"}${
+            avgPerf != null ? ` · ${Math.round(avgPerf)}% avg` : ""
+          }`
+        : "No interviews yet",
+      hint: "Rehearse with the AI interviewer — you're scored on how you actually perform, not just showing up.",
       href: "/interview",
     },
     {

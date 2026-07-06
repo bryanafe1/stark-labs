@@ -1,11 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import crypto from "crypto";
-import {
-  buildInterviewSystemPrompt,
-  levelToDifficulty,
-  FREE_INTERVIEW_TURNS,
-  type InterviewConfig,
-} from "@/lib/interview";
+import { buildInterviewSystemPrompt, FREE_INTERVIEW_TURNS, type InterviewConfig } from "@/lib/interview";
 import { getAccess } from "@/lib/access";
 import { getCurrentUserId } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -71,32 +65,9 @@ export async function POST(req: Request) {
   if (!Array.isArray(messages) || messages.length === 0 || !config) {
     return new Response("Missing messages or interview config.", { status: 400 });
   }
-
-  // Record the typed interview as an interview rep — once, on the opening turn
-  // (the hidden kickoff is the only message). Typed interviews previously
-  // persisted nothing but the free-turn counter, so they never registered on the
-  // readiness score. Voice sessions bill minutes; a typed row carries no
-  // duration (and kind="typed"), so it never touches voice quotas.
-  if (messages.length === 1) {
-    try {
-      await prisma.interviewSession.create({
-        data: {
-          userId,
-          kind: "typed",
-          discipline: (config.disciplineLabel || "Engineering").slice(0, 60),
-          topic: (config.jobDescription
-            ? "Tailored to a specific role"
-            : config.focus || "core fundamentals"
-          ).slice(0, 200),
-          difficulty: levelToDifficulty(config.level),
-          relayToken: crypto.randomUUID(),
-          status: "completed",
-        },
-      });
-    } catch (err) {
-      console.error("[interview] failed to record typed session", err);
-    }
-  }
+  // The interview is recorded (and graded for a performance score) when the
+  // candidate ends it — see finalizeTypedInterview — so only genuinely-conducted
+  // interviews count, and they count by how well they went.
 
   const history = messages
     .filter((m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string")

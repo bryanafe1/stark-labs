@@ -16,7 +16,7 @@ export async function GET(req: Request, { params }: { params: { sessionId: strin
 
   const session = await prisma.interviewSession.findFirst({
     where: { id: params.sessionId, relayToken: token },
-    select: { discipline: true, topic: true, difficulty: true },
+    select: { discipline: true, topic: true, difficulty: true, instructions: true },
   });
   if (!session) return NextResponse.json({ error: "Session not found" }, { status: 404 });
   return NextResponse.json(session);

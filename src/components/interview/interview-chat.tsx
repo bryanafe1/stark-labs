@@ -1,29 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Send,
-  Loader2,
-  MessageSquare,
-  RotateCcw,
-  Flag,
-  Bot,
-  User,
-  ChevronDown,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Send, Loader2, MessageSquare, RotateCcw, Flag, Bot, User, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/markdown";
 import { cn } from "@/lib/utils";
+import { INTERVIEW_KICKOFF } from "@/lib/interview";
 import {
-  INTERVIEW_KICKOFF,
-  type InterviewConfig,
-  type InterviewLevel,
-  type InterviewMode,
-} from "@/lib/interview";
-import { DISCIPLINE_LIST, DISCIPLINES, SUBJECTS } from "@/lib/constants";
-import type { Discipline } from "@prisma/client";
+  InterviewSetupFields,
+  DEFAULT_INTERVIEW_SETUP,
+  toInterviewConfig,
+  type InterviewSetup,
+} from "@/components/interview/interview-setup-fields";
 
 interface Msg {
   id: string;
@@ -35,9 +24,6 @@ interface Msg {
 let counter = 0;
 const uid = () => `m${Date.now()}_${counter++}`;
 
-const GENERAL_FOCUS = "General fundamentals";
-const LEVELS: InterviewLevel[] = ["Intern", "New grad", "Experienced"];
-
 export function InterviewChat({
   freeTrial = false,
 }: {
@@ -45,37 +31,17 @@ export function InterviewChat({
 }) {
   const [phase, setPhase] = useState<"setup" | "live">("setup");
   const [limitReached, setLimitReached] = useState(false);
-  const [focus, setFocus] = useState("General fundamentals");
-  const [level, setLevel] = useState<InterviewLevel>("New grad");
-  const [jobDescription, setJobDescription] = useState("");
-  const [interviewMode, setInterviewMode] = useState<InterviewMode>("technical");
-  const [projectContext, setProjectContext] = useState("");
+  const [setup, setSetup] = useState<InterviewSetup>(DEFAULT_INTERVIEW_SETUP);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [disciplineKey, setDisciplineKey] = useState<Discipline>("MECHANICAL");
 
-  const disciplineLabel = DISCIPLINES[disciplineKey].label;
-  // Focus options adapt to the chosen discipline's subjects.
-  const focusOptions = useMemo(
-    () => [
-      GENERAL_FOCUS,
-      ...SUBJECTS.filter((s) => s.disciplines.includes(disciplineKey)).map((s) => s.label),
-    ],
-    [disciplineKey],
-  );
+  const patch = (p: Partial<InterviewSetup>) => setSetup((s) => ({ ...s, ...p }));
+  const config = toInterviewConfig(setup);
+  const jd = config.jobDescription;
 
   const bottomRef = useRef<HTMLDivElement>(null);
-  const jd = jobDescription.trim();
-  const config: InterviewConfig = {
-    disciplineLabel,
-    focus,
-    level,
-    jobDescription: jd || undefined,
-    interviewMode,
-    projectContext: interviewMode !== "technical" ? projectContext.trim() || undefined : undefined,
-  };
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -161,111 +127,7 @@ export function InterviewChat({
         </div>
 
         <div className="elevated rounded-xl border border-border bg-card p-6">
-          <div className="space-y-5">
-            {/* Discipline — compact chips */}
-            <Field label="Discipline">
-              <div className="flex flex-wrap gap-1.5">
-                {DISCIPLINE_LIST.map((d) => (
-                  <Pill
-                    key={d.key}
-                    active={disciplineKey === d.key}
-                    onClick={() => {
-                      setDisciplineKey(d.key);
-                      setFocus(GENERAL_FOCUS);
-                    }}
-                  >
-                    {d.label}
-                  </Pill>
-                ))}
-              </div>
-            </Field>
-
-            {/* Interview type — the real differentiator */}
-            <Field label="Interview type">
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <ModeCard
-                  active={interviewMode === "technical"}
-                  onClick={() => setInterviewMode("technical")}
-                  title="Technical"
-                  desc="Fundamentals & problems under pressure."
-                />
-                <ModeCard
-                  active={interviewMode === "project"}
-                  onClick={() => setInterviewMode("project")}
-                  title="Project deep-dive"
-                  desc="Defend your own design decisions."
-                />
-                <ModeCard
-                  active={interviewMode === "full"}
-                  onClick={() => setInterviewMode("full")}
-                  title="Full simulation"
-                  desc="Intro → project → technical → close."
-                />
-              </div>
-            </Field>
-
-            {(interviewMode === "project" || interviewMode === "full") && (
-              <Field label="Your project (2–3 sentences)">
-                <textarea
-                  value={projectContext}
-                  onChange={(e) => setProjectContext(e.target.value)}
-                  rows={4}
-                  placeholder="A capstone, work project, or personal build — what it was, what you designed, the key decisions. The interviewer will grill your reasoning: “why that bearing and not a bushing?”"
-                  className="w-full rounded-lg border border-input bg-background p-3 text-sm leading-relaxed outline-none ring-ring transition focus-visible:ring-2 placeholder:text-muted-foreground/50"
-                />
-              </Field>
-            )}
-
-            {/* Focus (dropdown) + Level, side by side */}
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Focus">
-                <div className="relative">
-                  <select
-                    value={focus}
-                    onChange={(e) => setFocus(e.target.value)}
-                    className="w-full appearance-none rounded-lg border border-input bg-background px-3 py-2 pr-9 text-sm outline-none ring-ring transition focus-visible:ring-2"
-                  >
-                    {focusOptions.map((f) => (
-                      <option key={f} value={f}>
-                        {f}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                </div>
-              </Field>
-
-              <Field label="Level">
-                <div className="flex flex-wrap gap-2">
-                  {LEVELS.map((l) => (
-                    <Pill key={l} active={level === l} onClick={() => setLevel(l)}>
-                      {l}
-                    </Pill>
-                  ))}
-                </div>
-              </Field>
-            </div>
-
-            {/* Job description — optional, collapsed */}
-            <details className="group rounded-lg border border-border bg-background/40 px-4 py-3">
-              <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-                Tailor to a specific job posting
-                <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
-              </summary>
-              <textarea
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                rows={5}
-                placeholder="Paste a job posting and the interviewer tailors its questions to the fundamentals this role needs."
-                className="mt-3 w-full rounded-lg border border-input bg-background p-3 text-sm leading-relaxed outline-none ring-ring transition focus-visible:ring-2 placeholder:text-muted-foreground/50"
-              />
-              {jd && (
-                <p className="mt-1.5 text-xs text-primary">
-                  This interview will be tailored to the pasted role (Focus is ignored).
-                </p>
-              )}
-            </details>
-          </div>
+          <InterviewSetupFields value={setup} onChange={patch} />
 
           {freeTrial && (
             <p className="mt-5 flex items-center gap-2 text-xs text-muted-foreground">
@@ -296,7 +158,7 @@ export function InterviewChat({
           <div>
             <h1 className="text-lg font-bold leading-none tracking-tight">Typed Interview</h1>
             <p className="mt-1 font-mono text-xs text-muted-foreground">
-              {disciplineLabel} · {jd ? "Tailored to your role" : focus} · {level}
+              {config.disciplineLabel} · {jd ? "Tailored to your role" : setup.focus} · {setup.level}
               {freeTrial ? " · Free preview" : ""}
             </p>
           </div>
@@ -409,69 +271,5 @@ export function InterviewChat({
         )}
       </div>
     </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="mb-2 font-mono text-xs uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      {children}
-    </div>
-  );
-}
-
-function ModeCard({
-  active,
-  onClick,
-  title,
-  desc,
-}: {
-  active: boolean;
-  onClick: () => void;
-  title: string;
-  desc: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "rounded-xl border px-4 py-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-        active ? "border-primary/60 bg-primary/10" : "border-border hover:border-primary/40",
-      )}
-    >
-      <p className={cn("text-sm font-semibold", active ? "text-primary" : "text-foreground")}>
-        {title}
-      </p>
-      <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
-    </button>
-  );
-}
-
-function Pill({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "rounded-full border px-3 py-2 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-        active
-          ? "border-primary bg-primary/10 text-primary"
-          : "border-input text-muted-foreground hover:border-foreground/30 hover:text-foreground",
-      )}
-    >
-      {children}
-    </button>
   );
 }

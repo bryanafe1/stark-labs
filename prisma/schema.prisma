@@ -304,6 +304,7 @@ model InterviewSession {
   durationSeconds Int?
   questionCount   Int?
   transcript      String?   @db.Text
+  instructions    String?   @db.Text // interviewer system prompt, built app-side from the interview config
   debrief         Json? // structured post-session feedback
   creditId        String? // SessionCredit spent (Standard tier); null for Pro/admin
   refunded        Boolean   @default(false) // early-failure refund → doesn't count toward usage

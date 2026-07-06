@@ -1,4 +1,12 @@
 function buildInterviewerPrompt(session) {
+  // Preferred path: the main app builds the full interviewer prompt from the
+  // interview config (discipline / type / focus / level / project / JD) and
+  // sends it as `instructions`. Fall back to the legacy builder for older
+  // sessions that predate that field.
+  if (session && typeof session.instructions === 'string' && session.instructions.trim()) {
+    return session.instructions;
+  }
+
   const disciplineLabel = String(session.discipline || 'engineering').replace(/_/g, ' ');
 
   const difficultyContext = {

@@ -6,6 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { MicStreamer, AudioPlayer, audioSupported } from "@/components/simulation/audio";
+import {
+  InterviewSetupFields,
+  DEFAULT_INTERVIEW_SETUP,
+  toInterviewConfig,
+  type InterviewSetup,
+} from "@/components/interview/interview-setup-fields";
 
 type Phase = "setup" | "connecting" | "live" | "ending" | "debrief" | "error";
 type Turn = { id: string; role: "interviewer" | "candidate"; text: string };
@@ -18,25 +24,19 @@ interface Debrief {
   speech?: { avgWordsPerMinute?: number | null; totalFillerWords?: number; answeredTurns?: number };
 }
 
-const DIFFICULTIES: { key: string; label: string }[] = [
-  { key: "entry", label: "Entry-level" },
-  { key: "mid", label: "Mid-level" },
-  { key: "senior", label: "Senior" },
-];
-
 let tc = 0;
 const tid = () => `t${Date.now()}_${tc++}`;
 
 export function VoiceSimulation() {
   const [phase, setPhaseState] = useState<Phase>("setup");
-  const [topic, setTopic] = useState("");
-  const [difficulty, setDifficulty] = useState("mid");
+  const [setup, setSetup] = useState<InterviewSetup>(DEFAULT_INTERVIEW_SETUP);
   const [status, setStatus] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [debrief, setDebrief] = useState<Debrief | null>(null);
+  const patch = (p: Partial<InterviewSetup>) => setSetup((s) => ({ ...s, ...p }));
 
   const wsRef = useRef<WebSocket | null>(null);
   const micRef = useRef<MicStreamer | null>(null);
@@ -170,11 +170,7 @@ export function VoiceSimulation() {
       const res = await fetch("/api/simulation/start", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          discipline: "MECHANICAL",
-          topic: topic.trim() || "core fundamentals",
-          difficulty,
-        }),
+        body: JSON.stringify({ config: toInterviewConfig(setup) }),
       });
       if (!res.ok) {
         throw new Error((await res.text()) || "Could not start the simulation.");
@@ -227,7 +223,7 @@ export function VoiceSimulation() {
       setError(e instanceof Error ? e.message : "Failed to start.");
       goPhase("error");
     }
-  }, [topic, difficulty, goPhase, cleanup, handleMessage, finishToDebrief]);
+  }, [setup, goPhase, cleanup, handleMessage, finishToDebrief]);
 
   const end = useCallback(() => {
     endingRef.current = true;
@@ -264,48 +260,8 @@ export function VoiceSimulation() {
             out loud, they probe your reasoning, and you get a debrief on both your answers and how
             you communicated.
           </p>
-          <div className="mt-6 space-y-5">
-            <div>
-              <p className="mb-2 font-mono text-xs uppercase tracking-wide text-muted-foreground">
-                Discipline
-              </p>
-              <span className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                Mechanical
-              </span>
-            </div>
-            <div>
-              <p className="mb-2 font-mono text-xs uppercase tracking-wide text-muted-foreground">
-                Topic / role focus (optional)
-              </p>
-              <input
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="e.g. thermal systems, structural design, HVAC…"
-                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none ring-ring transition focus-visible:ring-2 placeholder:text-muted-foreground/75"
-              />
-            </div>
-            <div>
-              <p className="mb-2 font-mono text-xs uppercase tracking-wide text-muted-foreground">
-                Level
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {DIFFICULTIES.map((d) => (
-                  <button
-                    key={d.key}
-                    type="button"
-                    onClick={() => setDifficulty(d.key)}
-                    className={cn(
-                      "rounded-full border px-3 py-2 text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-                      difficulty === d.key
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-input text-muted-foreground hover:border-foreground/30 hover:text-foreground",
-                    )}
-                  >
-                    {d.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+          <div className="mt-6">
+            <InterviewSetupFields value={setup} onChange={patch} />
           </div>
           <Button className="mt-6 w-full sm:w-auto" onClick={connect}>
             <Mic className="size-4" /> Start voice interview

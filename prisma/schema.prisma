@@ -296,6 +296,7 @@ model AppSetting {
 model InterviewSession {
   id              String    @id @default(cuid())
   userId          String
+  kind            String    @default("voice") // voice | typed — both count as interview reps; only voice bills minutes
   discipline      String
   topic           String
   difficulty      String    @default("mid") // entry | mid | senior

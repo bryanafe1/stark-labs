@@ -105,7 +105,7 @@ function startOfNextMonth(): Date {
  *  it ends, and the cap is only ever evaluated when STARTING a new session. */
 export async function proMinutesUsedThisMonth(userId: string): Promise<number> {
   const agg = await prisma.interviewSession.aggregate({
-    where: { userId, createdAt: { gte: startOfMonth() }, refunded: false },
+    where: { userId, kind: "voice", createdAt: { gte: startOfMonth() }, refunded: false },
     _sum: { durationSeconds: true },
   });
   return Math.round((agg._sum.durationSeconds ?? 0) / 60);

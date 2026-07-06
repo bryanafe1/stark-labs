@@ -6,6 +6,7 @@ import { gradeAnswer } from "@/lib/grading";
 import { getProblemBySlug } from "@/features/practice/problems";
 import { getCurrentUserId } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ensureProblemRow } from "@/lib/persist-problem";
 import type { PracticeFormState } from "@/types/practice";
 
 // ---------------------------------------------------------------------------
@@ -56,18 +57,17 @@ export async function submitPracticeAnswer(
 
   const result = gradeAnswer(problem, { numericAnswer, textAnswer, choiceId });
 
-  // Persist the attempt for the signed-in user so progress accrues. Grading
-  // never fails the user if the write hiccups.
+  // Persist the attempt for the signed-in user so progress accrues. The Problem
+  // row is upserted from the catalog first (self-healing) so an attempt is never
+  // silently dropped just because the DB mirror lagged the content catalog.
+  // Grading still never fails the user if the write hiccups.
   try {
-    const dbProblem = await prisma.problem.findUnique({
-      where: { slug },
-      select: { id: true },
-    });
-    if (dbProblem) {
+    const problemId = await ensureProblemRow(slug);
+    if (problemId) {
       await prisma.submission.create({
         data: {
           userId,
-          problemId: dbProblem.id,
+          problemId,
           status: result.status,
           score: result.score,
           feedback: result.feedback,

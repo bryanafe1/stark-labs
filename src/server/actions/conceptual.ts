@@ -1,9 +1,16 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getCurrentUserId } from "@/lib/auth";
 import { hasPaidAccess } from "@/lib/access";
 import { getProblemBySlug } from "@/features/practice/problems";
 import { gradeConcept } from "@/lib/concept-grader";
+import { prisma } from "@/lib/prisma";
+import { ensureProblemRow } from "@/lib/persist-problem";
+
+// A conceptual answer scoring at/above this (0–100 from the AI grader) counts
+// as "solved" for progress + accuracy.
+const CONCEPT_PASS = 60;
 
 export interface ConceptResult {
   ok: boolean;
@@ -42,6 +49,32 @@ export async function gradeConceptualPractice(input: {
     priorContext: input.prior,
     answer,
   });
+
+  // Persist the graded attempt so progress / accuracy / readiness accrue.
+  // (Conceptual practice previously wrote nothing at all.) Never fail the user
+  // if the write hiccups.
+  try {
+    const problemId = await ensureProblemRow(input.slug);
+    if (problemId) {
+      await prisma.submission.create({
+        data: {
+          userId,
+          problemId,
+          status: grade.score >= CONCEPT_PASS ? "CORRECT" : "INCORRECT",
+          score: grade.score,
+          feedback: [grade.strengths, grade.improvements].filter(Boolean).join("\n\n") || null,
+          textAnswer: answer.slice(0, 20_000),
+          llmModel: process.env.GRADING_MODEL ?? "claude-sonnet-4-6",
+        },
+      });
+      revalidatePath("/skills");
+      revalidatePath("/profile");
+      revalidatePath("/dashboard");
+    }
+  } catch (err) {
+    console.error("[conceptual] failed to persist submission", err);
+  }
+
   return { ok: true, score: grade.score, strengths: grade.strengths, improvements: grade.improvements };
 }
 

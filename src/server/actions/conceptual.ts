@@ -20,9 +20,15 @@ export interface ConceptResult {
   concepts?: string[]; // arena: key concepts the question tests
   modelAnswer?: string; // arena: the ideal answer (revealed post-submit)
   error?: string;
+  limitReached?: boolean; // free taste used up → show the upgrade wall, not an error
+  freeRemaining?: number; // graded answers left on the free taste (undefined for paid)
 }
 
 const PRO_REQUIRED = "AI feedback is a paid feature. Upgrade to get your answers graded.";
+
+// Free users get a taste of AI-graded conceptual feedback (the product's aha)
+// before the paywall — bounds Anthropic cost like the free mock interview does.
+const FREE_CONCEPT_GRADES = Number(process.env.FREE_CONCEPT_GRADES ?? 5);
 
 /** Grade one part of a conceptual practice question (free-form answer → AI feedback + score). */
 export async function gradeConceptualPractice(input: {
@@ -33,7 +39,6 @@ export async function gradeConceptualPractice(input: {
 }): Promise<ConceptResult> {
   const userId = await getCurrentUserId();
   if (!userId) return { ok: false, error: "Sign in to submit." };
-  if (!(await hasPaidAccess())) return { ok: false, error: PRO_REQUIRED };
 
   const answer = (input.answer ?? "").trim();
   if (answer.length < 2) return { ok: false, error: "Write your answer first." };
@@ -42,6 +47,24 @@ export async function gradeConceptualPractice(input: {
   const part = problem?.parts?.[input.partIndex];
   if (!problem || !part) return { ok: false, error: "Question not found." };
 
+  // Paid → unlimited. Free → a taste of AI-graded feedback, then the upgrade wall.
+  const paid = await hasPaidAccess();
+  let usedFree = 0;
+  if (!paid) {
+    const u = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { freeConceptGrades: true },
+    });
+    usedFree = u?.freeConceptGrades ?? 0;
+    if (usedFree >= FREE_CONCEPT_GRADES) {
+      return {
+        ok: false,
+        limitReached: true,
+        error: "That's your free graded answers used up. Upgrade for unlimited AI feedback.",
+      };
+    }
+  }
+
   const grade = await gradeConcept({
     scenario: problem.prompt,
     question: part.prompt,
@@ -49,6 +72,13 @@ export async function gradeConceptualPractice(input: {
     priorContext: input.prior,
     answer,
   });
+
+  // Meter the free taste after a successful grade (paid users are unlimited).
+  if (!paid) {
+    await prisma.user
+      .update({ where: { id: userId }, data: { freeConceptGrades: { increment: 1 } } })
+      .catch(() => {});
+  }
 
   // Persist the graded attempt so progress / accuracy / readiness accrue.
   // (Conceptual practice previously wrote nothing at all.) Never fail the user
@@ -75,7 +105,13 @@ export async function gradeConceptualPractice(input: {
     console.error("[conceptual] failed to persist submission", err);
   }
 
-  return { ok: true, score: grade.score, strengths: grade.strengths, improvements: grade.improvements };
+  return {
+    ok: true,
+    score: grade.score,
+    strengths: grade.strengths,
+    improvements: grade.improvements,
+    freeRemaining: paid ? undefined : Math.max(0, FREE_CONCEPT_GRADES - usedFree - 1),
+  };
 }
 
 /** Grade a conceptual Arena answer. The client passes only the question slug;

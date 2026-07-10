@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2, CheckCircle2, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { Loader2, CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/markdown";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,7 @@ interface PartState {
   answer: string;
   result?: { score: number; strengths: string; improvements: string };
   error?: string;
+  limitReached?: boolean; // free taste used up → upgrade wall, not an error
 }
 
 function scoreTone(score: number): string {
@@ -35,6 +37,7 @@ export function ConceptualWorkspace({
   const [revealed, setRevealed] = useState(1);
   const [parts, setParts] = useState<PartState[]>(partPrompts.map(() => ({ answer: "" })));
   const [grading, setGrading] = useState<number | null>(null);
+  const [freeLeft, setFreeLeft] = useState<number | null>(null); // free grades remaining (null = paid/unknown)
   const [, startTransition] = useTransition();
 
   const setAnswer = (i: number, v: string) =>
@@ -51,6 +54,7 @@ export function ConceptualWorkspace({
     setGrading(i);
     startTransition(async () => {
       const r = await gradeConceptualPractice({ slug, partIndex: i, answer, prior });
+      if (r.freeRemaining !== undefined) setFreeLeft(r.freeRemaining);
       setParts((p) =>
         p.map((x, j) =>
           j === i
@@ -59,7 +63,8 @@ export function ConceptualWorkspace({
                 result: r.ok
                   ? { score: r.score ?? 0, strengths: r.strengths ?? "", improvements: r.improvements ?? "" }
                   : undefined,
-                error: r.ok ? undefined : r.error,
+                error: r.ok || r.limitReached ? undefined : r.error,
+                limitReached: r.limitReached ?? false,
               }
             : x,
         ),
@@ -90,14 +95,34 @@ export function ConceptualWorkspace({
               className="mt-3 min-h-[9rem] w-full rounded-lg border border-input bg-background p-3 text-sm leading-relaxed outline-none ring-ring transition focus-visible:ring-2 disabled:opacity-70 placeholder:text-muted-foreground/50 sm:min-h-[10rem]"
             />
 
-            {!graded && (
+            {!graded && !ps.limitReached && (
               <Button className="mt-3" onClick={() => submit(i)} disabled={busy || !ps.answer.trim()}>
                 {busy && <Loader2 className="size-4 animate-spin" />}
                 {busy ? "Grading…" : "Submit for feedback"}
               </Button>
             )}
 
-            {ps.error && <p className="mt-3 text-sm font-medium text-destructive">{ps.error}</p>}
+            {ps.limitReached && (
+              <div className="mt-3 rounded-lg border border-primary/40 bg-primary/5 p-4">
+                <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <Sparkles className="size-4 text-primary" />
+                  You&apos;ve used your free graded answers
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Upgrade for unlimited AI feedback on every conceptual answer — the interviewer-style
+                  coaching that gets you interview-ready.
+                </p>
+                <Button asChild className="mt-3">
+                  <Link href="/pricing">
+                    See plans <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+              </div>
+            )}
+
+            {ps.error && !ps.limitReached && (
+              <p className="mt-3 text-sm font-medium text-destructive">{ps.error}</p>
+            )}
 
             {ps.result && (
               <div className="mt-4 space-y-3 rounded-lg border border-border bg-background p-4">
@@ -128,6 +153,26 @@ export function ConceptualWorkspace({
                     <Markdown content={ps.result.improvements} />
                   </div>
                 </div>
+
+                {freeLeft !== null && (
+                  <p className="border-t border-border pt-2 text-xs text-muted-foreground">
+                    {freeLeft > 0 ? (
+                      <>
+                        {freeLeft} free graded answer{freeLeft === 1 ? "" : "s"} left ·{" "}
+                        <Link href="/pricing" className="text-primary hover:underline">
+                          upgrade for unlimited
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        That was your last free graded answer ·{" "}
+                        <Link href="/pricing" className="text-primary hover:underline">
+                          upgrade for unlimited
+                        </Link>
+                      </>
+                    )}
+                  </p>
+                )}
               </div>
             )}
 

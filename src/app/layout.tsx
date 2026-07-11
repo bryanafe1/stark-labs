@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
+import { Suspense } from "react";
+import { PageTracker } from "@/components/analytics/page-tracker";
 import "katex/dist/katex.min.css";
 import "./globals.css";
 
@@ -53,6 +55,11 @@ export default function RootLayout({
           }}
         />
         {children}
+
+        {/* First-party visitor analytics (traffic source, landing, bounce). */}
+        <Suspense fallback={null}>
+          <PageTracker />
+        </Suspense>
 
         {/* Google Ads (gtag.js) — a single site-wide tag loaded via next/script
             (the App Router equivalent of pasting the tag on every page; Google's

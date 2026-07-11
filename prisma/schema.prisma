@@ -158,6 +158,11 @@ model User {
   freeInterviewTurns   Int       @default(0) // AI mock-interview turns a free user has spent (free-trial cap)
   freeConceptGrades    Int       @default(0) // conceptual practice answers a free user has had AI-graded (free-taste cap)
   signupTracked        Boolean   @default(false) // signup conversion event fired once
+  signupSource         String?   // first-touch attribution — derived source (google, direct, reddit, ...)
+  signupMedium         String?   // cpc | organic | referral | direct
+  signupCampaign       String?   // utm_campaign, when present
+  signupReferrer       String?   // raw referrer URL at first touch
+  signupLanding        String?   // first landing path
   stripeCustomerId     String?   @unique
   stripeSubscriptionId String?   @unique
   currentPeriodEnd     DateTime? // access valid through this time
@@ -839,4 +844,25 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, read, createdAt])
+}
+
+/// First-party pageview log — anonymous visitor analytics (traffic source,
+/// landing pages, bounce). `visitorId` is a random first-party cookie; `userId`
+/// is set once the visitor is signed in. No raw IP is stored.
+model PageView {
+  id        String   @id @default(cuid())
+  visitorId String
+  userId    String?
+  path      String
+  referrer  String?
+  source    String? // derived: google | direct | reddit | ... (gclid → google/cpc)
+  medium    String? // cpc | organic | referral | direct
+  campaign  String?
+  country   String? // coarse geo (Vercel header)
+  device    String? // mobile | tablet | desktop
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([visitorId])
+  @@index([source])
 }

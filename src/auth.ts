@@ -7,6 +7,7 @@ import type { AdapterUser } from "next-auth/adapters";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { linkCreatorByEmail } from "@/lib/creator-link";
+import { sendWelcomeEmail } from "@/lib/email";
 
 // ---------------------------------------------------------------------------
 //  Auth.js (NextAuth v5) — Google OAuth + email/password (Credentials).
@@ -36,6 +37,7 @@ adapter.createUser = async (user) => {
     },
   });
   await linkCreatorByEmail(created.id, created.email);
+  await sendWelcomeEmail({ email: created.email, name: created.name }); // no-op until RESEND_API_KEY is set
   return created as unknown as AdapterUser;
 };
 

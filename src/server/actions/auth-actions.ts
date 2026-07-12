@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signIn } from "@/auth";
 import { linkCreatorByEmail } from "@/lib/creator-link";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export type AuthFormState = { error?: string };
 
@@ -76,6 +77,7 @@ export async function signUpWithPassword(
     },
   });
   await linkCreatorByEmail(createdUser.id, email);
+  await sendWelcomeEmail({ email, name: name ?? null }); // no-op until RESEND_API_KEY is set
 
   try {
     await signIn("credentials", { email, password, redirect: false });

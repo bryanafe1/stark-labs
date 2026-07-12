@@ -36,7 +36,7 @@ export async function sendEmail(opts: {
       subject: opts.subject,
       html: opts.html,
       text: opts.text,
-      replyTo: opts.replyTo,
+      replyTo: opts.replyTo ?? process.env.EMAIL_REPLY_TO,
       headers: opts.headers,
     });
     if (error) {
@@ -58,6 +58,7 @@ export function emailLayout(opts: {
   body: string;
   cta?: { label: string; href: string };
   footerNote?: string;
+  hideBrand?: boolean; // omit the wordmark for a pure personal-note look (best for Primary inbox)
 }): string {
   // Plain, left-aligned, text-forward layout — reads like a personal note, not a
   // marketing campaign, so Gmail is far more likely to file it under Primary.
@@ -70,8 +71,8 @@ export function emailLayout(opts: {
   return `<!doctype html><html><head><meta name="viewport" content="width=device-width"></head>
   <body style="margin:0;padding:24px;background:#ffffff;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;font-size:15px;line-height:1.6;">
     <div style="max-width:520px;margin:0 auto;">
-      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;color:#4f46e5;font-size:13px;letter-spacing:.04em;margin-bottom:20px;">OVERCLOCKER</div>
-      <div style="font-size:18px;font-weight:600;color:#111111;margin-bottom:10px;">${opts.heading}</div>
+      ${opts.hideBrand ? "" : `<div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;color:#4f46e5;font-size:13px;letter-spacing:.04em;margin-bottom:20px;">OVERCLOCKER</div>`}
+      ${opts.heading ? `<div style="font-size:18px;font-weight:600;color:#111111;margin-bottom:10px;">${opts.heading}</div>` : ""}
       <div style="color:#333333;">${opts.body}</div>
       ${cta}
       <div style="margin-top:26px;padding-top:14px;border-top:1px solid #ececec;color:#9ca3af;font-size:12px;line-height:1.5;">${footer}</div>
@@ -81,17 +82,19 @@ export function emailLayout(opts: {
 
 export async function sendWelcomeEmail(user: { email: string; name?: string | null }): Promise<void> {
   const first = user.name?.trim().split(" ")[0] || "there";
+  // A plain, personal note from the founder — no logo, no button, one inline
+  // link, and a reply invite. Reads like a 1:1 email, which lands in Primary.
   const html = emailLayout({
-    heading: `Welcome, ${first} 👋`,
-    body: `You're in. Overclocker is the fastest way to get interview-ready across engineering disciplines — deep, auto-graded practice plus an AI interviewer that talks through problems with you and scores you like a hiring manager.<br><br><strong>Your first mock interview is free</strong> — no card needed. It's the quickest way to see where you stand.`,
-    cta: { label: "Start my free mock interview", href: `${APP_URL}/interview` },
-    footerNote: `Prefer to warm up first? <a href="${APP_URL}/practice" style="color:#6366F1;text-decoration:none;">Try a practice question</a>.<br>You're receiving this because you signed up at overclocker.dev.`,
+    heading: "",
+    hideBrand: true,
+    body: `Hey ${first},<br><br>Thanks for signing up — I'm Bryan, I built Overclocker.<br><br>Quickest way to get something out of it: try a mock interview. You talk through a real problem with an AI interviewer and get scored on how you did — your first one's on me.<br><br><a href="${APP_URL}/interview" style="color:#4f46e5;text-decoration:underline;">Start your mock interview</a><br><br>Anything confusing, or feedback? Just hit reply — it comes straight to me.<br><br>— Bryan`,
+    footerNote: `You signed up at overclocker.dev.`,
   });
   await sendEmail({
     to: user.email,
-    subject: "Welcome to Overclocker — your free mock interview is ready",
+    subject: "Thanks for joining Overclocker",
     html,
-    text: `Welcome, ${first}! Your first AI mock interview is free — start it at ${APP_URL}/interview`,
+    text: `Hey ${first}, thanks for signing up — I'm Bryan, I built Overclocker. Try a mock interview (your first is on me): ${APP_URL}/interview. Reply anytime with questions. — Bryan`,
   });
 }
 

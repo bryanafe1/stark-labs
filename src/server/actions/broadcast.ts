@@ -88,7 +88,16 @@ export async function sendBroadcast(input: BroadcastInput): Promise<BroadcastRes
           cta,
           footerNote: `You're receiving this because you signed up at overclocker.dev.<br><a href="${unsub}" style="color:#a1a1aa;">Unsubscribe</a>`,
         });
-        return sendEmail({ to: u.email, subject, html, text: body });
+        return sendEmail({
+          to: u.email,
+          subject,
+          html,
+          text: body,
+          headers: {
+            "List-Unsubscribe": `<${unsub}>`,
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          },
+        });
       }),
     );
     for (const ok of results) {

@@ -21,6 +21,8 @@ export async function sendEmail(opts: {
   subject: string;
   html: string;
   text?: string;
+  headers?: Record<string, string>;
+  replyTo?: string;
 }): Promise<boolean> {
   const r = resend();
   if (!r) {
@@ -34,6 +36,8 @@ export async function sendEmail(opts: {
       subject: opts.subject,
       html: opts.html,
       text: opts.text,
+      replyTo: opts.replyTo,
+      headers: opts.headers,
     });
     if (error) {
       console.error("[email] send failed", error);
@@ -55,28 +59,23 @@ export function emailLayout(opts: {
   cta?: { label: string; href: string };
   footerNote?: string;
 }): string {
+  // Plain, left-aligned, text-forward layout — reads like a personal note, not a
+  // marketing campaign, so Gmail is far more likely to file it under Primary.
   const cta = opts.cta
-    ? `<tr><td style="padding:24px 32px 4px;">
-         <a href="${opts.cta.href}" style="display:inline-block;background:#6366F1;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 22px;border-radius:10px;">${opts.cta.label}</a>
-       </td></tr>`
+    ? `<p style="margin:16px 0;"><a href="${opts.cta.href}" style="color:#4f46e5;font-weight:600;text-decoration:none;">${opts.cta.label} &rarr;</a></p>`
     : "";
   const footer =
     opts.footerNote ??
-    `You're receiving this because you signed up at <a href="${APP_URL}" style="color:#6366F1;text-decoration:none;">overclocker.dev</a>.`;
+    `You're receiving this because you signed up at <a href="${APP_URL}" style="color:#71717a;text-decoration:underline;">overclocker.dev</a>.`;
   return `<!doctype html><html><head><meta name="viewport" content="width=device-width"></head>
-  <body style="margin:0;background:#f4f4f5;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#18181b;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 16px;">
-      <tr><td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:14px;border:1px solid #e4e4e7;">
-          <tr><td style="padding:28px 32px 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;letter-spacing:.03em;color:#6366F1;">OVERCLOCKER</td></tr>
-          <tr><td style="padding:14px 32px 6px;"><h1 style="margin:0;font-size:20px;line-height:1.3;color:#18181b;">${opts.heading}</h1></td></tr>
-          <tr><td style="padding:0 32px;font-size:15px;line-height:1.6;color:#3f3f46;">${opts.body}</td></tr>
-          ${cta}
-          <tr><td style="padding:24px 32px 28px;font-size:12px;line-height:1.5;color:#a1a1aa;">${footer}</td></tr>
-        </table>
-        <div style="max-width:480px;margin-top:14px;font-size:11px;color:#a1a1aa;">Overclocker · engineering interview prep</div>
-      </td></tr>
-    </table>
+  <body style="margin:0;padding:24px;background:#ffffff;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;font-size:15px;line-height:1.6;">
+    <div style="max-width:520px;margin:0 auto;">
+      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:700;color:#4f46e5;font-size:13px;letter-spacing:.04em;margin-bottom:20px;">OVERCLOCKER</div>
+      <div style="font-size:18px;font-weight:600;color:#111111;margin-bottom:10px;">${opts.heading}</div>
+      <div style="color:#333333;">${opts.body}</div>
+      ${cta}
+      <div style="margin-top:26px;padding-top:14px;border-top:1px solid #ececec;color:#9ca3af;font-size:12px;line-height:1.5;">${footer}</div>
+    </div>
   </body></html>`;
 }
 

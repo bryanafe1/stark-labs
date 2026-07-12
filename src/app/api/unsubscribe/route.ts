@@ -19,19 +19,29 @@ function page(title: string, message: string): Response {
   );
 }
 
-// One-click unsubscribe from broadcast email. Transactional email (welcome,
-// password reset) is unaffected.
-export async function GET(req: Request) {
+async function optOut(req: Request): Promise<boolean> {
   const url = new URL(req.url);
   const userId = url.searchParams.get("u") ?? "";
   const token = url.searchParams.get("t") ?? "";
-
-  if (!userId || !token || !verifyUnsub(userId, token)) {
-    return page("Invalid link", "This unsubscribe link is invalid or has expired.");
-  }
+  if (!userId || !token || !verifyUnsub(userId, token)) return false;
   await prisma.user.update({ where: { id: userId }, data: { emailOptOut: true } }).catch(() => {});
-  return page(
-    "You're unsubscribed",
-    "You won't receive any more marketing emails from Overclocker. Account emails (like password resets) will still be sent.",
-  );
+  return true;
+}
+
+// One-click unsubscribe from broadcast email. Transactional email (welcome,
+// password reset) is unaffected. GET shows a confirmation page (link click);
+// POST supports RFC 8058 one-click unsubscribe from the mail client's header.
+export async function GET(req: Request) {
+  const ok = await optOut(req);
+  return ok
+    ? page(
+        "You're unsubscribed",
+        "You won't receive any more marketing emails from Overclocker. Account emails (like password resets) will still be sent.",
+      )
+    : page("Invalid link", "This unsubscribe link is invalid or has expired.");
+}
+
+export async function POST(req: Request) {
+  await optOut(req);
+  return new Response(null, { status: 204 });
 }

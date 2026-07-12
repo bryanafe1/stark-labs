@@ -12,6 +12,22 @@ const AUDIENCES: { key: Audience; label: string }[] = [
   { key: "paid", label: "Paid users" },
 ];
 
+const CUSTOM = "__custom__";
+
+// Common button destinations, so you don't hand-type URLs. `cta` pre-fills the
+// button label when the label is still empty.
+const DESTINATIONS: { label: string; url: string; cta?: string }[] = [
+  { label: "No button", url: "" },
+  { label: "Free mock interview", url: "https://overclocker.dev/interview", cta: "Start my free mock interview" },
+  { label: "Practice problems", url: "https://overclocker.dev/practice", cta: "Try a practice question" },
+  { label: "Voice interview", url: "https://overclocker.dev/simulation", cta: "Try the voice interview" },
+  { label: "Lessons", url: "https://overclocker.dev/learn", cta: "Start learning" },
+  { label: "Arena", url: "https://overclocker.dev/arena", cta: "Enter the Arena" },
+  { label: "Pricing / upgrade", url: "https://overclocker.dev/pricing", cta: "See plans" },
+  { label: "Dashboard", url: "https://overclocker.dev/dashboard", cta: "Open my dashboard" },
+  { label: "Custom URL…", url: CUSTOM },
+];
+
 const inputCls =
   "w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none ring-ring transition focus-visible:ring-2 placeholder:text-muted-foreground/50";
 
@@ -19,7 +35,8 @@ export function BroadcastComposer({ counts }: { counts: Record<Audience, number>
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [ctaLabel, setCtaLabel] = useState("");
-  const [ctaUrl, setCtaUrl] = useState("");
+  const [linkChoice, setLinkChoice] = useState(""); // "" = no button, CUSTOM = custom URL, else a preset URL
+  const [customUrl, setCustomUrl] = useState("");
   const [audience, setAudience] = useState<Audience>("all");
   const [testTo, setTestTo] = useState("");
   const [result, setResult] = useState<BroadcastResult | null>(null);
@@ -44,12 +61,13 @@ export function BroadcastComposer({ counts }: { counts: Record<Audience, number>
       )
     )
       return;
+    const ctaUrl = (linkChoice === CUSTOM ? customUrl.trim() : linkChoice) || undefined;
     startTransition(async () => {
       const r = await sendBroadcast({
         subject,
         body,
         ctaLabel: ctaLabel.trim() || undefined,
-        ctaUrl: ctaUrl.trim() || undefined,
+        ctaUrl,
         audience,
         testTo: testMode ? testTo.trim() : undefined,
       });
@@ -99,14 +117,38 @@ export function BroadcastComposer({ counts }: { counts: Record<Audience, number>
           <label className="mb-1.5 block font-mono text-xs uppercase tracking-wide text-muted-foreground">
             Button link <span className="text-muted-foreground/60">(optional)</span>
           </label>
-          <input
+          <select
             className={inputCls}
-            value={ctaUrl}
-            onChange={(e) => setCtaUrl(e.target.value)}
-            placeholder="https://overclocker.dev/interview"
-          />
+            value={linkChoice}
+            onChange={(e) => {
+              const v = e.target.value;
+              setLinkChoice(v);
+              const d = DESTINATIONS.find((x) => x.url === v);
+              if (d?.cta && !ctaLabel.trim()) setCtaLabel(d.cta); // pre-fill label
+            }}
+          >
+            {DESTINATIONS.map((d) => (
+              <option key={d.label} value={d.url}>
+                {d.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
+
+      {linkChoice === CUSTOM && (
+        <div>
+          <label className="mb-1.5 block font-mono text-xs uppercase tracking-wide text-muted-foreground">
+            Custom URL
+          </label>
+          <input
+            className={inputCls}
+            value={customUrl}
+            onChange={(e) => setCustomUrl(e.target.value)}
+            placeholder="https://overclocker.dev/..."
+          />
+        </div>
+      )}
 
       <div>
         <label className="mb-1.5 block font-mono text-xs uppercase tracking-wide text-muted-foreground">

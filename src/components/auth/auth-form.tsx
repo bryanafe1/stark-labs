@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type InputHTMLAttributes } from "react";
+import { type InputHTMLAttributes } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import Link from "next/link";
 import { CheckCircle2, Loader2 } from "lucide-react";
@@ -11,6 +11,12 @@ import {
   signUpWithPassword,
   type AuthFormState,
 } from "@/server/actions/auth-actions";
+import {
+  requestPasswordReset,
+  resetPassword,
+  type RequestResetState,
+  type ResetState,
+} from "@/server/actions/password-reset";
 
 /* ------------------------------------------------------------------ */
 /* Primitives                                                          */
@@ -57,12 +63,6 @@ function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: st
   );
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-function validateEmail(value: string): string | undefined {
-  if (!value.trim()) return "Email is required.";
-  if (!EMAIL_RE.test(value)) return "Enter a valid email address.";
-  return undefined;
-}
 
 /* ------------------------------------------------------------------ */
 /* Sign in (email + password)                                          */
@@ -154,45 +154,76 @@ export function SignUpForm() {
 /* ------------------------------------------------------------------ */
 
 export function ForgotPasswordForm() {
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState<string | undefined>();
-  const [sent, setSent] = useState(false);
+  const [state, action] = useFormState<RequestResetState, FormData>(requestPasswordReset, {});
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    const next = validateEmail(email);
-    setError(next);
-    if (next) return;
-    setSent(true);
-  }
-
-  if (sent) {
+  if (state.sent) {
     return (
       <div className="flex flex-col items-center gap-3 py-4 text-center">
         <CheckCircle2 className="size-8 text-success" />
         <p className="text-sm text-foreground">
-          If an account exists, a reset link is on its way.
+          If an account exists, a reset link is on its way — check your inbox.
         </p>
-        <p className="break-all font-mono text-xs text-muted-foreground">{email}</p>
+        <p className="text-xs text-muted-foreground">The link expires in 1 hour.</p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-4">
+    <form action={action} noValidate className="space-y-4">
       <Field
         id="email"
+        name="email"
         label="Email"
         type="email"
         autoComplete="email"
         placeholder="you@company.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        error={error}
+        error={state.error}
       />
-      <Button type="submit" className="w-full">
-        Send reset link
-      </Button>
+      <SubmitButton label="Send reset link" pendingLabel="Sending…" />
+    </form>
+  );
+}
+
+export function ResetPasswordForm({ token }: { token: string }) {
+  const [state, action] = useFormState<ResetState, FormData>(resetPassword, {});
+
+  if (!token) {
+    return (
+      <p className="py-4 text-center text-sm text-destructive">
+        This reset link is missing its token. Request a new one from{" "}
+        <Link href="/forgot-password" className="underline">
+          forgot password
+        </Link>
+        .
+      </p>
+    );
+  }
+
+  if (state.ok) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-4 text-center">
+        <CheckCircle2 className="size-8 text-success" />
+        <p className="text-sm text-foreground">Your password has been reset.</p>
+        <Button asChild className="mt-1">
+          <Link href="/sign-in">Sign in</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <form action={action} noValidate className="space-y-4">
+      <input type="hidden" name="token" value={token} />
+      <Field
+        id="password"
+        name="password"
+        label="New password"
+        type="password"
+        autoComplete="new-password"
+        placeholder="At least 8 characters"
+        error={state.error}
+      />
+      <SubmitButton label="Reset password" pendingLabel="Resetting…" />
     </form>
   );
 }

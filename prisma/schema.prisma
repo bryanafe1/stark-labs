@@ -163,6 +163,7 @@ model User {
   signupCampaign       String?   // utm_campaign, when present
   signupReferrer       String?   // raw referrer URL at first touch
   signupLanding        String?   // first landing path
+  emailOptOut          Boolean   @default(false) // unsubscribed from broadcast/marketing email
   stripeCustomerId     String?   @unique
   stripeSubscriptionId String?   @unique
   currentPeriodEnd     DateTime? // access valid through this time
@@ -197,9 +198,24 @@ model User {
   lessonProgress  LessonProgress[]
   interviewSessions InterviewSession[]
   sessionCredits  SessionCredit[]
+  passwordResetTokens PasswordResetToken[]
 
   @@index([rankTier, overallElo])
   @@index([username])
+}
+
+/// Short-lived password-reset tokens. We store only a hash of the token; the
+/// raw token is emailed and never persisted. One-time use, 1-hour expiry.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 /// Per-user lesson progress — which interactive blocks a learner has completed,

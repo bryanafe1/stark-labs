@@ -46,8 +46,10 @@ export async function sendEmail(opts: {
   }
 }
 
+export const APP_EMAIL_URL = APP_URL;
+
 /** Branded, email-client-safe HTML shell (inline styles, light theme, indigo accent). */
-function layout(opts: {
+export function emailLayout(opts: {
   heading: string;
   body: string;
   cta?: { label: string; href: string };
@@ -80,7 +82,7 @@ function layout(opts: {
 
 export async function sendWelcomeEmail(user: { email: string; name?: string | null }): Promise<void> {
   const first = user.name?.trim().split(" ")[0] || "there";
-  const html = layout({
+  const html = emailLayout({
     heading: `Welcome, ${first} 👋`,
     body: `You're in. Overclocker is the fastest way to get interview-ready across engineering disciplines — deep, auto-graded practice plus an AI interviewer that talks through problems with you and scores you like a hiring manager.<br><br><strong>Your first mock interview is free</strong> — no card needed. It's the quickest way to see where you stand.`,
     cta: { label: "Start my free mock interview", href: `${APP_URL}/interview` },
@@ -95,7 +97,7 @@ export async function sendWelcomeEmail(user: { email: string; name?: string | nu
 }
 
 export async function sendPasswordResetEmail(user: { email: string }, resetUrl: string): Promise<void> {
-  const html = layout({
+  const html = emailLayout({
     heading: "Reset your password",
     body: `We got a request to reset the password for your Overclocker account. Click below to set a new one — the link expires in 1 hour. If you didn't request this, you can safely ignore this email.`,
     cta: { label: "Reset my password", href: resetUrl },

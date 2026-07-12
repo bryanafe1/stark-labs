@@ -35,6 +35,7 @@ export function BroadcastComposer({ counts }: { counts: Record<Audience, number>
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [ctaLabel, setCtaLabel] = useState("");
+  const [labelAutofilled, setLabelAutofilled] = useState(false); // false once the user types their own label
   const [linkChoice, setLinkChoice] = useState(""); // "" = no button, CUSTOM = custom URL, else a preset URL
   const [customUrl, setCustomUrl] = useState("");
   const [audience, setAudience] = useState<Audience>("all");
@@ -109,7 +110,10 @@ export function BroadcastComposer({ counts }: { counts: Record<Audience, number>
           <input
             className={inputCls}
             value={ctaLabel}
-            onChange={(e) => setCtaLabel(e.target.value)}
+            onChange={(e) => {
+              setCtaLabel(e.target.value);
+              setLabelAutofilled(false); // user took over the label
+            }}
             placeholder="Start my free mock interview"
           />
         </div>
@@ -124,7 +128,11 @@ export function BroadcastComposer({ counts }: { counts: Record<Audience, number>
               const v = e.target.value;
               setLinkChoice(v);
               const d = DESTINATIONS.find((x) => x.url === v);
-              if (d?.cta && !ctaLabel.trim()) setCtaLabel(d.cta); // pre-fill label
+              // Keep the label in sync with the destination until the user types their own.
+              if (d?.cta && (labelAutofilled || !ctaLabel.trim())) {
+                setCtaLabel(d.cta);
+                setLabelAutofilled(true);
+              }
             }}
           >
             {DESTINATIONS.map((d) => (

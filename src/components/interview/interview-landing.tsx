@@ -13,11 +13,14 @@ import { InterviewChat } from "./interview-chat";
 export function InterviewLanding({
   freeTrial,
   typedExhausted,
+  autoStart = false,
 }: {
   freeTrial: boolean;
   typedExhausted: boolean;
+  autoStart?: boolean;
 }) {
-  const [picked, setPicked] = useState(false);
+  // Quick-start (e.g. from the first-run funnel) skips the chooser entirely.
+  const [picked, setPicked] = useState(autoStart);
 
   if (picked) {
     return (
@@ -29,7 +32,7 @@ export function InterviewLanding({
         >
           <ArrowLeft className="size-4" /> Interview options
         </button>
-        <InterviewChat freeTrial={freeTrial} />
+        <InterviewChat freeTrial={freeTrial} autoStart={autoStart} />
       </div>
     );
   }

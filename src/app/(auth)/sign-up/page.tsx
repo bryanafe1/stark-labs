@@ -24,8 +24,8 @@ export default async function SignUpPage() {
       }}
     >
       <div className="space-y-4">
-        <GoogleButton label="Sign up with Google" />
-        {process.env.AUTH_GITHUB_ID && <GitHubButton label="Sign up with GitHub" />}
+        <GoogleButton label="Sign up with Google" next="/start" />
+        {process.env.AUTH_GITHUB_ID && <GitHubButton label="Sign up with GitHub" next="/start" />}
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="h-px flex-1 bg-border" />
           or

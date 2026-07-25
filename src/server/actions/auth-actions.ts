@@ -85,5 +85,5 @@ export async function signUpWithPassword(
     if (err instanceof AuthError) return { error: "Account created, but sign-in failed. Try signing in." };
     throw err;
   }
-  redirect("/dashboard");
+  redirect("/start"); // drop new users straight into the first-run funnel
 }

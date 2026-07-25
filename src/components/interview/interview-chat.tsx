@@ -27,8 +27,10 @@ const uid = () => `m${Date.now()}_${counter++}`;
 
 export function InterviewChat({
   freeTrial = false,
+  autoStart = false,
 }: {
   freeTrial?: boolean;
+  autoStart?: boolean;
 }) {
   const [phase, setPhase] = useState<"setup" | "live">("setup");
   const [limitReached, setLimitReached] = useState(false);
@@ -45,11 +47,21 @@ export function InterviewChat({
   const bottomRef = useRef<HTMLDivElement>(null);
   const seedRef = useRef(0); // per-session variation seed (fixed across turns)
   const finalizedRef = useRef(false); // grade + record the interview once
+  const startedRef = useRef(false); // quick-start guard (fire start() once)
   const [finalScore, setFinalScore] = useState<number | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Quick-start: skip the setup screen and begin immediately with defaults.
+  useEffect(() => {
+    if (autoStart && !startedRef.current) {
+      startedRef.current = true;
+      start();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
 
   async function streamTurn(history: Msg[]) {
     setStreaming(true);

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { MessageSquare, ClipboardCheck, ArrowRight, X } from "lucide-react";
+import { MessageSquare, ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const SEEN_KEY = "oc.onboarded.v1";
@@ -47,23 +47,18 @@ export function Onboarding({ show, name }: { show: boolean; name: string }) {
         </span>
         <h2 className="mt-4 text-2xl font-bold tracking-tight">Welcome, {name} 👋</h2>
         <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-          The fastest way to see where you stand: run your <span className="text-foreground">free</span> AI
-          mock interview. It talks through problems with you, probes your reasoning, and scores you like a
-          hiring manager — in about 5 minutes.
+          Let&apos;s get your first rep in — a quick problem, a mock interview, or a lesson. Pick one and
+          you&apos;re going in under a minute.
         </p>
 
         <Button asChild size="lg" className="mt-6 w-full" onClick={dismiss}>
-          <Link href="/interview">
-            Start my free mock interview
+          <Link href="/start">
+            Get started
             <ArrowRight className="size-4" />
           </Link>
         </Button>
 
         <div className="mt-3 flex items-center justify-center gap-4 text-xs text-muted-foreground">
-          <Link href="/practice" onClick={dismiss} className="inline-flex items-center gap-1 hover:text-foreground">
-            <ClipboardCheck className="size-3.5" /> Try a practice question
-          </Link>
-          <span className="text-border">·</span>
           <button type="button" onClick={dismiss} className="hover:text-foreground">
             I&apos;ll explore first
           </button>

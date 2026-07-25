@@ -8,7 +8,11 @@ import { FREE_INTERVIEW_TURNS } from "@/lib/interview";
 export const metadata: Metadata = { title: "Mock Interview" };
 export const dynamic = "force-dynamic";
 
-export default async function InterviewPage() {
+export default async function InterviewPage({
+  searchParams,
+}: {
+  searchParams: { start?: string };
+}) {
   const userId = await getCurrentUserId();
   const access = await getAccess(userId);
 
@@ -22,5 +26,14 @@ export default async function InterviewPage() {
     typedExhausted = (user?.freeInterviewTurns ?? 0) >= FREE_INTERVIEW_TURNS;
   }
 
-  return <InterviewLanding freeTrial={!access.paid} typedExhausted={typedExhausted} />;
+  // ?start=1 (from the first-run funnel) launches a typed interview immediately.
+  const autoStart = searchParams.start === "1" && !typedExhausted;
+
+  return (
+    <InterviewLanding
+      freeTrial={!access.paid}
+      typedExhausted={typedExhausted}
+      autoStart={autoStart}
+    />
+  );
 }

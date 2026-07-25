@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { signIn } from "@/auth";
 import { linkCreatorByEmail } from "@/lib/creator-link";
 import { sendWelcomeEmail } from "@/lib/email";
+import { isDemoEmail, ensureDemoUser, resetDemoActivity } from "@/lib/demo";
 
 export type AuthFormState = { error?: string };
 
@@ -33,6 +34,10 @@ export async function signInWithPassword(
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
 
+  const demo = isDemoEmail(parsed.data.email);
+  // Demo account: make sure it exists with the fixed password before we auth it.
+  if (demo) await ensureDemoUser();
+
   try {
     // redirect:false so a bad password returns an error instead of throwing a
     // redirect we'd have to special-case; we redirect manually on success.
@@ -40,6 +45,12 @@ export async function signInWithPassword(
   } catch (err) {
     if (err instanceof AuthError) return { error: "Invalid email or password." };
     throw err;
+  }
+
+  // Demo account: wipe it back to brand-new and replay the first-run funnel.
+  if (demo) {
+    await resetDemoActivity();
+    redirect("/start");
   }
   redirect("/dashboard");
 }

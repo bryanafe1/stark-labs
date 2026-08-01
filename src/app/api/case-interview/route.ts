@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { cookies } from "next/headers";
 import { buildCaseInterviewPrompt, type CaseConfig } from "@/lib/case-interview";
 import { getCurrentUserId } from "@/lib/auth";
 
@@ -51,12 +52,13 @@ export async function POST(req: Request) {
     return new Response("Invalid request body.", { status: 400 });
   }
 
-  // Access: a signed-in user, OR a valid private-link key. Keeps the hidden
-  // tool usable with no account while not being fully open to the world.
-  const validKey =
-    !!process.env.CASE_COACH_KEY && typeof body.key === "string" && body.key === process.env.CASE_COACH_KEY;
-  if (!userId && !validKey) {
-    return new Response("This case link is private — ask for a valid link or sign in.", { status: 401 });
+  // Access: a signed-in user, OR the password (via cookie from the gate, or ?k=
+  // key in the request). Keeps the hidden tool usable with no account.
+  const secret = process.env.CASE_COACH_KEY;
+  const validKey = !!secret && typeof body.key === "string" && body.key === secret;
+  const cookieOk = !!secret && (await cookies()).get("case_coach")?.value === secret;
+  if (!userId && !validKey && !cookieOk) {
+    return new Response("This case tool is private — enter the access password.", { status: 401 });
   }
 
   const { messages, config } = body;

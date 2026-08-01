@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Briefcase, Target, Calculator, LineChart, MessagesSquare } from "lucide-react";
 import { auth } from "@/auth";
-import { GoogleButton } from "@/components/auth/google-button";
-import { GitHubButton } from "@/components/auth/github-button";
 import { CaseChat } from "@/components/case/case-chat";
+import { CaseGate } from "@/components/case/case-gate";
 
 // Hidden, unlisted offering — not linked in nav, not indexed. Shared by URL.
 export const metadata: Metadata = {
@@ -19,10 +19,12 @@ export default async function CaseCoachPage({
 }) {
   const session = await auth();
   const signedIn = !!session?.user;
-  // Private-link access: ?k=<CASE_COACH_KEY> lets people use it with no account.
+  const secret = process.env.CASE_COACH_KEY;
+  // Access with no account: the password cookie, or ?k=<password> in the URL.
   const key = typeof searchParams.k === "string" ? searchParams.k : undefined;
-  const hasKey = !!key && !!process.env.CASE_COACH_KEY && key === process.env.CASE_COACH_KEY;
-  const canUse = signedIn || hasKey;
+  const hasKey = !!secret && key === secret;
+  const cookieOk = !!secret && cookies().get("case_coach")?.value === secret;
+  const canUse = signedIn || hasKey || cookieOk;
 
   return (
     <div className="min-h-screen bg-background">
@@ -60,23 +62,7 @@ export default async function CaseCoachPage({
 
         {/* Tool or sign-in */}
         <div className="mt-10">
-          {canUse ? (
-            <CaseChat accessKey={hasKey ? key : undefined} />
-          ) : (
-            <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-6 text-center">
-              <p className="text-sm font-semibold text-foreground">Start a case in 10 seconds</p>
-              <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-                Sign in and you&apos;ll be dropped straight into a live case. No setup.
-              </p>
-              <div className="mx-auto mt-4 max-w-xs space-y-2">
-                <GoogleButton label="Sign in with Google" next="/case-coach" />
-                {process.env.AUTH_GITHUB_ID && (
-                  <GitHubButton label="Sign in with GitHub" next="/case-coach" />
-                )}
-              </div>
-              <p className="mt-3 text-xs text-muted-foreground">Free to try. No card needed.</p>
-            </div>
-          )}
+          {canUse ? <CaseChat accessKey={hasKey ? key : undefined} /> : <CaseGate />}
         </div>
       </main>
     </div>

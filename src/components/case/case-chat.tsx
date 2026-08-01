@@ -26,7 +26,7 @@ const uid = () => `c${Date.now()}_${counter++}`;
 const selectCls =
   "w-full appearance-none rounded-lg border border-input bg-background px-3 py-2 pr-9 text-sm outline-none ring-ring transition focus-visible:ring-2";
 
-export function CaseChat() {
+export function CaseChat({ accessKey }: { accessKey?: string }) {
   const [phase, setPhase] = useState<"setup" | "live">("setup");
   const [config, setConfig] = useState<CaseConfig>({
     caseType: "mixed",
@@ -54,7 +54,11 @@ export function CaseChat() {
       const res = await fetch("/api/case-interview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history.map(({ role, content }) => ({ role, content })), config }),
+        body: JSON.stringify({
+          messages: history.map(({ role, content }) => ({ role, content })),
+          config,
+          key: accessKey,
+        }),
       });
       if (!res.ok || !res.body) {
         const detail = await res.text().catch(() => "");

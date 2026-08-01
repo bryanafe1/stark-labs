@@ -12,9 +12,17 @@ export const metadata: Metadata = {
 };
 export const dynamic = "force-dynamic";
 
-export default async function CaseCoachPage() {
+export default async function CaseCoachPage({
+  searchParams,
+}: {
+  searchParams: { k?: string };
+}) {
   const session = await auth();
   const signedIn = !!session?.user;
+  // Private-link access: ?k=<CASE_COACH_KEY> lets people use it with no account.
+  const key = typeof searchParams.k === "string" ? searchParams.k : undefined;
+  const hasKey = !!key && !!process.env.CASE_COACH_KEY && key === process.env.CASE_COACH_KEY;
+  const canUse = signedIn || hasKey;
 
   return (
     <div className="min-h-screen bg-background">
@@ -52,8 +60,8 @@ export default async function CaseCoachPage() {
 
         {/* Tool or sign-in */}
         <div className="mt-10">
-          {signedIn ? (
-            <CaseChat />
+          {canUse ? (
+            <CaseChat accessKey={hasKey ? key : undefined} />
           ) : (
             <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-6 text-center">
               <p className="text-sm font-semibold text-foreground">Start a case in 10 seconds</p>

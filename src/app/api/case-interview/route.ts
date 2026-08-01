@@ -14,6 +14,7 @@ interface ChatMessage {
 interface CaseRequest {
   messages: ChatMessage[];
   config: CaseConfig;
+  key?: string; // private-link access key (lets people use it without an account)
 }
 
 // Cost guardrails — bounded history + output per turn.
@@ -41,15 +42,21 @@ export async function POST(req: Request) {
     });
   }
 
-  // Auth-gated so the hidden tool isn't fully open. Any signed-in user may use it.
   const userId = await getCurrentUserId();
-  if (!userId) return new Response("Sign in to start a case interview.", { status: 401 });
 
   let body: CaseRequest;
   try {
     body = (await req.json()) as CaseRequest;
   } catch {
     return new Response("Invalid request body.", { status: 400 });
+  }
+
+  // Access: a signed-in user, OR a valid private-link key. Keeps the hidden
+  // tool usable with no account while not being fully open to the world.
+  const validKey =
+    !!process.env.CASE_COACH_KEY && typeof body.key === "string" && body.key === process.env.CASE_COACH_KEY;
+  if (!userId && !validKey) {
+    return new Response("This case link is private — ask for a valid link or sign in.", { status: 401 });
   }
 
   const { messages, config } = body;
